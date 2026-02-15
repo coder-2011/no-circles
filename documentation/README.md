@@ -35,7 +35,10 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/lib-schemas.md`
 - `files/drizzle-config.md`
 - `files/db-migrations.md`
+- `files/eslint-config.md`
 - `files/tests-onboarding.md`
+- `files/tests-inbound-webhook-route.md`
+- `files/tests-memory-processors.md`
 - `files/vitest-config.md`
 - `files/app-api-webhooks-resend-inbound-route.md`
 - `files/lib-memory-contract.md`
