@@ -4,7 +4,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 
 ## Structure
 
-- `architecture/`: system-level explanations and end-to-end flows
+- `subsystems/`: subsystem-level implementation notes and contracts
 - `files/`: file-by-file reference docs for core app modules, routes, and jobs
 - `appendix/`: glossary, setup playbooks, and reference material
 
@@ -12,15 +12,27 @@ This folder is the organized, source-of-truth documentation for the personalized
 
 - `vision.md`: product goals, scope boundaries, and editorial policy
 - `architecture.md`: stack decisions, data model, system flows, and API contracts
+- `subsystems/db-and-onboarding.md`: current DB + onboarding implementation status
 
 ## Suggested Reading Order
 
 1. `vision.md`
 2. `architecture.md`
-3. `architecture/overview.md` (when added)
-4. `architecture/agent-pipeline.md` (when added)
-5. `architecture/api-contracts.md` (when added)
-6. `appendix/glossary.md` (when added)
+3. `subsystems/db-and-onboarding.md`
+4. `files/app-api-onboarding-route.md`
+5. `files/lib-db-schema.md`
+6. `appendix/glossary.md`
+
+## Current File Docs
+
+- `files/app-api-onboarding-route.md`
+- `files/lib-db-client.md`
+- `files/lib-db-schema.md`
+- `files/lib-schemas.md`
+- `files/drizzle-config.md`
+- `files/db-migrations.md`
+- `files/tests-onboarding.md`
+- `files/vitest-config.md`
 
 ## Conventions
 
