@@ -12,6 +12,7 @@ type GenerateMemoryArgs = {
 };
 
 async function callMemoryModel(_args: GenerateMemoryArgs): Promise<string> {
+  void _args;
   // Placeholder for future Claude integration.
   throw new Error("MODEL_NOT_CONFIGURED");
 }

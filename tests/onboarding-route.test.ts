@@ -183,7 +183,8 @@ describe("POST /api/onboarding", () => {
       email: "session-email@example.com",
       timezone: "America/New_York",
       sendTimeLocal: "09:30",
-      interestMemoryText: "AI and coding."
+      interestMemoryText:
+        "PERSONALITY:\n- Curious learner\n\nACTIVE_INTERESTS:\n- AI and coding\n\nSUPPRESSED_INTERESTS:\n-\n\nRECENT_FEEDBACK:\n- Initialized from onboarding brain dump"
     });
   });
 

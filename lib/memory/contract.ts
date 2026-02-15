@@ -66,6 +66,47 @@ export function enforceWordCap(text: string, cap = MEMORY_WORD_CAP): string {
   return `${words.slice(0, cap).join(" ")}\n\n[TRUNCATED_TO_${cap}_WORDS]`;
 }
 
+function capSectionsToWordLimit(
+  sections: Record<MemoryHeader, string>,
+  cap = MEMORY_WORD_CAP
+): Record<MemoryHeader, string> {
+  const sectionWords = Object.fromEntries(
+    MEMORY_HEADERS.map((header) => [
+      header,
+      sections[header]
+        .split(/\s+/)
+        .map((word) => word.trim())
+        .filter(Boolean)
+    ])
+  ) as Record<MemoryHeader, string[]>;
+
+  const formattedWordCount = () =>
+    countWords(
+      formatSections(
+        Object.fromEntries(MEMORY_HEADERS.map((header) => [header, sectionWords[header].join(" ") || "-"])) as Record<
+          MemoryHeader,
+          string
+        >
+      )
+    );
+
+  while (formattedWordCount() > cap) {
+    const reducibleHeader = MEMORY_HEADERS
+      .filter((header) => sectionWords[header].length > 1)
+      .sort((a, b) => sectionWords[b].length - sectionWords[a].length)[0];
+
+    if (!reducibleHeader) {
+      break;
+    }
+
+    sectionWords[reducibleHeader].pop();
+  }
+
+  return Object.fromEntries(
+    MEMORY_HEADERS.map((header) => [header, sectionWords[header].join(" ") || "-"])
+  ) as Record<MemoryHeader, string>;
+}
+
 export function validateMemoryText(text: string):
   | { ok: true; memoryText: string }
   | { ok: false; reason: string } {
@@ -75,12 +116,12 @@ export function validateMemoryText(text: string):
     return { ok: false, reason: "Memory text is empty." };
   }
 
-  const capped = enforceWordCap(normalized, MEMORY_WORD_CAP);
-  const sections = parseSections(capped);
+  const sections = parseSections(normalized);
 
   if (!sections) {
     return { ok: false, reason: "Missing required memory headers." };
   }
 
-  return { ok: true, memoryText: formatSections(sections) };
+  const cappedSections = capSectionsToWordLimit(sections, MEMORY_WORD_CAP);
+  return { ok: true, memoryText: formatSections(cappedSections) };
 }

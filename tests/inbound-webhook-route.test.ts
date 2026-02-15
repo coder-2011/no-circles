@@ -20,13 +20,28 @@ const {
     reserveSucceeds: true
   };
 
+  type TransactionContext = {
+    insert: () => {
+      values: () => {
+        onConflictDoNothing: () => {
+          returning: () => Promise<Array<{ id: string }>>;
+        };
+      };
+    };
+    update: () => {
+      set: () => {
+        where: () => Promise<void>;
+      };
+    };
+  };
+
   const limit = vi.fn(async () => (state.user ? [state.user] : []));
   const where = vi.fn(() => ({ limit }));
   const from = vi.fn(() => ({ where }));
   const select = vi.fn(() => ({ from }));
 
-  const transaction = vi.fn(async (callback: (tx: any) => Promise<"ignored" | "updated">) => {
-    const tx = {
+  const transaction = vi.fn(async (callback: (tx: TransactionContext) => Promise<"ignored" | "updated">) => {
+    const tx: TransactionContext = {
       insert: vi.fn(() => ({
         values: vi.fn(() => ({
           onConflictDoNothing: vi.fn(() => ({
