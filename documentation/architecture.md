@@ -87,16 +87,16 @@ V1 intentionally excludes a manual regenerate endpoint.
 
 ### 1) Onboarding / Preferences
 - **Endpoint**: `POST /api/onboarding`
-- **Auth**: currently payload-driven identity (`email`) during `feature/db-and-onboarding`; OAuth session wiring lands in `feature/google-auth`.
+- **Auth**: authenticated session identity (Google OAuth via Supabase auth session).
 - **Purpose**: create/update user setup and initialize interest memory.
 - **Request schema (zod shape)**:
-  - `email: string`
   - `preferred_name: string`
   - `timezone: string`
   - `send_time_local: string` (HH:mm)
   - `brain_dump_text: string`
 - **Behavior**:
   - validates payload
+  - resolves authenticated session email for identity
   - creates or updates `users` row
   - sets `interest_memory_text = brain_dump_text` during onboarding
   - `preferred_name` is currently validated but not persisted in the minimal DB schema
