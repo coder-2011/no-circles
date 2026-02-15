@@ -27,3 +27,4 @@ Purpose: rolling execution log and handoff state to prevent context drift.
 [2026-02-15T09:45:03Z] | ATOMIC: One-shot implemented Drizzle schema for users/newsletter_items with FK, anti-repeat unique index, and user sent-at index per architecture contract.
 [2026-02-15T09:45:07Z] | ATOMIC: Fixed lint execution by migrating to ESLint CLI, adding flat config, replacing Tailwind require() with ESM import, and resolving warnings; npm run lint passes.
 [2026-02-15T09:48:01Z] | ATOMIC: Ran npm run lint after DB client/schema changes; lint passed with no reported errors.
+[2026-02-15T09:50:28Z] | ATOMIC: Added update-docs prompt to project and global Codex prompt folders for documentation sync workflow.
