@@ -47,6 +47,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/lib-webhooks-inbound-idempotency.md`
 - `files/lib-ai-memory-prompts.md`
 - `files/scripts-prune-inbound-idempotency.md`
+- `files/next-env.md`
 
 ## Conventions
 

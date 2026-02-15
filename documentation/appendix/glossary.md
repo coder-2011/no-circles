@@ -6,3 +6,4 @@
 - `drizzle-kit`: migration CLI for generating and applying schema SQL changes.
 - `migration journal`: drizzle metadata file tracking applied/generated migration entries.
 - `session identity`: onboarding identity mode where authenticated session user email is used as the only trusted identity source.
+- `next-env.d.ts`: Next.js-generated TypeScript reference file that can include route typing references from `.next/types`.
