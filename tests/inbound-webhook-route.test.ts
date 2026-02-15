@@ -142,6 +142,7 @@ describe("POST /api/webhooks/resend/inbound", () => {
     expect(response.status).toBe(200);
     const body = await response.json();
     expect(body).toEqual({ ok: true, status: "ignored" });
+    expect(mergeReplyIntoMemoryMock).not.toHaveBeenCalled();
   });
 
   it("returns ignored for empty text", async () => {

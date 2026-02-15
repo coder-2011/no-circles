@@ -86,8 +86,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true, status: "ignored" });
     }
 
-    const updatedMemory = await mergeReplyIntoMemory(user.interestMemoryText, inboundReplyText);
-
     const status = await db.transaction(async (tx) => {
       const inserted = await tx
         .insert(processedWebhooks)
@@ -98,6 +96,8 @@ export async function POST(request: Request) {
       if (inserted.length === 0) {
         return "ignored" as const;
       }
+
+      const updatedMemory = await mergeReplyIntoMemory(user.interestMemoryText, inboundReplyText);
 
       await tx
         .update(users)
