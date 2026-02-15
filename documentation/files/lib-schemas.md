@@ -14,3 +14,8 @@ Defines zod validation for API boundaries.
 
 ## `cronGenerateNextSchema`
 - Optional `run_at_utc` ISO datetime string.
+
+## `resendInboundWebhookSchema`
+- Validates inbound webhook payload body shape:
+  - `data.from` string
+  - `data.text` optional string (defaults to empty)
