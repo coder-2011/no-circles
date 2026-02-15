@@ -17,11 +17,13 @@ Implements foundational persistence and first write path for V1:
 ## Runtime Contract
 1. Request hits `POST /api/onboarding`.
 2. Payload validated with zod.
-3. Route upserts `users` by unique `email`.
+3. Route resolves authenticated user email from session.
+4. Route upserts `users` by unique authenticated email.
 4. Response returns `{ ok: true, user_id }`.
 
 Error cases:
 - invalid payload -> `400 INVALID_PAYLOAD`
+- missing auth session -> `401 UNAUTHORIZED`
 - DB failure -> `500 INTERNAL_ERROR`
 
 ## Data Model in Scope
@@ -34,5 +36,4 @@ Error cases:
   - index `newsletter_items(user_id, sent_at)`
 
 ## Known Transitional Decision
-- Onboarding currently accepts `email` in payload as identity source until OAuth session wiring is implemented in `feature/google-auth`.
 - `preferred_name` is validated at API boundary but not persisted in current minimal schema.
