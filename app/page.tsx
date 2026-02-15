@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getBrowserSupabaseClient } from "@/lib/auth/browser-client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 type AuthState = "loading" | "signed_in" | "signed_out" | "error";
 
@@ -10,13 +11,29 @@ export default function HomePage() {
   const [authState, setAuthState] = useState<AuthState>("loading");
   const [email, setEmail] = useState<string | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
-  const supabase = useMemo(() => {
+  const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
+
+  useEffect(() => {
     try {
-      return getBrowserSupabaseClient();
+      setSupabase(getBrowserSupabaseClient());
     } catch {
       setAuthState("error");
       setAuthError("Auth client is not configured. Add Supabase env vars.");
-      return null;
+    }
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const oauthErrorCode = params.get("error_code");
+
+    if (!oauthErrorCode) return;
+
+    if (oauthErrorCode === "bad_oauth_state") {
+      setAuthError(
+        "Google auth state expired. Retry sign-in in the same tab, and avoid refreshing during redirect."
+      );
+    } else {
+      setAuthError(`OAuth error: ${oauthErrorCode}`);
     }
   }, []);
 
@@ -77,10 +94,13 @@ export default function HomePage() {
 
   async function signOut() {
     if (!supabase) return;
-    const { error } = await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut({ scope: "local" });
     if (error) {
       setAuthError(error.message);
+      return;
     }
+
+    window.location.assign("/");
   }
 
   return (
