@@ -3,6 +3,18 @@
 ## Overview
 This system is a website-first, email-delivered personalized newsletter product. It uses a single Next.js codebase with a minimal persistent data model. Personalization is driven by one evolving text memory per user and a per-user sent URL history to prevent repeats.
 
+## Root Folder Structure
+- `app/`: Next.js application routes and API endpoints.
+- `components/`: reusable UI components for web surfaces.
+- `lib/`: shared logic (schemas, clients, utility helpers).
+- `db/`: database schema/migration/configuration assets.
+- `documentation/`: product, architecture, and subsystem docs.
+- `.codex/`: agent prompts, state logs, and durable learnings.
+- `tests/`: Vitest unit/integration tests.
+- `e2e/`: Playwright end-to-end tests.
+- `public/`: static assets served by the app.
+- `scripts/`: operational scripts (maintenance/backfill/setup helpers).
+
 ## Final Framework and Tooling Stack
 
 ### Core Application
