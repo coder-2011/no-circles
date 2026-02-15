@@ -26,9 +26,12 @@ This folder is the organized, source-of-truth documentation for the personalized
 ## Current File Docs
 
 - `files/app-api-onboarding-route.md`
+- `files/app-auth-callback-route.md`
+- `files/app-onboarding-page.md`
 - `files/lib-db-client.md`
 - `files/lib-db-schema.md`
 - `files/lib-auth-server-user.md`
+- `files/lib-auth-browser-client.md`
 - `files/lib-schemas.md`
 - `files/drizzle-config.md`
 - `files/db-migrations.md`

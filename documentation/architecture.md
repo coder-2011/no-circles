@@ -52,11 +52,11 @@ This system is a website-first, email-delivered personalized newsletter product.
 1. User signs in with OAuth (Google only in V1).
 2. User completes onboarding form:
    - one large brain-dump textbox (interests, what they are like, where they want to start, what they want to learn)
-   - email (temporary identity source until OAuth session wiring is merged)
    - preferred name (accepted at API boundary; not persisted in current minimal DB schema)
    - timezone
    - preferred daily send time
 3. Backend validates input and writes/updates `users`:
+   - derives identity from authenticated session email
    - initializes `interest_memory_text` from brain dump
    - stores send-time settings and identity fields
 4. User is marked ready for daily generation.
