@@ -52,11 +52,11 @@ This system is a website-first, email-delivered personalized newsletter product.
 1. User signs in with OAuth (Google only in V1).
 2. User completes onboarding form:
    - one large brain-dump textbox (interests, what they are like, where they want to start, what they want to learn)
-   - email (temporary identity source until OAuth session wiring is merged)
    - preferred name (accepted at API boundary; not persisted in current minimal DB schema)
    - timezone
    - preferred daily send time
 3. Backend validates input and writes/updates `users`:
+   - derives identity from authenticated session email
    - initializes `interest_memory_text` from brain dump
    - stores send-time settings and identity fields
 4. User is marked ready for daily generation.
@@ -87,16 +87,16 @@ V1 intentionally excludes a manual regenerate endpoint.
 
 ### 1) Onboarding / Preferences
 - **Endpoint**: `POST /api/onboarding`
-- **Auth**: currently payload-driven identity (`email`) during `feature/db-and-onboarding`; OAuth session wiring lands in `feature/google-auth`.
+- **Auth**: authenticated session identity (Google OAuth via Supabase auth session).
 - **Purpose**: create/update user setup and initialize interest memory.
 - **Request schema (zod shape)**:
-  - `email: string`
   - `preferred_name: string`
   - `timezone: string`
   - `send_time_local: string` (HH:mm)
   - `brain_dump_text: string`
 - **Behavior**:
   - validates payload
+  - resolves authenticated session email for identity
   - creates or updates `users` row
   - sets `interest_memory_text = brain_dump_text` during onboarding
   - `preferred_name` is currently validated but not persisted in the minimal DB schema
