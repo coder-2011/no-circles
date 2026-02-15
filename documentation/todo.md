@@ -8,10 +8,11 @@ Build a personalized daily newsletter system that:
 
 ## Current Status
 - `feature/db-and-onboarding`: merged.
-- Known follow-up gap: onboarding currently copies `brain_dump_text` directly into `interest_memory_text` (processor path not implemented yet).
+- `feature/google-auth`: merged.
+- `feature/inbound-reply-memory-update`: implemented on branch (processor-driven onboarding memory + inbound webhook memory updates + idempotency).
 
 ## Temporary -> Permanent Ownership Map
-- Temporary: onboarding memory is raw copy-through (`brain_dump_text` -> `interest_memory_text`).
+- Resolved: onboarding memory raw copy-through (`brain_dump_text` -> `interest_memory_text`) is replaced by processor output in PR 3.
   - Permanent owner PR: `feature/inbound-reply-memory-update` (PR 3).
   - Downstream rule: PRs 4+ must treat memory as opaque input and must not redefine memory format rules.
 - Temporary: onboarding identity was request-body based in early foundation.
@@ -22,7 +23,7 @@ Build a personalized daily newsletter system that:
 - Each PR owns one contract boundary and one integration seam.
 - If a PR depends on another PR’s contract, consume it; do not redesign it.
 - Put behavior changes in the earliest owning PR, not in downstream PRs.
-- PR 3 is in progress; do not move/expand its scope into other branches.
+- PR 3 contract is implemented on branch; do not re-scope PR 3 behavior into later branches.
 
 ## PR 1: DB + Onboarding Foundation
 - Branch: `feature/db-and-onboarding`
@@ -59,6 +60,7 @@ Build a personalized daily newsletter system that:
 
 ## PR 3: Inbound Reply Memory Update
 - Branch: `feature/inbound-reply-memory-update`
+- Status: implemented on branch, pending PR/merge
 - Primary objective:
   - implement processor-driven memory updates for both onboarding and inbound replies.
 - Frontend scope:
@@ -87,6 +89,8 @@ Build a personalized daily newsletter system that:
 
 ## PR 4: Cron Due-User Selector
 - Branch: `feature/cron-due-user-selector`
+- Dependency status:
+  - assumes PR 3 contracts are available (`interest_memory_text` canonicalization + inbound idempotent updates)
 - Primary objective:
   - create deterministic, one-user-per-tick scheduler entrypoint.
 - Frontend scope:
@@ -98,7 +102,8 @@ Build a personalized daily newsletter system that:
   - return `no_due_user` when queue empty.
 - Data and contracts:
   - maintain idempotent behavior under duplicate cron triggers.
-  - consume `interest_memory_text` as-is; non-goal: memory processor/format changes.
+  - consume `interest_memory_text` as opaque input; non-goal: memory processor/format changes.
+  - non-goal: changing inbound webhook verification/signature/idempotency behavior from PR 3.
 - Explicit non-goals:
   - no Exa discovery logic.
   - no content extraction logic.
@@ -246,3 +251,30 @@ Build a personalized daily newsletter system that:
 - small, reviewable commits
 - keep PR focused; split if scope grows too wide
 - before opening PR: `npm run lint`, `npm run test`, and relevant integration checks
+
+## Current User E2E Checklist (PR3 Baseline)
+1. Run app locally and expose webhook route publicly:
+  - `npm run dev`
+  - start tunnel to `localhost:3000` (for example ngrok)
+2. Configure env vars:
+  - `DATABASE_URL`
+  - `NEXT_PUBLIC_SUPABASE_URL`
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+  - `RESEND_WEBHOOK_SECRET`
+3. Ensure DB schema is up to date:
+  - migration `0001_sturdy_ion` applied (`processed_webhooks` exists)
+4. Complete real user onboarding:
+  - sign in with Google
+  - submit onboarding form
+  - verify canonical `interest_memory_text` was persisted for user
+5. Configure Resend inbound webhook:
+  - endpoint: `https://<public-host>/api/webhooks/resend/inbound`
+  - event type: `email.received` only
+6. Send a real reply email from onboarded user address:
+  - expected response path: `{ ok: true, status: "updated" }` when new event
+7. Verify DB outcomes:
+  - `users.interest_memory_text` updated once
+  - `processed_webhooks` row inserted with `provider='resend'` + unique `webhook_id`
+8. Replay same webhook event:
+  - expected response path: `{ ok: true, status: "ignored" }`
+  - verify no second memory mutation

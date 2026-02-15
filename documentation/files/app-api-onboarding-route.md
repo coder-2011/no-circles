@@ -17,11 +17,13 @@ Required request keys:
 2. Validate payload.
 3. Resolve authenticated user email from auth session.
 4. Return `401 UNAUTHORIZED` when session user is missing.
-5. Upsert row in `users` keyed by authenticated email.
-6. Set `interest_memory_text = brain_dump_text`.
+5. Transform `brain_dump_text` into canonical memory via onboarding processor.
+6. Upsert row in `users` keyed by authenticated email.
+7. Persist processor output to `interest_memory_text`.
 7. Return `{ ok: true, user_id }`.
 
 ## Error Envelope
 - `400` with `{ ok: false, error_code: "INVALID_PAYLOAD", ... }`
 - `401` with `{ ok: false, error_code: "UNAUTHORIZED", ... }`
+- `500` with `{ ok: false, error_code: "INTERNAL_ERROR", message: "Failed to process onboarding memory." }` when memory processor fails
 - `500` with `{ ok: false, error_code: "INTERNAL_ERROR", ... }`
