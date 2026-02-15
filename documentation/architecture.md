@@ -57,7 +57,7 @@ This system is a website-first, email-delivered personalized newsletter product.
    - preferred daily send time
 3. Backend validates input and writes/updates `users`:
    - derives identity from authenticated session email
-   - initializes `interest_memory_text` from brain dump
+   - transforms `brain_dump_text` into canonical memory text via onboarding processor
    - stores send-time settings and identity fields
 4. User is marked ready for daily generation.
 
@@ -73,7 +73,7 @@ This system is a website-first, email-delivered personalized newsletter product.
 1. User replies to newsletter email.
 2. Resend webhook posts inbound email to backend endpoint.
 3. Backend parses reply intent with a cheaper Claude model when possible.
-4. Parsed intent is merged into `users.interest_memory_text`.
+4. Parsed intent is merged into `users.interest_memory_text` with canonical memory validation and fallback.
 5. If the user does not reply, nothing is updated (system continues from existing memory).
 6. Suppression duration for topics is inferred from user language and model judgment (not a rigid fixed-duration rule).
 
@@ -98,7 +98,9 @@ V1 intentionally excludes a manual regenerate endpoint.
   - validates payload
   - resolves authenticated session email for identity
   - creates or updates `users` row
-  - sets `interest_memory_text = brain_dump_text` during onboarding
+  - routes `brain_dump_text` through onboarding memory processor
+  - persists canonical memory text (`PERSONALITY`, `ACTIVE_INTERESTS`, `SUPPRESSED_INTERESTS`, `RECENT_FEEDBACK`)
+  - enforces hard cap of `800` words on stored memory
   - `preferred_name` is currently validated but not persisted in the minimal DB schema
 - **Response**:
   - `{ ok: true, user_id: string }`
@@ -131,8 +133,9 @@ V1 intentionally excludes a manual regenerate endpoint.
   - loads current `interest_memory_text`
   - sends `{ current_interest_memory_text, inbound_reply_text }` to Claude with system prompt
   - Claude returns updated memory
+  - applies deterministic fallback memory formatter when model output is invalid/unavailable
   - saves updated `interest_memory_text`
-  - idempotent on provider message id
+  - idempotent on `svix-id` stored in `processed_webhooks(provider, webhook_id)`
 - **Response**:
   - `{ ok: true, status: "updated", user_id: string }`
   - or `{ ok: true, status: "ignored" }` (unknown sender/empty text/already processed)
@@ -193,8 +196,8 @@ Fields:
 - `interest_memory_text` (single evolving liquid profile)
 
 Behavior:
-- On onboarding, initial brain dump is saved into `interest_memory_text`.
-- On each inbound reply, parsed intent is merged into `interest_memory_text`.
+- On onboarding, processor output from `brain_dump_text` is saved into `interest_memory_text`.
+- On each inbound reply, processor output from `{ current_interest_memory_text, inbound_reply_text }` updates `interest_memory_text` once per unique webhook event.
 
 ### Table: `newsletter_items`
 Purpose: per-user sent-item history to prevent repeated URLs/titles.
@@ -210,6 +213,22 @@ Recommended constraints/indexes:
 - Index: (`user_id`, `sent_at`)
 - Unique: (`user_id`, `url`) for never-repeat behavior.
 - Retention cap: keep only the latest 100 sent URLs per user; older rows are pruned.
+
+### Table: `processed_webhooks`
+Purpose: inbound webhook replay guard for one-time memory updates.
+
+Fields:
+- `id` (primary key)
+- `provider`
+- `webhook_id`
+- `processed_at`
+
+Recommended constraints/indexes:
+- Unique: (`provider`, `webhook_id`) for idempotent webhook handling.
+- Index: (`processed_at`) for retention pruning.
+
+Retention policy:
+- prune rows older than 30 days.
 
 ## Runtime Flow with Minimal State
 1. Read `users.interest_memory_text`.

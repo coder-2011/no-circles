@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAuthenticatedUserEmail } from "@/lib/auth/server-user";
 import { db } from "@/lib/db/client";
 import { users } from "@/lib/db/schema";
+import { formatOnboardingMemory } from "@/lib/memory/processors";
 import { onboardingSchema } from "@/lib/schemas";
 
 export async function POST(request: Request) {
@@ -38,6 +39,16 @@ export async function POST(request: Request) {
   }
 
   const { timezone, send_time_local, brain_dump_text } = parsed.data;
+  let interestMemoryText = "";
+
+  try {
+    interestMemoryText = await formatOnboardingMemory(brain_dump_text);
+  } catch {
+    return NextResponse.json(
+      { ok: false, error_code: "INTERNAL_ERROR", message: "Failed to process onboarding memory." },
+      { status: 500 }
+    );
+  }
 
   try {
     const [upsertedUser] = await db
@@ -46,14 +57,14 @@ export async function POST(request: Request) {
         email: authenticatedEmail,
         timezone,
         sendTimeLocal: send_time_local,
-        interestMemoryText: brain_dump_text
+        interestMemoryText
       })
       .onConflictDoUpdate({
         target: users.email,
         set: {
           timezone,
           sendTimeLocal: send_time_local,
-          interestMemoryText: brain_dump_text
+          interestMemoryText
         }
       })
       .returning({ id: users.id });

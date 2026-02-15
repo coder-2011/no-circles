@@ -21,3 +21,9 @@ Protect onboarding input/route contract.
 - success path -> returns `{ ok: true, user_id }` and uses upsert chain
 - payload email spoofing ignored; authenticated session email is used
 - DB error path -> `500 INTERNAL_ERROR`
+- onboarding memory processor failure -> `500 INTERNAL_ERROR`
+- success path persists processor output (canonical memory), not raw `brain_dump_text`
+
+### Additional PR3 tests
+- `tests/memory-processors.test.ts`: canonical header validation, word-cap enforcement, fallback generation
+- `tests/inbound-webhook-route.test.ts`: signature rejection, replay ignore, blank reply ignore, valid one-time update
