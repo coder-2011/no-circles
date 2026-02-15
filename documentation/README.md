@@ -33,20 +33,34 @@ This folder is the organized, source-of-truth documentation for the personalized
 
 ## Current File Docs
 
+- `files/app-api-cron-generate-next-route.md`
 - `files/app-api-onboarding-route.md`
 - `files/app-auth-callback-route.md`
+- `files/app-globals-css.md`
+- `files/app-layout.md`
 - `files/app-onboarding-page.md`
+- `files/app-page.md`
+- `files/components-json.md`
 - `files/lib-db-client.md`
 - `files/lib-db-schema.md`
 - `files/lib-auth-server-user.md`
 - `files/lib-auth-browser-client.md`
 - `files/lib-schemas.md`
+- `files/lib-utils.md`
+- `files/next-config.md`
 - `files/drizzle-config.md`
 - `files/db-migrations.md`
+- `files/db-migration-0001-sturdy-ion.md`
+- `files/db-migration-meta-0001-snapshot.md`
+- `files/db-migration-meta-journal.md`
 - `files/eslint-config.md`
+- `files/postcss-config.md`
+- `files/tailwind-config.md`
 - `files/tests-onboarding.md`
+- `files/tests-onboarding-route.md`
 - `files/tests-inbound-webhook-route.md`
 - `files/tests-memory-processors.md`
+- `files/tsconfig.md`
 - `files/vitest-config.md`
 - `files/app-api-webhooks-resend-inbound-route.md`
 - `files/lib-memory-contract.md`
