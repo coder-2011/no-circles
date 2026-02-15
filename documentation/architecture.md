@@ -135,7 +135,7 @@ V1 intentionally excludes a manual regenerate endpoint.
   - Claude returns updated memory
   - applies deterministic fallback memory formatter when model output is invalid/unavailable
   - saves updated `interest_memory_text`
-  - idempotent on `svix-id` stored in `processed_webhooks(provider, webhook_id)`
+  - idempotent on provider message id when available (fallback `svix-id`) stored in `processed_webhooks(provider, webhook_id)`
 - **Response**:
   - `{ ok: true, status: "updated", user_id: string }`
   - or `{ ok: true, status: "ignored" }` (unknown sender/empty text/already processed)
