@@ -186,4 +186,55 @@ describe("POST /api/webhooks/resend/inbound", () => {
     expect(transactionMock).toHaveBeenCalledTimes(1);
     expect(testState.reservedWebhookKey).toBe("message:re_abc123");
   });
+
+  it("ignores replay when provider message id repeats even if svix-id changes", async () => {
+    getSvixHeadersMock
+      .mockReturnValueOnce({
+        svixId: "evt_one",
+        svixTimestamp: "1700000000",
+        svixSignature: "v1,signature"
+      })
+      .mockReturnValueOnce({
+        svixId: "evt_two",
+        svixTimestamp: "1700000001",
+        svixSignature: "v1,signature"
+      });
+
+    testState.reserveSucceeds = true;
+    const first = await POST(
+      new Request("http://localhost/api/webhooks/resend/inbound", {
+        method: "POST",
+        body: JSON.stringify({
+          data: {
+            email_id: "re_same_message_id",
+            from: "Naman <naman@example.com>",
+            text: "more economics"
+          }
+        })
+      })
+    );
+
+    expect(first.status).toBe(200);
+    expect(await first.json()).toEqual({ ok: true, status: "updated", user_id: "user-1" });
+    expect(testState.reservedWebhookKey).toBe("message:re_same_message_id");
+
+    testState.reserveSucceeds = false;
+    const second = await POST(
+      new Request("http://localhost/api/webhooks/resend/inbound", {
+        method: "POST",
+        body: JSON.stringify({
+          data: {
+            email_id: "re_same_message_id",
+            from: "Naman <naman@example.com>",
+            text: "more economics"
+          }
+        })
+      })
+    );
+
+    expect(second.status).toBe(200);
+    expect(await second.json()).toEqual({ ok: true, status: "ignored" });
+    expect(testState.reservedWebhookKey).toBe("message:re_same_message_id");
+    expect(mergeReplyIntoMemoryMock).toHaveBeenCalledTimes(1);
+  });
 });
