@@ -21,3 +21,10 @@ export const onboardingSchema = z.object({
 export const cronGenerateNextSchema = z.object({
   run_at_utc: z.string().datetime().optional()
 });
+
+export const resendInboundWebhookSchema = z.object({
+  data: z.object({
+    from: z.string().min(1),
+    text: z.string().optional().default("")
+  })
+});
