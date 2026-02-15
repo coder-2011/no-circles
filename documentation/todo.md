@@ -10,6 +10,20 @@ Build a personalized daily newsletter system that:
 - `feature/db-and-onboarding`: merged.
 - Known follow-up gap: onboarding currently copies `brain_dump_text` directly into `interest_memory_text` (processor path not implemented yet).
 
+## Temporary -> Permanent Ownership Map
+- Temporary: onboarding memory is raw copy-through (`brain_dump_text` -> `interest_memory_text`).
+  - Permanent owner PR: `feature/inbound-reply-memory-update` (PR 3).
+  - Downstream rule: PRs 4+ must treat memory as opaque input and must not redefine memory format rules.
+- Temporary: onboarding identity was request-body based in early foundation.
+  - Permanent owner PR: `feature/google-auth` (PR 2).
+  - Status: resolved in PR 2.
+
+## Delegation Guardrails (No Overlap)
+- Each PR owns one contract boundary and one integration seam.
+- If a PR depends on another PR’s contract, consume it; do not redesign it.
+- Put behavior changes in the earliest owning PR, not in downstream PRs.
+- PR 3 is in progress; do not move/expand its scope into other branches.
+
 ## PR 1: DB + Onboarding Foundation
 - Branch: `feature/db-and-onboarding`
 - Status: merged
@@ -84,6 +98,12 @@ Build a personalized daily newsletter system that:
   - return `no_due_user` when queue empty.
 - Data and contracts:
   - maintain idempotent behavior under duplicate cron triggers.
+  - consume `interest_memory_text` as-is; non-goal: memory processor/format changes.
+- Explicit non-goals:
+  - no Exa discovery logic.
+  - no content extraction logic.
+  - no summary generation logic.
+  - no send/history persistence writes.
 - Tests required:
   - picks one due user.
   - returns `no_due_user` when none due.
@@ -104,6 +124,11 @@ Build a personalized daily newsletter system that:
   - preserve enough metadata for downstream ranking.
 - Data and contracts:
   - consistent candidate object shape for next pipeline stage.
+  - treat scheduler selection as precondition (from PR 4), do not re-implement due-user logic.
+- Explicit non-goals:
+  - no extraction/fetch fallback logic.
+  - no model summarization logic.
+  - no email send logic.
 - Tests required:
   - topic derivation behavior on representative memory text.
   - dedupe logic correctness.
@@ -123,6 +148,10 @@ Build a personalized daily newsletter system that:
   - normalize extracted output shape.
 - Data and contracts:
   - extraction output should include URL, title (if available), and body text.
+  - consume discovery candidates from PR 5, do not alter topic/discovery ranking rules.
+- Explicit non-goals:
+  - no summary-writing prompts.
+  - no email send/persistence behavior.
 - Tests required:
   - success on standard HTML page.
   - fallback path invoked on failure case.
@@ -142,6 +171,10 @@ Build a personalized daily newsletter system that:
   - enforce style rules: neutral, concise, source-grounded.
 - Data and contracts:
   - output shape locked for email renderer.
+  - consume extraction output from PR 6, do not change extraction transport/fallback policy.
+- Explicit non-goals:
+  - no Resend send integration.
+  - no newsletter history pruning logic.
 - Tests required:
   - schema validation for model output.
   - rejection/regeneration behavior for malformed outputs.
@@ -161,6 +194,7 @@ Build a personalized daily newsletter system that:
   - prune history to retention target (latest 100 URLs/user).
 - Data and contracts:
   - send result and persistence outcome must be observable in logs.
+  - consume summary item shape from PR 7, do not alter summary contract.
 - Tests required:
   - send success path persists history.
   - duplicate URL conflict handled safely.
@@ -178,6 +212,8 @@ Build a personalized daily newsletter system that:
   - integration tests for cron selection, memory update, and send pipeline seams.
 - Data and contracts:
   - test fixtures and mocks standardized across providers.
+- Explicit non-goals:
+  - no product behavior changes unless required to unblock tests.
 - Tests required:
   - onboarding -> generation trigger -> send/history write smoke path.
   - replay/idempotency assertions where possible.
@@ -197,6 +233,8 @@ Build a personalized daily newsletter system that:
   - alert-ready error codes and clear retry boundaries.
 - Data and contracts:
   - standardized error envelope + log fields across routes/jobs.
+- Explicit non-goals:
+  - no major feature redesign; reliability/observability only.
 - Tests required:
   - env missing -> startup fails clearly.
   - provider outage -> graceful error, no silent corruption.
