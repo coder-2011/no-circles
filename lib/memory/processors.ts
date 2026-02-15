@@ -20,6 +20,16 @@ const MEMORY_MODEL_RETRIES = 2;
 const MAX_RECENT_FEEDBACK_LINES = 8;
 const SUPPRESSED_INTEREST_REGEX = /\b(less|avoid|mute|stop|not interested|don't want|no more)\b/i;
 
+function logMemoryEvent(level: "info" | "warn", event: string, details: Record<string, unknown>) {
+  const payload = JSON.stringify({ subsystem: "memory_processors", event, ...details });
+  if (level === "warn") {
+    console.warn(payload);
+    return;
+  }
+
+  console.info(payload);
+}
+
 function extractTextContent(value: unknown): string {
   if (!value || typeof value !== "object") {
     throw new Error("INVALID_MODEL_RESPONSE");
@@ -273,13 +283,25 @@ async function generateWithFallback(prompt: string, fallbackMemory: string): Pro
       const validated = validateMemoryText(generated);
 
       if (validated.ok) {
+        logMemoryEvent("info", "onboarding_model_success", { attempt: attempt + 1 });
         return validated.memoryText;
       }
-    } catch {
-      // Retry once before fallback.
+
+      logMemoryEvent("warn", "onboarding_model_invalid_output", {
+        attempt: attempt + 1,
+        reason: validated.reason
+      });
+    } catch (error) {
+      logMemoryEvent("warn", "onboarding_model_error", {
+        attempt: attempt + 1,
+        reason: error instanceof Error ? error.message : "UNKNOWN_ERROR"
+      });
     }
   }
 
+  logMemoryEvent("warn", "onboarding_fallback_used", {
+    reason: "model_unavailable_or_invalid_output"
+  });
   return fallbackMemory;
 }
 
@@ -296,6 +318,10 @@ async function generateReplyMemoryWithFallback(
       const parsedOps = memoryUpdateOpsSchema.safeParse(parsedJson);
 
       if (!parsedOps.success) {
+        logMemoryEvent("warn", "reply_model_schema_invalid", {
+          attempt: attempt + 1,
+          issue_count: parsedOps.error.issues.length
+        });
         continue;
       }
 
@@ -303,13 +329,25 @@ async function generateReplyMemoryWithFallback(
       const validated = validateMemoryText(merged);
 
       if (validated.ok) {
+        logMemoryEvent("info", "reply_model_success", { attempt: attempt + 1 });
         return validated.memoryText;
       }
-    } catch {
-      // Retry once before fallback.
+
+      logMemoryEvent("warn", "reply_model_merge_invalid", {
+        attempt: attempt + 1,
+        reason: validated.reason
+      });
+    } catch (error) {
+      logMemoryEvent("warn", "reply_model_error", {
+        attempt: attempt + 1,
+        reason: error instanceof Error ? error.message : "UNKNOWN_ERROR"
+      });
     }
   }
 
+  logMemoryEvent("warn", "reply_fallback_used", {
+    reason: "model_unavailable_or_invalid_output"
+  });
   return fallbackMemory;
 }
 

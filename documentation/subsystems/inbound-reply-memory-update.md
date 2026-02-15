@@ -28,6 +28,11 @@ Implements PR3 memory processing and inbound webhook update safety:
 7. Valid events reserve idempotency key in `processed_webhooks` using provider message id when present (`provider + message:*`), else fallback event id (`provider + event:svix-id`).
 8. If key already exists, route returns `{ ok: true, status: "ignored" }`.
 9. If key is new, route updates `users.interest_memory_text` once and returns `updated`.
+10. Reply memory update path expects model JSON ops, validates via zod, applies deterministic merge rules, and falls back on invalid/unavailable model outputs.
+
+## Operational Notes
+- Memory processor emits lightweight structured logs for model success/failure/schema-invalid/fallback events.
+- This keeps fallback behavior measurable without introducing heavy observability infrastructure.
 
 ## Data Model in Scope
 - `users.interest_memory_text`
