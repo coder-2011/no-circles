@@ -124,6 +124,7 @@ Build a website-first, personalized daily newsletter system that curates 10 high
 - No destructive git operations unless explicitly requested.
 - `git rm` is allowed when files are intentionally removed as part of the scoped change.
 - No amend unless asked.
+- Never use `git add .`; use `git add -A` or explicit pathspecs.
 
 ## Just Command Policy
 - Prefer existing `just` commands when available for repetitive workflows.

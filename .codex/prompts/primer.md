@@ -1,4 +1,4 @@
-Prime yourself for this repository so you can implement changes at a high professional standard (senior research-engineer level quality and rigor), while staying efficient.
+Prime yourself for this repositoryefficient so you can implement changes at a high professional standard (senior research-engineer level quality and rigor), while staying .
 
 Be careful not to over-read. Use only the context needed for the current task.
 

@@ -36,3 +36,5 @@ Purpose: rolling execution log and handoff state to prevent context drift.
 [2026-02-15T10:15:17Z] | ATOMIC: Re-verified one-shot changes: lint/test pass; summarized exact test coverage and remaining edge-case gaps; confirmed migration files exist.
 [2026-02-15T10:15:42Z] | ATOMIC: Completed review of first-slice implementation; identified contract gap and test coverage gaps, with lint/test results and build env blocker noted.
 [2026-02-15T10:16:12Z] | ATOMIC: Expanded onboarding edge-case coverage (malformed JSON, DB failure path, strict time/boundary validations); lint and tests pass (12 tests).
+[2026-02-15T10:20:46Z] | ATOMIC: Updated documentation to mirror db/onboarding implementation: added subsystem docs, file docs, glossary, and reconciled architecture/README contracts with current schema/API.
+[2026-02-15T10:29:49Z] | ATOMIC: Added documentation/todo.md with PR-by-PR implementation roadmap and clarified PR #1 is open (not merged).

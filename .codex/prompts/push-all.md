@@ -12,15 +12,17 @@ Requirements:
 4. Write a reasonable commit message based on the actual diff content (not generic).
    - Prefer concise, descriptive, action-oriented wording.
    - If multiple areas changed, summarize the common intent.
-5. Create one commit.
+5. Create commits grouped by topic/scope (one commit per topic changed).
 6. Push to the same branch currently checked out.
 7. Return:
    - branch name
-   - commit hash
-   - commit message
+   - commit hashes
+   - commit messages
    - pushed ref
 
 Constraints:
+- Never use `git add .`.
+- Use `git add -A` or explicit pathspecs instead.
 - Do not switch branches.
 - Do not amend existing commits.
 - Do not discard or revert local changes.
