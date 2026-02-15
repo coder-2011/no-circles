@@ -22,3 +22,6 @@ pnpm-debug.log*
 .DS_Store
 coverage/
 playwright-report/
+
+# local agent state
+.codex/STATE.md
