@@ -2,12 +2,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const {
   getAuthenticatedUserEmailMock,
+  formatOnboardingMemoryMock,
   returningMock,
   onConflictDoUpdateMock,
   valuesMock,
   insertMock
 } = vi.hoisted(() => {
   const getAuthenticatedUserEmail = vi.fn();
+  const formatOnboardingMemory = vi.fn();
   const returning = vi.fn();
   const onConflictDoUpdate = vi.fn(() => ({ returning }));
   const values = vi.fn(() => ({ onConflictDoUpdate }));
@@ -15,6 +17,7 @@ const {
 
   return {
     getAuthenticatedUserEmailMock: getAuthenticatedUserEmail,
+    formatOnboardingMemoryMock: formatOnboardingMemory,
     returningMock: returning,
     onConflictDoUpdateMock: onConflictDoUpdate,
     valuesMock: values,
@@ -24,6 +27,10 @@ const {
 
 vi.mock("@/lib/auth/server-user", () => ({
   getAuthenticatedUserEmail: getAuthenticatedUserEmailMock
+}));
+
+vi.mock("@/lib/memory/processors", () => ({
+  formatOnboardingMemory: formatOnboardingMemoryMock
 }));
 
 vi.mock("@/lib/db/client", () => ({
@@ -45,6 +52,10 @@ describe("POST /api/onboarding", () => {
   beforeEach(() => {
     getAuthenticatedUserEmailMock.mockClear();
     getAuthenticatedUserEmailMock.mockResolvedValue("session-user@example.com");
+    formatOnboardingMemoryMock.mockClear();
+    formatOnboardingMemoryMock.mockResolvedValue(
+      "PERSONALITY:\n- Curious learner\n\nACTIVE_INTERESTS:\n- AI and coding\n\nSUPPRESSED_INTERESTS:\n-\n\nRECENT_FEEDBACK:\n- Initialized from onboarding brain dump"
+    );
     insertMock.mockClear();
     valuesMock.mockClear();
     onConflictDoUpdateMock.mockClear();
@@ -139,7 +150,8 @@ describe("POST /api/onboarding", () => {
       email: "naman@example.com",
       timezone: "America/New_York",
       sendTimeLocal: "09:30",
-      interestMemoryText: "AI and coding."
+      interestMemoryText:
+        "PERSONALITY:\n- Curious learner\n\nACTIVE_INTERESTS:\n- AI and coding\n\nSUPPRESSED_INTERESTS:\n-\n\nRECENT_FEEDBACK:\n- Initialized from onboarding brain dump"
     });
     expect(valuesMock).toHaveBeenCalledTimes(1);
     expect(onConflictDoUpdateMock).toHaveBeenCalledTimes(1);
@@ -201,5 +213,32 @@ describe("POST /api/onboarding", () => {
       error_code: "INTERNAL_ERROR",
       message: "Failed to persist onboarding data."
     });
+  });
+
+  it("returns 500 when onboarding memory processing fails", async () => {
+    getAuthenticatedUserEmailMock.mockResolvedValueOnce("naman@example.com");
+    formatOnboardingMemoryMock.mockRejectedValueOnce(new Error("model offline"));
+
+    const request = new Request("http://localhost/api/onboarding", {
+      method: "POST",
+      body: JSON.stringify({
+        preferred_name: "Naman",
+        timezone: "America/New_York",
+        send_time_local: "09:30",
+        brain_dump_text: "AI and coding."
+      }),
+      headers: { "content-type": "application/json" }
+    });
+
+    const response = await POST(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(body).toEqual({
+      ok: false,
+      error_code: "INTERNAL_ERROR",
+      message: "Failed to process onboarding memory."
+    });
+    expect(insertMock).not.toHaveBeenCalled();
   });
 });
