@@ -3,7 +3,6 @@ import { onboardingSchema } from "@/lib/schemas";
 
 describe("onboardingSchema", () => {
   const basePayload = {
-    email: "naman@example.com",
     preferred_name: "Naman",
     timezone: "America/New_York",
     send_time_local: "09:30",
@@ -15,9 +14,9 @@ describe("onboardingSchema", () => {
     expect(parsed.success).toBe(true);
   });
 
-  it("rejects invalid email", () => {
-    const parsed = onboardingSchema.safeParse({ ...basePayload, email: "not-an-email" });
-    expect(parsed.success).toBe(false);
+  it("accepts payload with optional extra email field", () => {
+    const parsed = onboardingSchema.safeParse({ ...basePayload, email: "not-trusted@example.com" });
+    expect(parsed.success).toBe(true);
   });
 
   it("rejects invalid timezone", () => {
