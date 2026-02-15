@@ -21,6 +21,8 @@ Requirements:
    - pushed ref
 
 Constraints:
+- Never use `git add .`.
+- Use `git add -A` or explicit pathspecs instead.
 - Do not switch branches.
 - Do not amend existing commits.
 - Do not discard or revert local changes.
