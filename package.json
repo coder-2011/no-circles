@@ -35,7 +35,7 @@
     "@types/react": "^19.0.2",
     "@types/react-dom": "^19.0.2",
     "autoprefixer": "^10.4.20",
-    "drizzle-kit": "^0.18.1",
+    "drizzle-kit": "^0.31.9",
     "eslint": "^9.17.0",
     "eslint-config-next": "^15.1.6",
     "playwright": "^1.49.1",

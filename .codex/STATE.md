@@ -28,3 +28,11 @@ Purpose: rolling execution log and handoff state to prevent context drift.
 [2026-02-15T09:45:07Z] | ATOMIC: Fixed lint execution by migrating to ESLint CLI, adding flat config, replacing Tailwind require() with ESM import, and resolving warnings; npm run lint passes.
 [2026-02-15T09:48:01Z] | ATOMIC: Ran npm run lint after DB client/schema changes; lint passed with no reported errors.
 [2026-02-15T09:50:28Z] | ATOMIC: Added update-docs prompt to project and global Codex prompt folders for documentation sync workflow.
+[2026-02-15T10:01:06Z] | ATOMIC: Provided local commands for drizzle migration workflow and clarified drizzle-kit legacy update vs pg driver update.
+[2026-02-15T10:07:16Z] | ATOMIC: Clarified that interest_memory_text is in users table and explained discovery role in generation pipeline vs history storage.
+[2026-02-15T10:10:18Z] | ATOMIC: Pruned schema per user request (removed users preferred_name/created_at/updated_at and newsletter_items position/is_discovery), removed stale migrations, and revalidated lint/tests.
+[2026-02-15T10:10:51Z] | ATOMIC: Added minimal drizzle migrations journal file (db/migrations/meta/_journal.json) to unblock drizzle-kit generate after migration cleanup.
+[2026-02-15T10:12:06Z] | ATOMIC: Diagnosed drizzle migrate SSL failure (SELF_SIGNED_CERT_IN_CHAIN) and provided DATABASE_URL sslmode=no-verify workaround for local migration.
+[2026-02-15T10:15:17Z] | ATOMIC: Re-verified one-shot changes: lint/test pass; summarized exact test coverage and remaining edge-case gaps; confirmed migration files exist.
+[2026-02-15T10:15:42Z] | ATOMIC: Completed review of first-slice implementation; identified contract gap and test coverage gaps, with lint/test results and build env blocker noted.
+[2026-02-15T10:16:12Z] | ATOMIC: Expanded onboarding edge-case coverage (malformed JSON, DB failure path, strict time/boundary validations); lint and tests pass (12 tests).
