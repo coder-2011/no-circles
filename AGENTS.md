@@ -34,6 +34,16 @@ Build a website-first, personalized daily newsletter system that curates 10 high
 - `public/`: static assets.
 - `scripts/`: operational helper scripts.
 
+## Documentation Structure Policy (Required)
+- Organize `documentation/` with these subfolders:
+  - `documentation/subsystems/`
+  - `documentation/files/`
+  - `documentation/appendix/`
+- For each subsystem defined in architecture/planning, create and maintain a dedicated markdown doc under `documentation/subsystems/` describing purpose, contracts, flow, and implementation notes.
+- For every code file created in the project, create and maintain a corresponding markdown reference doc under `documentation/files/` explaining what the file does and why it exists.
+- Keep `documentation/vision.md` and `documentation/architecture.md` as top-level source-of-truth docs, and ensure subsystem/file docs stay aligned with them.
+- Use `documentation/appendix/` for key vocabulary, core concepts, and shared definitions used across the project.
+
 ## Reasoning and Explanations
 - Explanations: clarity + truthfulness first; no motivational framing.
 - Start from known facts + explicit assumptions; build from first principles.

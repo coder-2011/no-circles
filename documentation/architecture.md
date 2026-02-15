@@ -52,12 +52,13 @@ This system is a website-first, email-delivered personalized newsletter product.
 1. User signs in with OAuth (Google only in V1).
 2. User completes onboarding form:
    - one large brain-dump textbox (interests, what they are like, where they want to start, what they want to learn)
-   - preferred name
+   - email (temporary identity source until OAuth session wiring is merged)
+   - preferred name (accepted at API boundary; not persisted in current minimal DB schema)
    - timezone
    - preferred daily send time
 3. Backend validates input and writes/updates `users`:
    - initializes `interest_memory_text` from brain dump
-   - stores send-time settings and profile fields
+   - stores send-time settings and identity fields
 4. User is marked ready for daily generation.
 
 ### 2) Daily Newsletter Generation Flow
@@ -86,9 +87,10 @@ V1 intentionally excludes a manual regenerate endpoint.
 
 ### 1) Onboarding / Preferences
 - **Endpoint**: `POST /api/onboarding`
-- **Auth**: logged-in user (OAuth session)
+- **Auth**: currently payload-driven identity (`email`) during `feature/db-and-onboarding`; OAuth session wiring lands in `feature/google-auth`.
 - **Purpose**: create/update user setup and initialize interest memory.
 - **Request schema (zod shape)**:
+  - `email: string`
   - `preferred_name: string`
   - `timezone: string`
   - `send_time_local: string` (HH:mm)
@@ -97,6 +99,7 @@ V1 intentionally excludes a manual regenerate endpoint.
   - validates payload
   - creates or updates `users` row
   - sets `interest_memory_text = brain_dump_text` during onboarding
+  - `preferred_name` is currently validated but not persisted in the minimal DB schema
 - **Response**:
   - `{ ok: true, user_id: string }`
 
@@ -188,8 +191,6 @@ Fields:
 - `timezone`
 - `send_time_local`
 - `interest_memory_text` (single evolving liquid profile)
-- `created_at`
-- `updated_at`
 
 Behavior:
 - On onboarding, initial brain dump is saved into `interest_memory_text`.
@@ -204,8 +205,6 @@ Fields:
 - `url`
 - `title`
 - `sent_at`
-- `position` (optional, 1-10)
-- `is_discovery` (optional)
 
 Recommended constraints/indexes:
 - Index: (`user_id`, `sent_at`)
