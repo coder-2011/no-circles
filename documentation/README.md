@@ -37,6 +37,13 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/db-migrations.md`
 - `files/tests-onboarding.md`
 - `files/vitest-config.md`
+- `files/app-api-webhooks-resend-inbound-route.md`
+- `files/lib-memory-contract.md`
+- `files/lib-memory-processors.md`
+- `files/lib-webhooks-resend-signature.md`
+- `files/lib-webhooks-inbound-idempotency.md`
+- `files/lib-ai-memory-prompts.md`
+- `files/scripts-prune-inbound-idempotency.md`
 
 ## Conventions
 

@@ -98,7 +98,9 @@ V1 intentionally excludes a manual regenerate endpoint.
   - validates payload
   - resolves authenticated session email for identity
   - creates or updates `users` row
-  - sets `interest_memory_text = brain_dump_text` during onboarding
+  - routes `brain_dump_text` through onboarding memory processor
+  - persists canonical memory text (`PERSONALITY`, `ACTIVE_INTERESTS`, `SUPPRESSED_INTERESTS`, `RECENT_FEEDBACK`)
+  - enforces hard cap of `800` words on stored memory
   - `preferred_name` is currently validated but not persisted in the minimal DB schema
 - **Response**:
   - `{ ok: true, user_id: string }`
@@ -131,8 +133,9 @@ V1 intentionally excludes a manual regenerate endpoint.
   - loads current `interest_memory_text`
   - sends `{ current_interest_memory_text, inbound_reply_text }` to Claude with system prompt
   - Claude returns updated memory
+  - applies deterministic fallback memory formatter when model output is invalid/unavailable
   - saves updated `interest_memory_text`
-  - idempotent on provider message id
+  - idempotent on `svix-id` stored in `processed_webhooks(provider, webhook_id)`
 - **Response**:
   - `{ ok: true, status: "updated", user_id: string }`
   - or `{ ok: true, status: "ignored" }` (unknown sender/empty text/already processed)
@@ -210,6 +213,22 @@ Recommended constraints/indexes:
 - Index: (`user_id`, `sent_at`)
 - Unique: (`user_id`, `url`) for never-repeat behavior.
 - Retention cap: keep only the latest 100 sent URLs per user; older rows are pruned.
+
+### Table: `processed_webhooks`
+Purpose: inbound webhook replay guard for one-time memory updates.
+
+Fields:
+- `id` (primary key)
+- `provider`
+- `webhook_id`
+- `processed_at`
+
+Recommended constraints/indexes:
+- Unique: (`provider`, `webhook_id`) for idempotent webhook handling.
+- Index: (`processed_at`) for retention pruning.
+
+Retention policy:
+- prune rows older than 30 days.
 
 ## Runtime Flow with Minimal State
 1. Read `users.interest_memory_text`.
