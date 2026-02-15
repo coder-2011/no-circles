@@ -24,3 +24,20 @@ export const newsletterItems = pgTable(
     userUrlUnique: uniqueIndex("newsletter_items_user_id_url_unique").on(table.userId, table.url)
   })
 );
+
+export const processedWebhooks = pgTable(
+  "processed_webhooks",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    provider: text("provider").notNull(),
+    webhookId: text("webhook_id").notNull(),
+    processedAt: timestamp("processed_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    providerWebhookUnique: uniqueIndex("processed_webhooks_provider_webhook_id_unique").on(
+      table.provider,
+      table.webhookId
+    ),
+    processedAtIdx: index("processed_webhooks_processed_at_idx").on(table.processedAt)
+  })
+);
