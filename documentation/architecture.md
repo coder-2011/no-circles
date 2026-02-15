@@ -57,7 +57,7 @@ This system is a website-first, email-delivered personalized newsletter product.
    - preferred daily send time
 3. Backend validates input and writes/updates `users`:
    - derives identity from authenticated session email
-   - initializes `interest_memory_text` from brain dump
+   - transforms `brain_dump_text` into canonical memory text via onboarding processor
    - stores send-time settings and identity fields
 4. User is marked ready for daily generation.
 
@@ -73,7 +73,7 @@ This system is a website-first, email-delivered personalized newsletter product.
 1. User replies to newsletter email.
 2. Resend webhook posts inbound email to backend endpoint.
 3. Backend parses reply intent with a cheaper Claude model when possible.
-4. Parsed intent is merged into `users.interest_memory_text`.
+4. Parsed intent is merged into `users.interest_memory_text` with canonical memory validation and fallback.
 5. If the user does not reply, nothing is updated (system continues from existing memory).
 6. Suppression duration for topics is inferred from user language and model judgment (not a rigid fixed-duration rule).
 
@@ -196,8 +196,8 @@ Fields:
 - `interest_memory_text` (single evolving liquid profile)
 
 Behavior:
-- On onboarding, initial brain dump is saved into `interest_memory_text`.
-- On each inbound reply, parsed intent is merged into `interest_memory_text`.
+- On onboarding, processor output from `brain_dump_text` is saved into `interest_memory_text`.
+- On each inbound reply, processor output from `{ current_interest_memory_text, inbound_reply_text }` updates `interest_memory_text` once per unique webhook event.
 
 ### Table: `newsletter_items`
 Purpose: per-user sent-item history to prevent repeated URLs/titles.

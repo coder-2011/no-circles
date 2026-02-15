@@ -5,16 +5,13 @@ Implements foundational persistence and first write path for V1:
 - Drizzle + Postgres schema
 - migration generation/apply flow
 - `POST /api/onboarding` validation + upsert
-- inbound webhook reply-memory updates with idempotency guard
 
 ## Current Implementation
 - DB client: `lib/db/client.ts`
 - Schema: `lib/db/schema.ts`
 - Migration tooling: `drizzle.config.ts` + `db/migrations/*`
 - Route: `app/api/onboarding/route.ts`
-- Inbound route: `app/api/webhooks/resend/inbound/route.ts`
 - Memory contract + processors: `lib/memory/contract.ts`, `lib/memory/processors.ts`
-- Webhook verification/idempotency helpers: `lib/webhooks/resend-signature.ts`, `lib/webhooks/inbound-idempotency.ts`
 - OAuth callback route: `app/auth/callback/route.ts`
 - Onboarding UI route: `app/onboarding/page.tsx`
 - Browser auth client: `lib/auth/browser-client.ts`
@@ -50,9 +47,6 @@ Error cases:
 ## Known Transitional Decision
 - `preferred_name` is validated at API boundary but not persisted in current minimal schema.
 
-## Inbound Reply Contract
-1. Verify Svix headers/signature against raw body.
-2. Parse sender email and plain text reply.
-3. Ignore unknown sender or empty text.
-4. Reserve idempotency key (`provider + svix-id`) and update memory once.
-5. Return `{ ok: true, status: "ignored" }` for replays.
+## Boundary Note
+Inbound reply webhook processing now has its own subsystem document:
+- `documentation/subsystems/inbound-reply-memory-update.md`

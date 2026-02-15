@@ -8,10 +8,11 @@ Build a personalized daily newsletter system that:
 
 ## Current Status
 - `feature/db-and-onboarding`: merged.
-- Known follow-up gap: onboarding currently copies `brain_dump_text` directly into `interest_memory_text` (processor path not implemented yet).
+- `feature/google-auth`: merged.
+- `feature/inbound-reply-memory-update`: implemented on branch (processor-driven onboarding memory + inbound webhook memory updates + idempotency).
 
 ## Temporary -> Permanent Ownership Map
-- Temporary: onboarding memory is raw copy-through (`brain_dump_text` -> `interest_memory_text`).
+- Resolved: onboarding memory raw copy-through (`brain_dump_text` -> `interest_memory_text`) is replaced by processor output in PR 3.
   - Permanent owner PR: `feature/inbound-reply-memory-update` (PR 3).
   - Downstream rule: PRs 4+ must treat memory as opaque input and must not redefine memory format rules.
 - Temporary: onboarding identity was request-body based in early foundation.
@@ -22,7 +23,7 @@ Build a personalized daily newsletter system that:
 - Each PR owns one contract boundary and one integration seam.
 - If a PR depends on another PR’s contract, consume it; do not redesign it.
 - Put behavior changes in the earliest owning PR, not in downstream PRs.
-- PR 3 is in progress; do not move/expand its scope into other branches.
+- PR 3 contract is implemented on branch; do not re-scope PR 3 behavior into later branches.
 
 ## PR 1: DB + Onboarding Foundation
 - Branch: `feature/db-and-onboarding`
@@ -59,6 +60,7 @@ Build a personalized daily newsletter system that:
 
 ## PR 3: Inbound Reply Memory Update
 - Branch: `feature/inbound-reply-memory-update`
+- Status: implemented on branch, pending PR/merge
 - Primary objective:
   - implement processor-driven memory updates for both onboarding and inbound replies.
 - Frontend scope:

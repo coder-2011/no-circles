@@ -13,15 +13,23 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `vision.md`: product goals, scope boundaries, and editorial policy
 - `architecture.md`: stack decisions, data model, system flows, and API contracts
 - `subsystems/db-and-onboarding.md`: current DB + onboarding implementation status
+- `subsystems/inbound-reply-memory-update.md`: PR3 memory processing + inbound webhook idempotency contract
 
 ## Suggested Reading Order
 
 1. `vision.md`
 2. `architecture.md`
 3. `subsystems/db-and-onboarding.md`
-4. `files/app-api-onboarding-route.md`
-5. `files/lib-db-schema.md`
-6. `appendix/glossary.md`
+4. `subsystems/inbound-reply-memory-update.md`
+5. `files/app-api-onboarding-route.md`
+6. `files/app-api-webhooks-resend-inbound-route.md`
+7. `files/lib-db-schema.md`
+8. `appendix/glossary.md`
+
+## Current Subsystem Docs
+
+- `subsystems/db-and-onboarding.md`
+- `subsystems/inbound-reply-memory-update.md`
 
 ## Current File Docs
 
