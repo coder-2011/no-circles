@@ -1,3 +1,5 @@
+/update-docs
+
 Update project documentation to match current code and architecture decisions.
 
 Goal:
