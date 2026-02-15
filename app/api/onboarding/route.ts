@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getAuthenticatedUserEmail } from "@/lib/auth/server-user";
 import { db } from "@/lib/db/client";
 import { users } from "@/lib/db/schema";
 import { onboardingSchema } from "@/lib/schemas";
@@ -14,13 +15,35 @@ export async function POST(request: Request) {
     );
   }
 
-  const { email, timezone, send_time_local, brain_dump_text } = parsed.data;
+  let authenticatedEmail: string | null = null;
+
+  try {
+    authenticatedEmail = await getAuthenticatedUserEmail();
+  } catch {
+    return NextResponse.json(
+      {
+        ok: false,
+        error_code: "INTERNAL_ERROR",
+        message: "Failed to resolve authenticated user."
+      },
+      { status: 500 }
+    );
+  }
+
+  if (!authenticatedEmail) {
+    return NextResponse.json(
+      { ok: false, error_code: "UNAUTHORIZED", message: "Unauthorized." },
+      { status: 401 }
+    );
+  }
+
+  const { timezone, send_time_local, brain_dump_text } = parsed.data;
 
   try {
     const [upsertedUser] = await db
       .insert(users)
       .values({
-        email,
+        email: authenticatedEmail,
         timezone,
         sendTimeLocal: send_time_local,
         interestMemoryText: brain_dump_text
