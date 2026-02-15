@@ -44,6 +44,10 @@ Build a website-first, personalized daily newsletter system that curates 10 high
 - Keep `documentation/vision.md` and `documentation/architecture.md` as top-level source-of-truth docs, and ensure subsystem/file docs stay aligned with them.
 - Use `documentation/appendix/` for key vocabulary, core concepts, and shared definitions used across the project.
 
+## Screenshot Resolution Policy
+- When a prompt references a screenshot or image without a specific filename, resolve it to the most recent timestamped file in the `images/` directory.
+- Treat this as the default image-selection rule unless the user explicitly names a different file.
+
 ## Reasoning and Explanations
 - Explanations: clarity + truthfulness first; no motivational framing.
 - Start from known facts + explicit assumptions; build from first principles.
