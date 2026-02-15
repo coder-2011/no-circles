@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getBrowserSupabaseClient } from "@/lib/auth/browser-client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 type AuthState = "loading" | "signed_in" | "signed_out" | "error";
 type SubmitState = "idle" | "saving" | "saved" | "error";
@@ -18,13 +19,14 @@ export default function OnboardingPage() {
   const [timezone, setTimezone] = useState(() => Intl.DateTimeFormat().resolvedOptions().timeZone);
   const [sendTime, setSendTime] = useState("08:00");
   const [brainDumpText, setBrainDumpText] = useState("");
-  const supabase = useMemo(() => {
+  const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
+
+  useEffect(() => {
     try {
-      return getBrowserSupabaseClient();
+      setSupabase(getBrowserSupabaseClient());
     } catch {
       setAuthState("error");
       setMessage("Auth client is not configured. Add Supabase env vars.");
-      return null;
     }
   }, []);
 
@@ -84,14 +86,14 @@ export default function OnboardingPage() {
 
   async function signOut() {
     if (!supabase) return;
-    const { error } = await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut({ scope: "local" });
 
     if (error) {
       setMessage(error.message);
       return;
     }
 
-    router.replace("/");
+    window.location.assign("/");
   }
 
   async function submitOnboarding(event: React.FormEvent<HTMLFormElement>) {
@@ -129,7 +131,8 @@ export default function OnboardingPage() {
       return;
     }
 
-    setMessage(body?.message ?? "Could not save onboarding preferences.");
+    const errorMessage = body && "ok" in body && body.ok === false ? body.message : undefined;
+    setMessage(errorMessage ?? "Could not save onboarding preferences.");
   }
 
   return (

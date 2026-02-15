@@ -16,7 +16,8 @@ function getSupabaseEnv() {
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
-  const redirectTo = requestUrl.searchParams.get("next") ?? "/onboarding";
+  const nextParam = requestUrl.searchParams.get("next") ?? "/onboarding";
+  const redirectTo = nextParam.startsWith("/") ? nextParam : "/onboarding";
   const cookieStore = await cookies();
   const { supabaseUrl, supabaseAnonKey } = getSupabaseEnv();
 
@@ -33,12 +34,14 @@ export async function GET(request: Request) {
     }
   });
 
-  if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+  if (!code) {
+    return NextResponse.redirect(new URL("/?auth=oauth_code_missing", requestUrl.origin));
+  }
 
-    if (error) {
-      return NextResponse.redirect(new URL("/?auth=oauth_error", requestUrl.origin));
-    }
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+  if (error) {
+    return NextResponse.redirect(new URL("/?auth=oauth_error", requestUrl.origin));
   }
 
   return NextResponse.redirect(new URL(redirectTo, requestUrl.origin));
