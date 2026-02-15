@@ -11,6 +11,9 @@ Implements foundational persistence and first write path for V1:
 - Schema: `lib/db/schema.ts`
 - Migration tooling: `drizzle.config.ts` + `db/migrations/*`
 - Route: `app/api/onboarding/route.ts`
+- OAuth callback route: `app/auth/callback/route.ts`
+- Onboarding UI route: `app/onboarding/page.tsx`
+- Browser auth client: `lib/auth/browser-client.ts`
 - Validation: `lib/schemas.ts`
 - Tests: `tests/onboarding-schema.test.ts`, `tests/onboarding-route.test.ts`
 
