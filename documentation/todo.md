@@ -89,6 +89,8 @@ Build a personalized daily newsletter system that:
 
 ## PR 4: Cron Due-User Selector
 - Branch: `feature/cron-due-user-selector`
+- Dependency status:
+  - assumes PR 3 contracts are available (`interest_memory_text` canonicalization + inbound idempotent updates)
 - Primary objective:
   - create deterministic, one-user-per-tick scheduler entrypoint.
 - Frontend scope:
@@ -100,7 +102,8 @@ Build a personalized daily newsletter system that:
   - return `no_due_user` when queue empty.
 - Data and contracts:
   - maintain idempotent behavior under duplicate cron triggers.
-  - consume `interest_memory_text` as-is; non-goal: memory processor/format changes.
+  - consume `interest_memory_text` as opaque input; non-goal: memory processor/format changes.
+  - non-goal: changing inbound webhook verification/signature/idempotency behavior from PR 3.
 - Explicit non-goals:
   - no Exa discovery logic.
   - no content extraction logic.
@@ -248,3 +251,30 @@ Build a personalized daily newsletter system that:
 - small, reviewable commits
 - keep PR focused; split if scope grows too wide
 - before opening PR: `npm run lint`, `npm run test`, and relevant integration checks
+
+## Current User E2E Checklist (PR3 Baseline)
+1. Run app locally and expose webhook route publicly:
+  - `npm run dev`
+  - start tunnel to `localhost:3000` (for example ngrok)
+2. Configure env vars:
+  - `DATABASE_URL`
+  - `NEXT_PUBLIC_SUPABASE_URL`
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+  - `RESEND_WEBHOOK_SECRET`
+3. Ensure DB schema is up to date:
+  - migration `0001_sturdy_ion` applied (`processed_webhooks` exists)
+4. Complete real user onboarding:
+  - sign in with Google
+  - submit onboarding form
+  - verify canonical `interest_memory_text` was persisted for user
+5. Configure Resend inbound webhook:
+  - endpoint: `https://<public-host>/api/webhooks/resend/inbound`
+  - event type: `email.received` only
+6. Send a real reply email from onboarded user address:
+  - expected response path: `{ ok: true, status: "updated" }` when new event
+7. Verify DB outcomes:
+  - `users.interest_memory_text` updated once
+  - `processed_webhooks` row inserted with `provider='resend'` + unique `webhook_id`
+8. Replay same webhook event:
+  - expected response path: `{ ok: true, status: "ignored" }`
+  - verify no second memory mutation
