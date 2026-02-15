@@ -1,7 +1,7 @@
 # File: `app/api/webhooks/resend/inbound/route.ts`
 
 ## Purpose
-Processes inbound email replies from Resend and updates user memory exactly once per webhook event.
+Processes inbound email replies from Resend and updates user memory exactly once per provider message.
 
 ## Request Requirements
 - Svix signature headers:
@@ -20,7 +20,8 @@ Processes inbound email replies from Resend and updates user memory exactly once
 6. Look up user by sender email.
 7. Generate updated memory via reply processor.
 8. In a DB transaction:
-   - reserve idempotency key in `processed_webhooks` using `provider + svix-id`
+   - reserve idempotency key in `processed_webhooks` using `provider + message-id` when available
+   - fallback to `provider + svix-id` only when provider message id is missing
    - skip when already processed
    - update `users.interest_memory_text` when newly reserved
 9. Return `updated` or `ignored`.
