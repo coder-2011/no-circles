@@ -8,6 +8,13 @@
       "when": 1771150290521,
       "tag": "0000_sour_butterfly",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1771188000000,
+      "tag": "0001_sturdy_ion",
+      "breakpoints": true
     }
   ]
 }
