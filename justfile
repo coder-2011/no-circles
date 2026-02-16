@@ -35,3 +35,19 @@ test:
 
 e2e:
 	npx playwright test
+
+# Count tracked code LOC on main branch (prefers origin/main when available)
+main-loc:
+	ref=$$(git rev-parse --verify origin/main >/dev/null 2>&1 && echo origin/main || echo main); \
+	git ls-tree -r --name-only $$ref \
+	| rg '\.(ts|tsx|js|jsx|mjs|cjs|css|sql)$$' \
+	| while read -r file; do git show "$$ref:$$file"; done \
+	| wc -l
+
+# Alias: count tracked code LOC on main branch (prefers origin/main when available)
+loc:
+	ref=$$(git rev-parse --verify origin/main >/dev/null 2>&1 && echo origin/main || echo main); \
+	git ls-tree -r --name-only $$ref \
+	| rg '\.(ts|tsx|js|jsx|mjs|cjs|css|sql)$$' \
+	| while read -r file; do git show "$$ref:$$file"; done \
+	| wc -l

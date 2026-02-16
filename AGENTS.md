@@ -5,7 +5,7 @@ Start: say hi + 1 motivating line.
 Editor: `code <path>`.
 CI: `gh run list` / `gh run view` (rerun/fix until green).
 Oracle: run `npx -y @steipete/oracle --help` once/session before first use.
-Work style: telegraph; noun-phrases ok; drop grammar; min tokens.
+Work style: explain thoroughly and simply; min tokens.
 PRs: use `gh pr view` / `gh pr diff` (no URLs).
 New deps: quick health check (recent releases/commits, adoption).
 
@@ -148,6 +148,8 @@ Build a website-first, personalized daily newsletter system that curates 10 high
   - `just lint`
   - `just test`
   - `just e2e`
+  - `just main-loc`
+  - `just loc`
 
 ## tmux
 Use only when persistence/interaction is required (debugger/server).
