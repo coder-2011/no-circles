@@ -16,6 +16,7 @@ import {
   filterNonSuppressed,
   normalizeCandidate,
   qualityFilterCandidates,
+  summarizeQualityFilterDiagnostics,
   selectOnePerTopic,
   shouldEarlyStop
 } from "@/lib/discovery/run-discovery-selection";
@@ -24,6 +25,12 @@ const DEFAULT_PER_TOPIC_RESULTS = 5;
 const DEFAULT_MAX_TOPICS = 10;
 const DEFAULT_EARLY_STOP_BUFFER = 2;
 const DEFAULT_MAX_PER_DOMAIN = 3;
+const DISCOVERY_DEBUG = process.env.DISCOVERY_DEBUG === "1";
+
+function logDiscoveryDebug(event: string, details: Record<string, unknown>) {
+  if (!DISCOVERY_DEBUG) return;
+  console.info(JSON.stringify({ subsystem: "discovery", event, ...details }));
+}
 
 function hasRequiredItemFields(candidate: DiscoveryCandidate): boolean {
   return Boolean(candidate.title && candidate.highlight);
@@ -111,6 +118,15 @@ export async function runDiscovery(
 
       const deduped = dedupeCandidates(aggregateCandidates);
       const nonSuppressed = filterNonSuppressed(deduped);
+      const diagnostics = summarizeQualityFilterDiagnostics(nonSuppressed);
+      logDiscoveryDebug("attempt_topic_progress", {
+        attempt: attempt + 1,
+        topic: topic.topic,
+        aggregate_count: aggregateCandidates.length,
+        deduped_count: deduped.length,
+        non_suppressed_count: nonSuppressed.length,
+        quality_pool_preview: diagnostics
+      });
 
       if (
         shouldEarlyStop({
@@ -134,10 +150,21 @@ export async function runDiscovery(
 
   const deduped = dedupeCandidates(aggregateCandidates);
   const nonSuppressed = filterNonSuppressed(deduped);
+  const qualityDiagnostics = summarizeQualityFilterDiagnostics(nonSuppressed);
   const qualityFiltered = qualityFilterCandidates(nonSuppressed, warnings);
   const domainCapped = applyDomainCap(qualityFiltered, Math.max(targetCount * 2, targetCount), maxPerDomain, true);
   const onePerTopic = selectOnePerTopic(domainCapped, targetCount, warnings);
   const selected = [...onePerTopic];
+  logDiscoveryDebug("post_filter_stage_counts", {
+    deduped_count: deduped.length,
+    non_suppressed_count: nonSuppressed.length,
+    quality_filtered_count: qualityFiltered.length,
+    domain_capped_count: domainCapped.length,
+    one_per_topic_count: onePerTopic.length,
+    target_count: targetCount,
+    quality_pool_diagnostics: qualityDiagnostics,
+    warnings
+  });
 
   if (selected.length < targetCount) {
     warnings.push("INSUFFICIENT_TOPIC_WINNERS");
@@ -164,6 +191,15 @@ export async function runDiscovery(
   }
 
   if (selected.length < targetCount) {
+    logDiscoveryDebug("insufficient_quality_candidates", {
+      selected_count: selected.length,
+      target_count: targetCount,
+      deduped_count: deduped.length,
+      non_suppressed_count: nonSuppressed.length,
+      quality_filtered_count: qualityFiltered.length,
+      quality_pool_diagnostics: qualityDiagnostics,
+      warnings
+    });
     throw new Error(`INSUFFICIENT_QUALITY_CANDIDATES:${selected.length}/${targetCount}`);
   }
 

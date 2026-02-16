@@ -159,6 +159,77 @@ function isLikelyLowSignalCandidate(candidate: DiscoveryCandidate): boolean {
   return normalizedUrl.endsWith(".pdf") && !domain.endsWith(".edu") && !domain.endsWith(".gov");
 }
 
+function classifyQualityDropReason(
+  candidate: DiscoveryCandidate
+): "missing_fields" | "low_signal" | "low_score" | "passes" {
+  if (!candidate.title || !candidate.highlight) {
+    return "missing_fields";
+  }
+
+  if (isLikelyLowSignalCandidate(candidate)) {
+    return "low_signal";
+  }
+
+  if (candidate.exaScore !== null && candidate.exaScore < MIN_ACCEPTABLE_EXA_SCORE) {
+    return "low_score";
+  }
+
+  return "passes";
+}
+
+export function summarizeQualityFilterDiagnostics(candidates: DiscoveryCandidate[]): {
+  total: number;
+  kept: number;
+  droppedMissingFields: number;
+  droppedLowSignal: number;
+  droppedLowScore: number;
+  withHighlightCount: number;
+  withTitleCount: number;
+  distinctDomains: number;
+} {
+  let kept = 0;
+  let droppedMissingFields = 0;
+  let droppedLowSignal = 0;
+  let droppedLowScore = 0;
+  let withHighlightCount = 0;
+  let withTitleCount = 0;
+  const domains = new Set<string>();
+
+  for (const candidate of candidates) {
+    if (candidate.highlight) withHighlightCount += 1;
+    if (candidate.title) withTitleCount += 1;
+    if (candidate.sourceDomain) domains.add(candidate.sourceDomain);
+
+    const reason = classifyQualityDropReason(candidate);
+    if (reason === "passes") {
+      kept += 1;
+      continue;
+    }
+
+    if (reason === "missing_fields") {
+      droppedMissingFields += 1;
+      continue;
+    }
+    if (reason === "low_signal") {
+      droppedLowSignal += 1;
+      continue;
+    }
+
+    droppedLowScore += 1;
+  }
+
+  return {
+    total: candidates.length,
+    kept,
+    droppedMissingFields,
+    droppedLowSignal,
+    droppedLowScore,
+    withHighlightCount,
+    withTitleCount,
+    distinctDomains: domains.size
+  };
+}
+
 export function normalizeCandidate(args: {
   topic: DiscoveryTopic;
   result: ExaSearchResult;
@@ -276,17 +347,19 @@ export function qualityFilterCandidates(candidates: DiscoveryCandidate[], warnin
   let missingFieldsDropped = 0;
 
   for (const candidate of candidates) {
-    if (!candidate.title || !candidate.highlight) {
+    const dropReason = classifyQualityDropReason(candidate);
+
+    if (dropReason === "missing_fields") {
       missingFieldsDropped += 1;
       continue;
     }
 
-    if (isLikelyLowSignalCandidate(candidate)) {
+    if (dropReason === "low_signal") {
       lowSignalDropped += 1;
       continue;
     }
 
-    if (candidate.exaScore !== null && candidate.exaScore < MIN_ACCEPTABLE_EXA_SCORE) {
+    if (dropReason === "low_score") {
       lowScoreDropped += 1;
       continue;
     }
