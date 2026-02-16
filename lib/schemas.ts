@@ -47,3 +47,10 @@ export const memoryUpdateOpsSchema = z
     recent_feedback_add: z.array(memoryLineSchema).max(8).default([])
   })
   .strict();
+
+export const summaryWriterOutputSchema = z
+  .object({
+    title: z.string().trim().min(1).max(240),
+    summary: z.string().trim().min(1).max(2000)
+  })
+  .strict();
