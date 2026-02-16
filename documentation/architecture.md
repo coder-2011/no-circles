@@ -247,3 +247,24 @@ Retention policy:
 - Exact email template character/sentence limits (to be defined in the next phase).
 
 This keeps the architecture minimal while preserving multi-user support, dynamic personalization, and anti-repeat behavior.
+
+## Planned UX Enhancements (Post-Core Pipeline)
+These are roadmap candidates after baseline send quality/reliability are stable.
+
+1. Pre-save newsletter preview
+- A lightweight preview generated from onboarding input to validate quality before first save/send.
+
+2. Delivery status surface
+- User-visible status for `last sent`, `next send`, and timezone interpretation.
+
+3. Quick feedback controls
+- Structured feedback chips (for example more/less/basic/advanced) alongside free-text replies.
+
+4. Source preference controls
+- User-level controls for source mix/strictness to tune perceived quality.
+
+5. Onboarding templates
+- Preset interest profiles to reduce cold-start friction.
+
+6. Digest intensity controls
+- User-level issue size preference (light/standard/deep) with scheduler/pipeline support.
