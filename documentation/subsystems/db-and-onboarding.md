@@ -33,7 +33,7 @@ Error cases:
 - memory processor failure -> `500 INTERNAL_ERROR`
 
 ## Data Model in Scope
-- `users`: `id`, `email`, `timezone`, `send_time_local`, `interest_memory_text`
+- `users`: `id`, `email`, `preferred_name`, `timezone`, `send_time_local`, `interest_memory_text`
 - `newsletter_items`: `id`, `user_id`, `url`, `title`, `sent_at`
 - `processed_webhooks`: `id`, `provider`, `webhook_id`, `processed_at`
 - Constraints:
@@ -44,8 +44,9 @@ Error cases:
   - unique `processed_webhooks(provider, webhook_id)`
   - index `processed_webhooks(processed_at)`
 
-## Known Transitional Decision
-- `preferred_name` is validated at API boundary but not persisted in current minimal schema.
+## Preferred Name Persistence
+- `preferred_name` is persisted in `users.preferred_name` on both insert and upsert update paths.
+- Existing users are backfilled in migration `0002_mellow_orchid` using email local-part.
 
 ## Boundary Note
 Inbound reply webhook processing now has its own subsystem document:
