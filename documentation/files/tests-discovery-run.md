@@ -7,7 +7,7 @@ Validates discovery orchestration behavior end-to-end at service level with mock
 - Deterministic dedupe, one-winner-per-topic primary selection, and backfill-to-target behavior
 - Retry path when topic-winner pool is insufficient before backfill
 - Attempt-tier early-stop behavior under quality/diversity gates
-- Suppression fallback behavior when required for target-count completion
+- Suppressed-topic exclusion across primary selection and backfill
 - Low-signal source filtering and score-threshold filtering
 - Partial failure behavior with warning emission
 - No-active-topics short-circuit behavior

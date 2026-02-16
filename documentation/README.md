@@ -87,6 +87,8 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/next-env.md`
 - `files/tests-discovery-topic-derivation.md`
 - `files/tests-discovery-run.md`
+- `files/tests-discovery-manual-eval-integration.md`
+- `files/tests-discovery-live-exa-integration.md`
 
 ## Conventions
 
