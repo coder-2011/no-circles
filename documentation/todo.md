@@ -225,6 +225,7 @@ Build a personalized daily newsletter system that:
   - optional: basic “last send status” admin/debug screen (if small).
 - Backend scope:
   - render and send newsletter via Resend.
+  - render greeting/personalization using `users.preferred_name` (fallback required for legacy rows).
   - insert sent items into `newsletter_items`.
   - enforce URL never-repeat via unique constraint handling.
   - prune history to retention target (latest 100 URLs/user).
