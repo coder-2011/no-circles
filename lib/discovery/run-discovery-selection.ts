@@ -4,6 +4,7 @@ const MIN_ACCEPTABLE_EXA_SCORE = 0.05;
 const MIN_TOPIC_SELECTION_SCORE = 0.4;
 const EXA_WEIGHT = 0.65;
 const HIGHLIGHT_WEIGHT = 0.35;
+const TOP_K_HIGHLIGHT_SCORES = 2;
 
 const DIVERSITY_THRESHOLDS = { minDistinctTopics: 6, maxTopicShare: 0.3, minDistinctDomains: 6, maxDomainShare: 0.3 } as const;
 const ATTEMPT_POLICIES = [
@@ -48,6 +49,17 @@ function getDomain(rawUrl: string): string | null {
   }
 }
 
+function normalizeHighlightScores(scores: number[] | undefined): number[] {
+  if (!Array.isArray(scores)) return [];
+  return scores.filter((score): score is number => Number.isFinite(score));
+}
+
+function representativeHighlightScore(scores: number[]): number | null {
+  if (scores.length === 0) return null;
+  const topK = [...scores].sort((a, b) => b - a).slice(0, TOP_K_HIGHLIGHT_SCORES);
+  return topK.reduce((sum, score) => sum + score, 0) / topK.length;
+}
+
 function keepPreferred(existing: DiscoveryCandidate, incoming: DiscoveryCandidate): DiscoveryCandidate {
   if (incoming.topicRank !== existing.topicRank) {
     return incoming.topicRank < existing.topicRank ? incoming : existing;
@@ -65,14 +77,8 @@ function keepPreferred(existing: DiscoveryCandidate, incoming: DiscoveryCandidat
 }
 
 function normalizeScore(value: number | null, min: number, max: number): number | null {
-  if (value === null) {
-    return null;
-  }
-
-  if (max <= min) {
-    return 1;
-  }
-
+  if (value === null) return null;
+  if (max <= min) return 1;
   return (value - min) / (max - min);
 }
 
@@ -93,27 +99,18 @@ function computeTopicSelectionScore(args: {
     weightSum += HIGHLIGHT_WEIGHT;
   }
 
-  if (weightSum === 0) {
-    return 0.5;
-  }
-
+  if (weightSum === 0) return 0.5;
   return weightedSum / weightSum;
 }
 
 function averageScore(candidates: DiscoveryCandidate[]): number {
   const scores = candidates.map((candidate) => candidate.exaScore).filter((score): score is number => score !== null);
-  if (scores.length === 0) {
-    return 0;
-  }
-
+  if (scores.length === 0) return 0;
   return scores.reduce((sum, score) => sum + score, 0) / scores.length;
 }
 
 function highlightCoverage(candidates: DiscoveryCandidate[]): number {
-  if (candidates.length === 0) {
-    return 0;
-  }
-
+  if (candidates.length === 0) return 0;
   const countWithHighlight = candidates.filter((candidate) => Boolean(candidate.highlight)).length;
   return countWithHighlight / candidates.length;
 }
@@ -133,17 +130,12 @@ function maxDomainCount(candidates: DiscoveryCandidate[]): number {
 }
 
 function maxShare(counts: Map<string, number>, total: number): number {
-  if (total <= 0 || counts.size === 0) {
-    return 0;
-  }
-
+  if (total <= 0 || counts.size === 0) return 0;
   return Math.max(...counts.values()) / total;
 }
 
 function normalizedEntropy(counts: Map<string, number>, total: number): number {
-  if (total <= 0 || counts.size <= 1) {
-    return 0;
-  }
+  if (total <= 0 || counts.size <= 1) return 0;
 
   let entropy = 0;
   for (const count of counts.values()) {
@@ -154,10 +146,7 @@ function normalizedEntropy(counts: Map<string, number>, total: number): number {
   }
 
   const maxEntropy = Math.log(counts.size);
-  if (maxEntropy <= 0) {
-    return 0;
-  }
-
+  if (maxEntropy <= 0) return 0;
   return entropy / maxEntropy;
 }
 
@@ -165,19 +154,9 @@ function isLikelyLowSignalCandidate(candidate: DiscoveryCandidate): boolean {
   const domain = candidate.sourceDomain?.toLowerCase() ?? "";
   const normalizedUrl = candidate.url.toLowerCase();
 
-  if (KNOWN_LOW_SIGNAL_DOMAINS.has(domain)) {
-    return true;
-  }
-
-  if (domain.endsWith(".papyruspub.com") || domain.endsWith(".faiusr.com")) {
-    return true;
-  }
-
-  if (normalizedUrl.endsWith(".pdf") && !domain.endsWith(".edu") && !domain.endsWith(".gov")) {
-    return true;
-  }
-
-  return false;
+  if (KNOWN_LOW_SIGNAL_DOMAINS.has(domain)) return true;
+  if (domain.endsWith(".papyruspub.com") || domain.endsWith(".faiusr.com")) return true;
+  return normalizedUrl.endsWith(".pdf") && !domain.endsWith(".edu") && !domain.endsWith(".gov");
 }
 
 export function normalizeCandidate(args: {
@@ -186,21 +165,21 @@ export function normalizeCandidate(args: {
   resultRank: number;
 }): DiscoveryCandidate | null {
   const canonicalUrl = canonicalizeUrl(args.result.url);
-  if (!canonicalUrl) {
-    return null;
-  }
+  if (!canonicalUrl) return null;
 
-  const highlight = args.result.highlights?.map((value) => value.trim()).find(Boolean) ?? null;
+  const highlights = args.result.highlights?.map((value) => value.trim()).filter(Boolean) ?? [];
+  const highlight = highlights[0] ?? null;
+  const highlightScores = normalizeHighlightScores(args.result.highlightScores);
+  const representativeScore = representativeHighlightScore(highlightScores);
 
-  if (!args.result.title && !highlight) {
-    return null;
-  }
+  if (!args.result.title && !highlight) return null;
 
   return {
     url: args.result.url,
     canonicalUrl,
     title: args.result.title?.trim() || null,
     highlight,
+    highlights,
     topic: args.topic.topic,
     topicRank: args.topic.topicRank,
     softSuppressed: args.topic.softSuppressed,
@@ -210,10 +189,11 @@ export function normalizeCandidate(args: {
     exaScore:
       typeof args.result.score === "number"
         ? args.result.score
-        : typeof args.result.highlightScores?.[0] === "number"
-          ? args.result.highlightScores[0]
+        : representativeScore !== null
+          ? representativeScore
           : null,
-    highlightScore: typeof args.result.highlightScores?.[0] === "number" ? args.result.highlightScores[0] : null
+    highlightScore: representativeScore,
+    highlightScores
   };
 }
 
@@ -272,9 +252,7 @@ export function applyDomainCap(
     domainCounts.set(domain, currentCount + 1);
   }
 
-  if (!allowDomainCapRelaxation || selected.length >= targetCount) {
-    return selected;
-  }
+  if (!allowDomainCapRelaxation || selected.length >= targetCount) return selected;
 
   const selectedUrls = new Set(selected.map((candidate) => candidate.canonicalUrl));
   for (const candidate of candidates) {
@@ -282,9 +260,7 @@ export function applyDomainCap(
       break;
     }
 
-    if (selectedUrls.has(candidate.canonicalUrl)) {
-      continue;
-    }
+    if (selectedUrls.has(candidate.canonicalUrl)) continue;
 
     selected.push(candidate);
     selectedUrls.add(candidate.canonicalUrl);
@@ -356,9 +332,7 @@ export function selectOnePerTopic(candidates: DiscoveryCandidate[], targetCount:
 
   for (const topic of topicOrder) {
     const topicCandidates = byTopic.get(topic) ?? [];
-    if (topicCandidates.length === 0) {
-      continue;
-    }
+    if (topicCandidates.length === 0) continue;
 
     const exaScores = topicCandidates
       .map((candidate) => candidate.exaScore)
@@ -399,9 +373,7 @@ export function selectOnePerTopic(candidates: DiscoveryCandidate[], targetCount:
     winners.push(winner.candidate);
   }
 
-  if (belowThresholdCount > 0) {
-    warnings.push(`LOW_TOPIC_WINNER_SCORE_${belowThresholdCount}`);
-  }
+  if (belowThresholdCount > 0) warnings.push(`LOW_TOPIC_WINNER_SCORE_${belowThresholdCount}`);
 
   return winners
     .sort((a, b) => a.topicRank - b.topicRank)
@@ -460,37 +432,16 @@ export function shouldEarlyStop(args: {
   const stopTarget = args.targetCount + args.earlyStopBuffer;
   const window = applyDomainCap(args.candidates, stopTarget, args.maxPerDomain, false);
 
-  if (window.length < stopTarget) {
-    return false;
-  }
-
-  if (distinctDomains(window) < policy.minDistinctDomains) {
-    return false;
-  }
-
-  if (maxDomainCount(window) > args.maxPerDomain) {
-    return false;
-  }
-
-  if (highlightCoverage(window) < policy.minHighlightCoverage) {
-    return false;
-  }
-
-  if (averageScore(window) < policy.minAvgScore) {
-    return false;
-  }
-
+  if (window.length < stopTarget) return false;
+  if (distinctDomains(window) < policy.minDistinctDomains) return false;
+  if (maxDomainCount(window) > args.maxPerDomain) return false;
+  if (highlightCoverage(window) < policy.minHighlightCoverage) return false;
+  if (averageScore(window) < policy.minAvgScore) return false;
   return true;
 }
 
 export function buildAttemptQuery(topic: DiscoveryTopic, attempt: number): string {
-  if (attempt === 0) {
-    return topic.query;
-  }
-
-  if (attempt === 1) {
-    return `${topic.query} practical guide OR deep dive`;
-  }
-
+  if (attempt === 0) return topic.query;
+  if (attempt === 1) return `${topic.query} practical guide OR deep dive`;
   return `${topic.query} tutorial OR analysis OR explainers`;
 }

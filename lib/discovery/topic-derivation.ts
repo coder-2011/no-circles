@@ -47,6 +47,25 @@ function buildContextSnippet(personalityLines: string[], feedbackLines: string[]
   return ` (${context})`;
 }
 
+function deriveSeedTopics(personalityLines: string[], feedbackLines: string[]): string[] {
+  const seedLines = [...feedbackLines, ...personalityLines];
+  const seen = new Map<string, string>();
+
+  for (const line of seedLines) {
+    const cleaned = cleanLine(line);
+    if (!cleaned || cleaned === "-") {
+      continue;
+    }
+
+    const key = cleaned.toLowerCase();
+    if (!seen.has(key)) {
+      seen.set(key, cleaned);
+    }
+  }
+
+  return [...seen.values()];
+}
+
 export function deriveTopicsFromMemory(args: {
   interestMemoryText: string;
   maxTopics?: number;
@@ -57,16 +76,19 @@ export function deriveTopicsFromMemory(args: {
   }
 
   const activeLines = parseBulletLines(sections.ACTIVE_INTERESTS);
-  if (activeLines.length === 0) {
+  const personalityLines = parseBulletLines(sections.PERSONALITY);
+  const feedbackLines = parseBulletLines(sections.RECENT_FEEDBACK);
+  const fallbackSeedTopics = deriveSeedTopics(personalityLines, feedbackLines);
+  const topicBase = activeLines.length > 0 ? activeLines : fallbackSeedTopics;
+
+  if (topicBase.length === 0) {
     return [];
   }
 
   const suppressedLines = parseBulletLines(sections.SUPPRESSED_INTERESTS);
-  const personalityLines = parseBulletLines(sections.PERSONALITY);
-  const feedbackLines = parseBulletLines(sections.RECENT_FEEDBACK);
   const contextSnippet = buildContextSnippet(personalityLines, feedbackLines);
 
-  const topics = activeLines.map((topic, originalIndex) => ({
+  const topics = topicBase.map((topic, originalIndex) => ({
     topic,
     query: `${topic}${contextSnippet}`,
     topicRank: originalIndex,
