@@ -34,15 +34,15 @@ Error cases:
 
 ## Data Model in Scope
 - `users`: `id`, `email`, `preferred_name`, `timezone`, `send_time_local`, `interest_memory_text`, `last_issue_sent_at`
-- `newsletter_items`: `id`, `user_id`, `url`, `title`, `sent_at`
 - `processed_webhooks`: `id`, `provider`, `webhook_id`, `processed_at`
 - Constraints:
   - unique `users.email`
-  - FK `newsletter_items.user_id -> users.id` (`ON DELETE CASCADE`)
-  - unique `newsletter_items(user_id, url)`
-  - index `newsletter_items(user_id, sent_at)`
   - unique `processed_webhooks(provider, webhook_id)`
   - index `processed_webhooks(processed_at)`
+
+## Anti-Repeat Direction
+- Anti-repeat authority is per-user Bloom filter state.
+- `newsletter_items` has been removed from active schema.
 
 ## Preferred Name Persistence
 - `preferred_name` is persisted in `users.preferred_name` on both insert and upsert update paths.

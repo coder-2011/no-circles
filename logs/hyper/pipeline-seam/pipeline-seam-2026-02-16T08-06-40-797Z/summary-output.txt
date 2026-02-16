@@ -1,0 +1,52 @@
+[
+  {
+    "title": "AI engineering guide",
+    "url": "https://example.com/ai-engineering",
+    "summary": "This piece explains the main implementation decision, the operating constraints, and the practical tradeoffs teams considered before rollout and adoption across production systems. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "distributed systems guide",
+    "url": "https://example.com/distributed-systems",
+    "summary": "This piece explains the main implementation decision, the operating constraints, and the practical tradeoffs teams considered before rollout and adoption across production systems. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "software architecture guide",
+    "url": "https://example.com/software-architecture",
+    "summary": "This piece explains the main implementation decision, the operating constraints, and the practical tradeoffs teams considered before rollout and adoption across production systems. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "developer productivity guide",
+    "url": "https://example.com/developer-productivity",
+    "summary": "This piece explains the main implementation decision, the operating constraints, and the practical tradeoffs teams considered before rollout and adoption across production systems. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "data engineering guide",
+    "url": "https://example.com/data-engineering",
+    "summary": "This piece explains the main implementation decision, the operating constraints, and the practical tradeoffs teams considered before rollout and adoption across production systems. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "cloud cost optimization guide",
+    "url": "https://example.com/cloud-cost-optimization",
+    "summary": "This piece explains the main implementation decision, the operating constraints, and the practical tradeoffs teams considered before rollout and adoption across production systems. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "observability guide",
+    "url": "https://example.com/observability",
+    "summary": "This piece explains the main implementation decision, the operating constraints, and the practical tradeoffs teams considered before rollout and adoption across production systems. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "testing strategy guide",
+    "url": "https://example.com/testing-strategy",
+    "summary": "This piece explains the main implementation decision, the operating constraints, and the practical tradeoffs teams considered before rollout and adoption across production systems. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "product analytics guide",
+    "url": "https://example.com/product-analytics",
+    "summary": "This piece explains the main implementation decision, the operating constraints, and the practical tradeoffs teams considered before rollout and adoption across production systems. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "programming languages guide",
+    "url": "https://example.com/programming-languages",
+    "summary": "This piece explains the main implementation decision, the operating constraints, and the practical tradeoffs teams considered before rollout and adoption across production systems. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  }
+]

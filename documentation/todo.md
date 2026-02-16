@@ -4,7 +4,7 @@
 Build a personalized daily newsletter system that:
 - learns from user onboarding + reply updates
 - curates and sends 10 high-quality links daily
-- avoids repeats per user
+- avoids repeats per user via per-user Bloom filter state
 
 ## Planning Backlog: UX and Product Value Additions
 These are candidate features for future scoped PRs after core pipeline stability.
@@ -161,7 +161,7 @@ These are candidate features for future scoped PRs after core pipeline stability
 - Data and contracts:
   - due rule: user is due only when local run time is at/after local `send_time_local`.
   - already-sent-today rule: exclude users when `last_issue_sent_at` local date equals local run date.
-  - scheduler delivery-state authority is `users.last_issue_sent_at` (not `newsletter_items`).
+  - scheduler delivery-state authority is `users.last_issue_sent_at` (not per-item sent-history tables).
   - endpoint output shape:
     - `{ ok: true, status: "selected", user_id: string }`
     - `{ ok: true, status: "no_due_user" }`
@@ -255,27 +255,29 @@ These are candidate features for future scoped PRs after core pipeline stability
 - Done when:
   - 10 valid item objects are produced for a full run.
 
-## PR 9: Send + History Persistence
+## PR 9: Send + Bloom Filter Anti-Repeat
 - Branch: `feature/send-and-history`
 - Primary objective:
-  - deliver generated newsletter and write sent history for anti-repeat guarantees.
+  - deliver generated newsletter and update per-user Bloom filter state for anti-repeat guarantees.
 - Frontend scope:
   - optional: basic “last send status” admin/debug screen (if small).
 - Backend scope:
   - render and send newsletter via Resend.
   - render greeting/personalization using `users.preferred_name` (fallback required for legacy rows).
-  - insert sent items into `newsletter_items`.
-  - enforce URL never-repeat via unique constraint handling.
-  - prune history to retention target (latest 100 URLs/user).
+  - hash each sent URL and set corresponding bits in user Bloom filter.
+  - check Bloom membership before candidate finalization to suppress likely repeats.
+  - update `users.last_issue_sent_at` only after successful send.
+  - define Bloom rotation/reset policy to cap false-positive growth.
 - Data and contracts:
   - send result and persistence outcome must be observable in logs.
   - consume summary item shape from PR 8, do not alter summary contract.
+  - anti-repeat contract is probabilistic (Bloom filter false positives possible, false negatives should not occur after successful bit updates).
 - Tests required:
-  - send success path persists history.
-  - duplicate URL conflict handled safely.
-  - retention pruning logic correctness.
+  - send success path updates Bloom filter deterministically.
+  - repeated URL candidate is filtered when Bloom indicates prior send.
+  - rotation/reset path preserves system safety (no crashes, explicit logs).
 - Done when:
-  - sends complete and history reliably prevents repeats.
+  - sends complete and Bloom-based anti-repeat reliably suppresses prior links.
 
 ## PR 10: End-to-End Happy Path
 - Branch: `feature/e2e-happy-path`
@@ -290,7 +292,7 @@ These are candidate features for future scoped PRs after core pipeline stability
 - Explicit non-goals:
   - no product behavior changes unless required to unblock tests.
 - Tests required:
-  - onboarding -> generation trigger -> send/history write smoke path.
+  - onboarding -> generation trigger -> send/Bloom-update smoke path.
   - replay/idempotency assertions where possible.
 - Done when:
   - core pipeline has stable automated regression coverage.

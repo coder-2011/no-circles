@@ -1,0 +1,52 @@
+[
+  {
+    "title": "AI Engineering in the real world",
+    "url": "https://newsletter.pragmaticengineer.com/p/ai-engineering-in-the-real-world",
+    "summary": "A deepdive examining how software engineers transition to AI engineering roles at seven companies. Covers practical applications, onboarding approaches, tech stacks, engineering challenges like non-determinism and latency, cost considerations, and key learnings including prototype development, evaluation strategies, and user education."
+  },
+  {
+    "title": "Innovation Hub - HiddenLayer",
+    "url": "https://www.hiddenlayer.com/innovation-hub?6a30b9b8_page=2",
+    "summary": "HiddenLayer's Innovation Hub features AI security research, insights, and resources addressing risks in AI systems. Content includes platform updates introducing workflow-aligned modules, threat landscape reports, security playbooks, webinars on AI red teaming and adoption, and research on vulnerabilities in AI assistants and development environments."
+  },
+  {
+    "title": "The Architecture of a Modern AI Application: A 2025 Blueprint",
+    "url": "https://sealos.io/blog/the-architecture-of-a-modern-ai-application-a-2025-blueprint",
+    "summary": "Modern AI applications are production-grade systems integrating foundation models with data pipelines, safety controls, and orchestration layers. The blueprint outlines a layered architecture spanning experience, orchestration, and data layers, with practical deployment on Kubernetes. Key components include retrieval systems, guardrails, tool routing, and multimodal I/O handling."
+  },
+  {
+    "title": "Generative AI Handbook: Build, Evaluate, Deploy LLMs",
+    "url": "https://www.aihandbook.io/generative-ai-handbook/",
+    "summary": "A handbook covering how generative AI systems work beyond surface-level prompting. Topics include large language models, prompting, fine-tuning, retrieval-augmented generation, memory systems, and multimodal models. Designed to help software engineers and ML practitioners understand generative AI as software systems, evaluate design choices, and identify failure modes in real-world deployments."
+  },
+  {
+    "title": "Practical AI Implementation Roadmap: From Beginner to Production Systems",
+    "url": "https://zenvanriel.nl/ai-engineer-blog/practical-ai-implementation-roadmap/",
+    "summary": "A structured 3-6 month roadmap guides developers from AI beginners to production-ready implementers through hands-on project development. The approach prioritizes practical skills across foundation implementation, deployment, and operations phases, including audio processing and human-in-the-loop integration, with portfolio building emphasized throughout."
+  },
+  {
+    "title": "Building a Production AI Application with Tecton",
+    "url": "https://docs.tecton.ai/docs/tutorials/building-a-production-ai-application",
+    "summary": "This tutorial demonstrates building a fraud detection system using Tecton, covering data ingestion from S3, batch feature engineering, training data generation, feature productionization, and real-time inference. Completed in approximately 30 minutes using Python without requiring infrastructure maintenance. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "AI Engineering with Chip Huyen",
+    "url": "https://newsletter.pragmaticengineer.com/p/ai-engineering-with-chip-huyen",
+    "summary": "The Pragmatic Engineer podcast features Chip Huyen, author of O'Reilly's AI Engineering book and applied machine learning expert. The discussion covers AI engineering as a product-focused field distinct from ML engineering, enabled by accessible LLM APIs. Key topics include understanding LLM fundamentals, evaluation methods, and combining project-based with structured learning approaches."
+  },
+  {
+    "title": "Building AI Pipelines: A Guide to Turning Ad-Hoc AI Work into Production Systems",
+    "url": "https://buildingaipipelines.com/",
+    "summary": "A guide for converting scattered AI experiments into reliable production systems. Using UFO sightings as a concrete example, it demonstrates how to move from fragmented prompts and manual workflows to automated, operationally stable pipelines through defining output contracts, establishing minimum production standards, and implementing repeatable infrastructure."
+  },
+  {
+    "title": "AI Blog | Insights on GenAI, Career, ML Systems - Sundeep Teki",
+    "url": "https://www.sundeepteki.org/blog",
+    "summary": "Dr. Sundeep Teki's AI blog contains 100+ articles covering career coaching, generative AI strategy, and LLM implementation. Content addresses four key AI roles—Forward Deployed Engineer, AI Research Engineer, AI Engineer, and Research Scientist—with interview preparation, salary data, and career transition roadmaps. Additional sections cover industry use cases, emerging AI paradigms, and technical skills for enterprise deployment."
+  },
+  {
+    "title": "ML Ops Meaning, Workflow, Tools, and Use Cases Explained",
+    "url": "https://www.upgrad.com/blog/what-is-ml-ops/",
+    "summary": "Machine Learning Operations (ML Ops) is a set of practices and tools that manage the complete lifecycle of ML models from data preparation through deployment, monitoring, and continuous improvement. It bridges data science and engineering to ensure models transition reliably from experimentation to production systems, enabling teams to maintain performance with real-world data over time."
+  }
+]
