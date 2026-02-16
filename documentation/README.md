@@ -15,6 +15,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `subsystems/db-and-onboarding.md`: current DB + onboarding implementation status
 - `subsystems/inbound-reply-memory-update.md`: PR3 memory processing + inbound webhook idempotency contract
 - `subsystems/scheduler-and-cron.md`: Supabase scheduler ownership and cron trigger contract
+- `subsystems/summary-generation.md`: PR8 item-level summary generation contract
 
 ## Suggested Reading Order
 
@@ -33,6 +34,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `subsystems/inbound-reply-memory-update.md`
 - `subsystems/exa-discovery.md`
 - `subsystems/scheduler-and-cron.md`
+- `subsystems/summary-generation.md`
 
 ## Current File Docs
 
@@ -52,6 +54,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/lib-utils.md`
 - `files/next-config.md`
 - `files/drizzle-config.md`
+- `files/vitest-hyper-config.md`
 - `files/db-migrations.md`
 - `files/db-migration-0001-sturdy-ion.md`
 - `files/db-migration-0002-mellow-orchid.md`
@@ -78,10 +81,12 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/lib-webhooks-resend-signature.md`
 - `files/lib-webhooks-inbound-idempotency.md`
 - `files/lib-ai-memory-prompts.md`
+- `files/lib-ai-summary-prompts.md`
 - `files/lib-discovery-types.md`
 - `files/lib-discovery-topic-derivation.md`
 - `files/lib-discovery-exa-client.md`
 - `files/lib-discovery-run-discovery.md`
+- `files/lib-summary-writer.md`
 - `files/scripts-prune-inbound-idempotency.md`
 - `files/scripts-setup-supabase-cron.md`
 - `files/next-env.md`
@@ -89,6 +94,11 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/tests-discovery-run.md`
 - `files/tests-discovery-manual-eval-integration.md`
 - `files/tests-discovery-live-exa-integration.md`
+- `files/tests-summary-writer.md`
+- `files/tests-hyper-logging.md`
+- `files/tests-hyper-pipeline-seam-integration.md`
+- `files/tests-hyper-full-system-live-integration.md`
+- `files/tests-hyper-reply-evolution-live-integration.md`
 
 ## Conventions
 

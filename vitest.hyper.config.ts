@@ -4,8 +4,8 @@ import path from "node:path";
 export default defineConfig({
   test: {
     environment: "node",
-    include: ["tests/**/*.test.ts"],
-    exclude: ["tests/hyper/**"]
+    include: ["tests/hyper/**/*.test.ts"],
+    testTimeout: 240000
   },
   resolve: {
     alias: {
