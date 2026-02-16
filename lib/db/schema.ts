@@ -6,7 +6,8 @@ export const users = pgTable("users", {
   preferredName: text("preferred_name").notNull(),
   timezone: text("timezone").notNull(),
   sendTimeLocal: text("send_time_local").notNull(),
-  interestMemoryText: text("interest_memory_text").notNull()
+  interestMemoryText: text("interest_memory_text").notNull(),
+  lastIssueSentAt: timestamp("last_issue_sent_at", { withTimezone: true })
 });
 
 export const newsletterItems = pgTable(
