@@ -112,15 +112,15 @@ export default function HomePage() {
               </button>
             ) : null}
           </div>
-          <p className="mt-3 text-base font-medium text-[#526149]">
+          <p className="mt-3 text-sm text-[#526149]">
             {authState === "signed_in" && email ? `Signed in as ${email}` : "Sign in to save onboarding securely."}
           </p>
           {authError ? <p className="mt-2 text-sm text-rose-700">{authError}</p> : null}
         </section>
 
         <section className="rounded-3xl border border-[#C9BD9A] bg-[#FBF7EB] p-7 text-[#2D3426] shadow-sm">
-          <p className="text-xs uppercase tracking-[0.2em] text-[#6B775D]">Sample Daily Brief</p>
-          <div className="mt-4 space-y-4 text-base leading-7 text-[#4A5641]">
+          <p className="text-xs uppercase tracking-[0.2em] text-[#6B775D]">Annotated Example Newsletter</p>
+          <div className="mt-4 space-y-4 text-sm leading-6 text-[#4A5641]">
             <p>
               [Header annotation] Daily issue for <span className="font-medium">Sample Reader</span> • 10 curated items
               • neutral summaries
@@ -140,9 +140,6 @@ export default function HomePage() {
           </div>
         </section>
       </div>
-      <p className="pointer-events-none fixed bottom-4 right-4 text-xs font-medium text-[#6B775D]/90">
-        built by Naman Chetwani
-      </p>
     </main>
   );
 }
