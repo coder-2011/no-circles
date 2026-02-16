@@ -10,5 +10,6 @@ Validates discovery orchestration behavior end-to-end at service level with mock
 - Attempt-tier early-stop behavior under quality/diversity gates
 - Suppressed-topic exclusion across primary selection and backfill
 - Low-signal source filtering (domain + index/hub/tag path patterns) and score-threshold filtering
+- Optional candidate include-filter behavior for downstream anti-repeat gating hooks
 - Partial failure behavior with warning emission
 - No-active-topics short-circuit behavior

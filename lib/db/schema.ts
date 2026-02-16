@@ -1,4 +1,4 @@
-import { index, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { date, index, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -7,7 +7,8 @@ export const users = pgTable("users", {
   timezone: text("timezone").notNull(),
   sendTimeLocal: text("send_time_local").notNull(),
   interestMemoryText: text("interest_memory_text").notNull(),
-  lastIssueSentAt: timestamp("last_issue_sent_at", { withTimezone: true })
+  lastIssueSentAt: timestamp("last_issue_sent_at", { withTimezone: true }),
+  sentUrlBloomBits: text("sent_url_bloom_bits")
 });
 
 export const processedWebhooks = pgTable(
@@ -37,5 +38,27 @@ export const cronSelectionLeases = pgTable(
   },
   (table) => ({
     leasedAtIdx: index("cron_selection_leases_leased_at_idx").on(table.leasedAt)
+  })
+);
+
+export const outboundSendIdempotency = pgTable(
+  "outbound_send_idempotency",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    localIssueDate: date("local_issue_date").notNull(),
+    status: text("status").notNull().default("processing"),
+    providerMessageId: text("provider_message_id"),
+    failureReason: text("failure_reason"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => ({
+    idempotencyKeyUnique: uniqueIndex("outbound_send_idempotency_key_unique").on(table.idempotencyKey),
+    userLocalDateIdx: index("outbound_send_idempotency_user_local_date_idx").on(table.userId, table.localIssueDate),
+    statusIdx: index("outbound_send_idempotency_status_idx").on(table.status)
   })
 );

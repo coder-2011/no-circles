@@ -264,13 +264,15 @@ These are candidate features for future scoped PRs after core pipeline stability
 - Backend scope:
   - render and send newsletter via Resend.
   - render greeting/personalization using `users.preferred_name` (fallback required for legacy rows).
-  - hash each sent URL and set corresponding bits in user Bloom filter.
-  - check Bloom membership before candidate finalization to suppress likely repeats.
+  - check Bloom membership during discovery candidate intake (canonical URL) to suppress likely repeats before summary generation.
+  - hash each successfully sent canonical URL and set corresponding bits in user Bloom filter.
+  - reserve outbound idempotency key per user local date before provider send.
   - update `users.last_issue_sent_at` only after successful send.
   - define Bloom rotation/reset policy to cap false-positive growth.
 - Data and contracts:
   - send result and persistence outcome must be observable in logs.
   - consume summary item shape from PR 8, do not alter summary contract.
+  - idempotency key contract: `newsletter:v1:<user_id>:<local_issue_date>`
   - anti-repeat contract is probabilistic (Bloom filter false positives possible, false negatives should not occur after successful bit updates).
 - Tests required:
   - send success path updates Bloom filter deterministically.
