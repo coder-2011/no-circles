@@ -10,7 +10,7 @@ const timezoneSchema = z.string().refine((value) => {
 }, "Invalid timezone");
 
 export const onboardingSchema = z.object({
-  preferred_name: z.string().min(1).max(120),
+  preferred_name: z.string().trim().min(1).max(120),
   timezone: timezoneSchema,
   send_time_local: z
     .string()

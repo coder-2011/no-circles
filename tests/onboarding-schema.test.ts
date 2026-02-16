@@ -48,4 +48,15 @@ describe("onboardingSchema", () => {
     const parsed = onboardingSchema.safeParse({ ...basePayload, preferred_name: "" });
     expect(parsed.success).toBe(false);
   });
+
+  it("trims preferred_name whitespace", () => {
+    const parsed = onboardingSchema.safeParse({ ...basePayload, preferred_name: "   Naman   " });
+    expect(parsed.success).toBe(true);
+
+    if (!parsed.success) {
+      return;
+    }
+
+    expect(parsed.data.preferred_name).toBe("Naman");
+  });
 });

@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const { timezone, send_time_local, brain_dump_text } = parsed.data;
+  const { preferred_name, timezone, send_time_local, brain_dump_text } = parsed.data;
   let interestMemoryText = "";
 
   try {
@@ -66,6 +66,7 @@ export async function POST(request: Request) {
       .insert(users)
       .values({
         email: authenticatedEmail,
+        preferredName: preferred_name,
         timezone,
         sendTimeLocal: send_time_local,
         interestMemoryText
@@ -73,6 +74,7 @@ export async function POST(request: Request) {
       .onConflictDoUpdate({
         target: users.email,
         set: {
+          preferredName: preferred_name,
           timezone,
           sendTimeLocal: send_time_local,
           interestMemoryText
