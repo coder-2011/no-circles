@@ -52,6 +52,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/db-migrations.md`
 - `files/db-migration-0001-sturdy-ion.md`
 - `files/db-migration-0002-mellow-orchid.md`
+- `files/db-migration-0003-misty-calm.md`
 - `files/db-migration-meta-0001-snapshot.md`
 - `files/db-migration-meta-0002-snapshot.md`
 - `files/db-migration-meta-journal.md`
@@ -61,6 +62,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/tests-onboarding.md`
 - `files/tests-onboarding-route.md`
 - `files/tests-inbound-webhook-route.md`
+- `files/tests-cron-generate-next-route.md`
 - `files/tests-memory-processors.md`
 - `files/tsconfig.md`
 - `files/vitest-config.md`
