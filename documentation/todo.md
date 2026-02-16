@@ -6,6 +6,33 @@ Build a personalized daily newsletter system that:
 - curates and sends 10 high-quality links daily
 - avoids repeats per user
 
+## Planning Backlog: UX and Product Value Additions
+These are candidate features for future scoped PRs after core pipeline stability.
+
+1. Newsletter preview before first save
+- Show a mock "today's issue" generated from onboarding text before submit.
+- Goal: increase onboarding confidence and reduce first-send uncertainty.
+
+2. Delivery status panel
+- Show `last_sent_at`, `next_scheduled_send`, and interpreted timezone/send-time.
+- Goal: reduce delivery confusion and improve reliability trust.
+
+3. One-click feedback chips
+- Add quick controls such as `More like this`, `Less like this`, `Too basic`, `Too advanced`.
+- Goal: accelerate preference updates beyond free-text replies.
+
+4. Source quality controls
+- Let users choose inclusion preferences (for example research-heavy vs newsletters/blog-heavy).
+- Goal: improve perceived signal quality and user control.
+
+5. Onboarding starter templates
+- Offer preset starting profiles (for example AI/engineering, history/philosophy).
+- Goal: reduce blank-state friction and improve first-run output quality.
+
+6. Digest intensity setting
+- Allow issue size preferences (for example light/standard/deep).
+- Goal: match cognitive load to user preference and improve retention.
+
 ## Current Status
 - `feature/db-and-onboarding`: merged.
 - `feature/google-auth`: merged.
