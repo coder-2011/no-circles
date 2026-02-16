@@ -21,10 +21,11 @@ import {
   shouldEarlyStop
 } from "@/lib/discovery/run-discovery-selection";
 
-const DEFAULT_PER_TOPIC_RESULTS = 5;
+const DEFAULT_PER_TOPIC_RESULTS = 7;
 const DEFAULT_MAX_TOPICS = 10;
 const DEFAULT_EARLY_STOP_BUFFER = 2;
 const DEFAULT_MAX_PER_DOMAIN = 3;
+const DEFAULT_BACKFILL_MAX_TOPIC_SHARE = 0.4;
 const DISCOVERY_DEBUG = process.env.DISCOVERY_DEBUG === "1";
 
 function logDiscoveryDebug(event: string, details: Record<string, unknown>) {
@@ -39,16 +40,36 @@ function hasRequiredItemFields(candidate: DiscoveryCandidate): boolean {
 function fillFromPool(
   selected: DiscoveryCandidate[],
   pool: DiscoveryCandidate[],
-  targetCount: number
+  targetCount: number,
+  maxTopicShare?: number
 ): { items: DiscoveryCandidate[]; added: number } {
   if (selected.length >= targetCount) {
     return { items: selected, added: 0 };
   }
 
   const selectedUrls = new Set(selected.map((candidate) => candidate.canonicalUrl));
+  const topicCounts = new Map<string, number>();
+  for (const candidate of selected) {
+    topicCounts.set(candidate.topic, (topicCounts.get(candidate.topic) ?? 0) + 1);
+  }
+
+  const topicShareCap =
+    typeof maxTopicShare === "number" && maxTopicShare > 0 ? Math.max(1, Math.ceil(targetCount * maxTopicShare)) : null;
   let added = 0;
 
-  for (const candidate of pool) {
+  const orderedPool = [...pool].sort((a, b) => {
+    const aCount = topicCounts.get(a.topic) ?? 0;
+    const bCount = topicCounts.get(b.topic) ?? 0;
+    if (aCount !== bCount) {
+      return aCount - bCount;
+    }
+    if (a.topicRank !== b.topicRank) {
+      return a.topicRank - b.topicRank;
+    }
+    return a.resultRank - b.resultRank;
+  });
+
+  for (const candidate of orderedPool) {
     if (selected.length >= targetCount) {
       break;
     }
@@ -57,8 +78,14 @@ function fillFromPool(
       continue;
     }
 
+    const topicCount = topicCounts.get(candidate.topic) ?? 0;
+    if (topicShareCap !== null && topicCount >= topicShareCap) {
+      continue;
+    }
+
     selected.push(candidate);
     selectedUrls.add(candidate.canonicalUrl);
+    topicCounts.set(candidate.topic, topicCount + 1);
     added += 1;
   }
 
@@ -177,9 +204,16 @@ export async function runDiscovery(
   const nonTopicQualityPool = qualityFiltered.filter(
     (candidate) => !onePerTopic.some((winner) => winner.canonicalUrl === candidate.canonicalUrl)
   );
-  const qualityBackfill = fillFromPool(selected, nonTopicQualityPool, targetCount);
+  const qualityBackfill = fillFromPool(selected, nonTopicQualityPool, targetCount, DEFAULT_BACKFILL_MAX_TOPIC_SHARE);
   if (qualityBackfill.added > 0) {
     warnings.push(`BACKFILLED_FROM_QUALITY_POOL_${qualityBackfill.added}`);
+  }
+
+  if (selected.length < targetCount) {
+    const relaxedTopicBalanceBackfill = fillFromPool(selected, nonTopicQualityPool, targetCount);
+    if (relaxedTopicBalanceBackfill.added > 0) {
+      warnings.push(`RELAXED_TOPIC_BALANCE_BACKFILL_${relaxedTopicBalanceBackfill.added}`);
+    }
   }
 
   const relaxedNonSuppressedPool = nonSuppressed

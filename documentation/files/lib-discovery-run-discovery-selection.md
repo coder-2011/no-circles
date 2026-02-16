@@ -10,6 +10,7 @@ Holds pure helper logic used by discovery orchestration so `run-discovery.ts` st
 - Quality filtering:
   - required `title` + `highlight`
   - low-signal source/domain rejection
+  - low-signal hub/index/tag path rejection
   - minimum score rejection for scored candidates.
 - Strict one-winner-per-topic selection using weighted topic-local score.
 - Early-stop policy checks (domain diversity, score, highlight coverage).

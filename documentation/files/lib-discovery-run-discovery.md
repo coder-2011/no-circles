@@ -28,7 +28,7 @@ Implementation split:
 7. Perform strict one-winner-per-topic selection using weighted topic-local score:
    - `0.65 * exaNorm + 0.35 * highlightNorm` (weights renormalized when one signal is missing).
 8. Backfill to target count (default `10`) in staged order:
-   - remaining non-suppressed quality pool
+   - remaining non-suppressed quality pool (topic-balanced first pass with soft max-topic-share cap)
    - relaxed non-suppressed pool (keeps required title/highlight)
 9. Build `diversityCard` on final output with hard thresholds for topic/domain spread.
 10. Enforce target-count contract:
@@ -44,6 +44,7 @@ Attempt-tier gates (strict -> relaxed):
 
 Stop triggers only when all gates pass for `targetCount + earlyStopBuffer` candidates.
 Default `earlyStopBuffer` is `2` and default per-domain cap is `3`.
+Default `perTopicResults` is `7` (attempts 2+ increase by `+2` each).
 
 ## Retry Strategy
 - Attempt 1: base query, base `perTopicResults`
@@ -64,5 +65,6 @@ Default `earlyStopBuffer` is `2` and default per-domain cap is `3`.
 - `INSUFFICIENT_TOPIC_WINNERS`
 - `NON_SUPPRESSED_POOL_BELOW_TARGET`
 - `BACKFILLED_FROM_QUALITY_POOL_<n>`
+- `RELAXED_TOPIC_BALANCE_BACKFILL_<n>`
 - `RELAXED_QUALITY_BACKFILL_<n>`
 - `DIVERSITY_CARD_FAILED`

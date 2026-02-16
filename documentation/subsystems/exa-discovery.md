@@ -20,10 +20,11 @@ Implements candidate discovery stage only.
 
 ## Runtime Contract
 Input: `interest_memory_text` and run knobs.
-Output: deterministic target-count list (default `10`) built from per-topic winners plus staged non-suppressed backfill, along with topics used, attempts used, warnings, and diversity card metrics.
+Output: deterministic target-count list (default `10`) built from per-topic winners plus staged non-suppressed backfill (topic-balanced first pass), along with topics used, attempts used, warnings, and diversity card metrics.
 
 ## Policy Highlights
 - Suppressed interests are soft-ranked in topic derivation and excluded from both primary and fallback selection.
+- Query construction is topic-focused (minimal context noise) to improve retrieval precision.
 - Discovery attempts use calibrated relaxed thresholds to improve first-attempt pass rate while preserving diversity checks.
-- Final selection starts strict one-per-topic with weighted topic-local scoring (`exa` weighted higher than highlight score), then backfills to target count.
+- Final selection starts strict one-per-topic with weighted topic-local scoring (`exa` weighted higher than highlight score), then backfills to target count with topic-balance preference before relaxed fallback.
 - Diversity and source-signal diagnostics are emitted in warnings and `diversityCard`.

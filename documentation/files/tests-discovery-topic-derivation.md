@@ -5,6 +5,6 @@ Verifies topic derivation correctness and edge-case behavior.
 
 ## Coverage
 - Unique topic extraction from `ACTIVE_INTERESTS`
-- Query context enrichment from personality/feedback
+- Topic-focused query generation (`query === topic`)
 - Soft suppression ordering behavior
-- Invalid/missing-topic memory handling
+- Invalid/missing-topic memory handling and seed-topic fallback
