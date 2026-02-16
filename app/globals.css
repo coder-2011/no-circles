@@ -9,8 +9,33 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: #f8fafc;
-  color: #0f172a;
+  background: #f3ecd8;
+  color: #2d3426;
+  font-family: var(--font-ui), sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-editorial), serif;
+  letter-spacing: 0.01em;
+}
+
+p,
+li,
+blockquote {
+  font-family: var(--font-editorial), serif;
+}
+
+button,
+input,
+textarea,
+label,
+a {
+  font-family: var(--font-ui), sans-serif;
 }
 
 
