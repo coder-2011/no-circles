@@ -277,27 +277,19 @@ export default function OnboardingPage() {
               <div className="relative">
                 <button
                   className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:opacity-50"
-                  disabled={submitState === "saving" || submitState === "saved"}
+                  disabled={submitState === "saving"}
                   type="submit"
                 >
-                  {submitState === "saving" ? "Saving..." : submitState === "saved" ? "Saved" : "Save preferences"}
+                  {submitState === "saving" ? "Saving..." : "Save preferences"}
                 </button>
-                {showCelebration ? (
-                  <div className="pointer-events-none absolute -right-3 -top-3">
-                    <span className="absolute -left-14 -top-8 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-[11px] font-medium text-emerald-700 animate-pulse">
-                      Saved
-                    </span>
-                    <span className="absolute left-0 top-0 h-2 w-2 rounded-full bg-emerald-400 opacity-80 animate-ping" />
-                    <span
-                      className="absolute left-3 -top-2 h-1.5 w-1.5 rounded-full bg-sky-400 opacity-80 animate-ping"
-                      style={{ animationDelay: "120ms" }}
-                    />
-                    <span
-                      className="absolute left-4 top-2 h-1.5 w-1.5 rounded-full bg-amber-300 opacity-80 animate-ping"
-                      style={{ animationDelay: "220ms" }}
-                    />
-                  </div>
-                ) : null}
+                <span
+                  className={`pointer-events-none absolute -right-20 top-1/2 inline-flex -translate-y-1/2 items-center rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-[11px] font-medium text-emerald-700 transition duration-300 ${
+                    showCelebration ? "translate-x-0 opacity-100" : "translate-x-1 opacity-0"
+                  }`}
+                >
+                  <span className="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  Saved
+                </span>
               </div>
               <button
                 className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
@@ -307,11 +299,6 @@ export default function OnboardingPage() {
                 Sign out
               </button>
             </div>
-            {submitState === "saved" ? (
-              <p className="text-xs font-medium text-emerald-700">
-                Complete: preferences submitted. You can stay on this page or edit and resubmit later.
-              </p>
-            ) : null}
           </form>
         ) : null}
 
