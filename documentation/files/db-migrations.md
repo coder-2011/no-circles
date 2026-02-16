@@ -19,6 +19,10 @@ Versioned SQL history for database schema state.
 - `db/migrations/0003_misty_calm.sql`
   - adds nullable `users.last_issue_sent_at`
   - establishes scheduler delivery-state authority on `users` (not `newsletter_items`)
+- `db/migrations/0004_steady_spark.sql`
+  - creates `cron_selection_leases`
+  - adds 5-minute duplicate-trigger lease persistence primitive for scheduler selection
+  - creates `public.claim_next_due_user(run_at_utc, lease_ttl_minutes)` DB function as scheduler logic owner
 
 ## Metadata
 - `db/migrations/meta/_journal.json`: migration journal
