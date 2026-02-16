@@ -52,7 +52,7 @@ This system is a website-first, email-delivered personalized newsletter product.
 1. User signs in with OAuth (Google only in V1).
 2. User completes onboarding form:
    - one large brain-dump textbox (interests, what they are like, where they want to start, what they want to learn)
-   - preferred name (accepted at API boundary; not persisted in current minimal DB schema)
+   - preferred name
    - timezone
    - preferred daily send time
 3. Backend validates input and writes/updates `users`:
@@ -98,10 +98,10 @@ V1 intentionally excludes a manual regenerate endpoint.
   - validates payload
   - resolves authenticated session email for identity
   - creates or updates `users` row
+  - persists `preferred_name` from validated payload
   - routes `brain_dump_text` through onboarding memory processor
   - persists canonical memory text (`PERSONALITY`, `ACTIVE_INTERESTS`, `SUPPRESSED_INTERESTS`, `RECENT_FEEDBACK`)
   - enforces hard cap of `800` words on stored memory
-  - `preferred_name` is currently validated but not persisted in the minimal DB schema
 - **Response**:
   - `{ ok: true, user_id: string }`
 
@@ -191,6 +191,7 @@ Purpose: one record per user with live personalization state.
 Fields:
 - `id` (primary key)
 - `email` (unique)
+- `preferred_name`
 - `timezone`
 - `send_time_local`
 - `interest_memory_text` (single evolving liquid profile)

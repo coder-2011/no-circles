@@ -9,6 +9,8 @@ Route-level contract tests for `POST /api/onboarding`.
 - missing session identity returns `401 UNAUTHORIZED`
 - success path returns `{ ok: true, user_id }`
 - spoofed payload email is ignored in favor of authenticated session email
+- `preferred_name` is persisted on insert/update path
+- whitespace in `preferred_name` is trimmed before persistence
 - database write failure returns `500 INTERNAL_ERROR`
 - onboarding memory processor failure returns `500 INTERNAL_ERROR`
 - success persists processed canonical memory (not raw `brain_dump_text`)
