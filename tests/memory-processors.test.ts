@@ -9,6 +9,7 @@ import {
 import {
   buildFallbackOnboardingMemory,
   buildFallbackReplyMemory,
+  formatOnboardingMemory,
   mergeReplyIntoMemory
 } from "@/lib/memory/processors";
 
@@ -100,7 +101,7 @@ describe("fallback memory processors", () => {
 describe("structured reply memory updates", () => {
   it("applies validated model ops deterministically", async () => {
     process.env.ANTHROPIC_API_KEY = "test-key";
-    process.env.ANTHROPIC_MEMORY_MODEL = "claude-3-5-sonnet-20240620";
+    process.env.ANTHROPIC_MEMORY_MODEL = "claude-opus-4-6";
 
     const modelOps = {
       add_active: ["economics"],
@@ -455,5 +456,24 @@ describe("structured reply memory updates", () => {
     const logLines = warnSpy.mock.calls.map((args) => String(args[0]));
     expect(logLines.some((line) => line.includes("\"event\":\"reply_model_error\""))).toBe(true);
     expect(logLines.some((line) => line.includes("\"event\":\"reply_fallback_used\""))).toBe(true);
+  });
+});
+
+describe("onboarding model requirement", () => {
+  it("throws when onboarding model output is unavailable and fallback would be used", async () => {
+    process.env.ANTHROPIC_API_KEY = "test-key";
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: false,
+        status: 400,
+        json: async () => ({})
+      }))
+    );
+
+    await expect(
+      formatOnboardingMemory("I care about robotics and mechanistic interpretability.")
+    ).rejects.toThrow("ONBOARDING_MODEL_REQUIRED");
   });
 });
