@@ -14,6 +14,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `architecture.md`: stack decisions, data model, system flows, and API contracts
 - `subsystems/db-and-onboarding.md`: current DB + onboarding implementation status
 - `subsystems/inbound-reply-memory-update.md`: PR3 memory processing + inbound webhook idempotency contract
+- `subsystems/scheduler-and-cron.md`: Supabase scheduler ownership and cron trigger contract
 
 ## Suggested Reading Order
 
@@ -31,6 +32,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `subsystems/db-and-onboarding.md`
 - `subsystems/inbound-reply-memory-update.md`
 - `subsystems/exa-discovery.md`
+- `subsystems/scheduler-and-cron.md`
 
 ## Current File Docs
 
@@ -53,6 +55,8 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/db-migrations.md`
 - `files/db-migration-0001-sturdy-ion.md`
 - `files/db-migration-0002-mellow-orchid.md`
+- `files/db-migration-0003-misty-calm.md`
+- `files/db-migration-0004-steady-spark.md`
 - `files/db-migration-meta-0001-snapshot.md`
 - `files/db-migration-meta-0002-snapshot.md`
 - `files/db-migration-meta-journal.md`
@@ -62,7 +66,10 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/tests-onboarding.md`
 - `files/tests-onboarding-route.md`
 - `files/tests-inbound-webhook-route.md`
-- `files/tests-memory-processors.md`
+- `files/tests-cron-generate-next-route.md`
+- `files/tests-cron-selector-db-integration.md`
+- `files/tests-memory-processors-core.md`
+- `files/tests-memory-processors-reply-merge.md`
 - `files/tsconfig.md`
 - `files/vitest-config.md`
 - `files/app-api-webhooks-resend-inbound-route.md`
@@ -76,6 +83,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/lib-discovery-exa-client.md`
 - `files/lib-discovery-run-discovery.md`
 - `files/scripts-prune-inbound-idempotency.md`
+- `files/scripts-setup-supabase-cron.md`
 - `files/next-env.md`
 - `files/tests-discovery-topic-derivation.md`
 - `files/tests-discovery-run.md`
