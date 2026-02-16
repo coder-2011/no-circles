@@ -22,6 +22,20 @@
       "when": 1771209600000,
       "tag": "0002_mellow_orchid",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1771213200000,
+      "tag": "0003_misty_calm",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1771216800000,
+      "tag": "0004_steady_spark",
+      "breakpoints": true
     }
   ]
 }

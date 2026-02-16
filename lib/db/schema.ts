@@ -6,7 +6,8 @@ export const users = pgTable("users", {
   preferredName: text("preferred_name").notNull(),
   timezone: text("timezone").notNull(),
   sendTimeLocal: text("send_time_local").notNull(),
-  interestMemoryText: text("interest_memory_text").notNull()
+  interestMemoryText: text("interest_memory_text").notNull(),
+  lastIssueSentAt: timestamp("last_issue_sent_at", { withTimezone: true })
 });
 
 export const newsletterItems = pgTable(
@@ -40,5 +41,18 @@ export const processedWebhooks = pgTable(
       table.webhookId
     ),
     processedAtIdx: index("processed_webhooks_processed_at_idx").on(table.processedAt)
+  })
+);
+
+export const cronSelectionLeases = pgTable(
+  "cron_selection_leases",
+  {
+    userId: uuid("user_id")
+      .primaryKey()
+      .references(() => users.id, { onDelete: "cascade" }),
+    leasedAt: timestamp("leased_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => ({
+    leasedAtIdx: index("cron_selection_leases_leased_at_idx").on(table.leasedAt)
   })
 );

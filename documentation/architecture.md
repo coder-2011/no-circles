@@ -28,7 +28,7 @@ This system is a website-first, email-delivered personalized newsletter product.
 
 ### Email and Scheduling
 - **Resend**: Outbound newsletter delivery and inbound reply webhooks.
-- **Vercel Cron (every minute)**: Scheduled triggering of daily newsletter jobs.
+- **Supabase pg_cron (every minute)**: Scheduled DB-native due-user selection via Postgres function.
 
 ### Data and Validation
 - **Supabase (PostgreSQL)**: Hosted relational database.
@@ -62,7 +62,7 @@ This system is a website-first, email-delivered personalized newsletter product.
 4. User is marked ready for daily generation.
 
 ### 2) Daily Newsletter Generation Flow
-1. Vercel Cron triggers the generation endpoint every minute.
+1. Supabase `pg_cron` executes `public.claim_next_due_user(now(), 5)` every minute.
 2. Backend reads `users.interest_memory_text`.
 3. System runs the Agent Pipeline Spec to curate and compose a high-quality issue.
 4. Newsletter template is rendered and sent via Resend.
@@ -107,18 +107,18 @@ V1 intentionally excludes a manual regenerate endpoint.
 
 ### 2) Cron Trigger (Single User Per Call)
 - **Endpoint**: `POST /api/cron/generate-next`
-- **Auth**: service secret (Vercel Cron)
-- **Purpose**: generate and send newsletter for one due user at a time.
+- **Auth**: service secret (only required for HTTP wrapper calls).
+- **Purpose**: optional HTTP wrapper around DB selector function for downstream generation/send work.
 - **Request schema (zod shape)**:
   - `run_at_utc?: string` (optional override)
 - **Behavior**:
-  - selects one due user
-  - runs Agent Pipeline Spec for that user
-  - sends newsletter via Resend
-  - saves sent URLs/titles in `newsletter_items`
+  - calls `public.claim_next_due_user(run_at_utc, 5)` in Postgres
+  - function computes due users from `timezone`, `send_time_local`, and `last_issue_sent_at`
+  - function excludes users already sent on their current local day
+  - function selects one due user deterministically (`last_issue_sent_at` asc nulls first, then `id` asc)
   - returns `no_due_user` when queue is empty
 - **Response**:
-  - `{ ok: true, status: "sent", user_id: string }`
+  - `{ ok: true, status: "selected", user_id: string }`
   - or `{ ok: true, status: "no_due_user" }`
 
 ### 3) Inbound Reply Webhook
@@ -195,10 +195,12 @@ Fields:
 - `timezone`
 - `send_time_local`
 - `interest_memory_text` (single evolving liquid profile)
+- `last_issue_sent_at` (nullable delivery-state timestamp used by scheduler)
 
 Behavior:
 - On onboarding, processor output from `brain_dump_text` is saved into `interest_memory_text`.
 - On each inbound reply, processor output from `{ current_interest_memory_text, inbound_reply_text }` updates `interest_memory_text` once per unique webhook event.
+- Scheduler selection authority for "already sent today" is `users.last_issue_sent_at`.
 
 ### Table: `newsletter_items`
 Purpose: per-user sent-item history to prevent repeated URLs/titles.
