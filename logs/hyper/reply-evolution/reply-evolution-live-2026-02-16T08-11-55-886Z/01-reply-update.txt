@@ -1,0 +1,1 @@
+Pause software architecture and product strategy for now. I want much more distributed systems, databases, and observability. Keep it practical and implementation focused.
