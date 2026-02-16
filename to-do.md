@@ -79,6 +79,7 @@ Why:
 - Branch: `feature/send-and-history`
 - Tasks:
   - send issue via Resend
+  - use `users.preferred_name` for email greeting/personalization (fallback when missing)
   - save sent URLs in `newsletter_items`
   - enforce never-repeat (`user_id`, `url` unique)
   - prune history to latest 100 per user
