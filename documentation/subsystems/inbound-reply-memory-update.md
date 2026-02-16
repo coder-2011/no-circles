@@ -16,7 +16,7 @@ Implements PR3 memory processing and inbound webhook update safety:
 - Signature helper: `lib/webhooks/resend-signature.ts`
 - Idempotency helper: `lib/webhooks/inbound-idempotency.ts`
 - Prune script: `scripts/prune-inbound-idempotency.ts`
-- Tests: `tests/memory-processors.test.ts`, `tests/inbound-webhook-route.test.ts`, `tests/onboarding-route.test.ts`
+- Tests: `tests/memory-processors-core.test.ts`, `tests/memory-processors-reply-merge.test.ts`, `tests/inbound-webhook-route.test.ts`, `tests/onboarding-route.test.ts`
 
 ## Runtime Contract
 1. Onboarding flow sends `brain_dump_text` into onboarding memory processor.
