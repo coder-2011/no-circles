@@ -1,0 +1,1 @@
+I am focused on AI engineering, systems design, and software architecture. I prefer concrete implementation guidance over broad thought pieces. I also enjoy data engineering and technical product strategy.
