@@ -43,3 +43,16 @@ export const processedWebhooks = pgTable(
     processedAtIdx: index("processed_webhooks_processed_at_idx").on(table.processedAt)
   })
 );
+
+export const cronSelectionLeases = pgTable(
+  "cron_selection_leases",
+  {
+    userId: uuid("user_id")
+      .primaryKey()
+      .references(() => users.id, { onDelete: "cascade" }),
+    leasedAt: timestamp("leased_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => ({
+    leasedAtIdx: index("cron_selection_leases_leased_at_idx").on(table.leasedAt)
+  })
+);
