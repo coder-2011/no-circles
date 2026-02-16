@@ -1,7 +1,7 @@
 import type { DiscoveryCandidate, DiscoveryDiversityCard, DiscoveryTopic, ExaSearchResult } from "@/lib/discovery/types";
 
 const MIN_ACCEPTABLE_EXA_SCORE = 0.05;
-const MIN_TOPIC_SELECTION_SCORE = 0.4;
+const MIN_TOPIC_SELECTION_SCORE = 0.32;
 const EXA_WEIGHT = 0.65;
 const HIGHLIGHT_WEIGHT = 0.35;
 const TOP_K_HIGHLIGHT_SCORES = 2;
@@ -16,6 +16,19 @@ const KNOWN_LOW_SIGNAL_DOMAINS = new Set([
   "goodreads.com", "studylib.net", "itbooks.ir", "barnesandnoble.com", "books.google.com", "bookshop.org", "scribd.com",
   "issuu.com", "coursehero.com", "academia.edu", "pdfdrive.com", "z-lib.org", "papyruspub.com", "faiusr.com"
 ]);
+const LOW_SIGNAL_PATH_PREFIXES = ["/tag/", "/tags/", "/category/", "/categories/", "/topics/", "/topic/"];
+const LOW_SIGNAL_EXACT_PATHS = new Set([
+  "/",
+  "/blog",
+  "/blogs",
+  "/insights",
+  "/news",
+  "/articles",
+  "/resources",
+  "/resource-center",
+  "/innovation-hub"
+]);
+const LOW_SIGNAL_PATH_KEYWORDS = ["index", "archive", "all-posts", "all-articles", "resources"];
 
 function canonicalizeUrl(rawUrl: string): string | null {
   try {
@@ -153,10 +166,91 @@ function normalizedEntropy(counts: Map<string, number>, total: number): number {
 function isLikelyLowSignalCandidate(candidate: DiscoveryCandidate): boolean {
   const domain = candidate.sourceDomain?.toLowerCase() ?? "";
   const normalizedUrl = candidate.url.toLowerCase();
+  let pathname = "";
+  try {
+    pathname = new URL(candidate.canonicalUrl).pathname.toLowerCase().replace(/\/+$/, "") || "/";
+  } catch {
+    pathname = "";
+  }
 
   if (KNOWN_LOW_SIGNAL_DOMAINS.has(domain)) return true;
   if (domain.endsWith(".papyruspub.com") || domain.endsWith(".faiusr.com")) return true;
-  return normalizedUrl.endsWith(".pdf") && !domain.endsWith(".edu") && !domain.endsWith(".gov");
+  if (normalizedUrl.endsWith(".pdf") && !domain.endsWith(".edu") && !domain.endsWith(".gov")) return true;
+  if (LOW_SIGNAL_EXACT_PATHS.has(pathname)) return true;
+  if (LOW_SIGNAL_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return true;
+  if (LOW_SIGNAL_PATH_KEYWORDS.some((keyword) => pathname.includes(keyword))) return true;
+  return false;
+}
+
+function classifyQualityDropReason(
+  candidate: DiscoveryCandidate
+): "missing_fields" | "low_signal" | "low_score" | "passes" {
+  if (!candidate.title || !candidate.highlight) {
+    return "missing_fields";
+  }
+
+  if (isLikelyLowSignalCandidate(candidate)) {
+    return "low_signal";
+  }
+
+  if (candidate.exaScore !== null && candidate.exaScore < MIN_ACCEPTABLE_EXA_SCORE) {
+    return "low_score";
+  }
+
+  return "passes";
+}
+
+export function summarizeQualityFilterDiagnostics(candidates: DiscoveryCandidate[]): {
+  total: number;
+  kept: number;
+  droppedMissingFields: number;
+  droppedLowSignal: number;
+  droppedLowScore: number;
+  withHighlightCount: number;
+  withTitleCount: number;
+  distinctDomains: number;
+} {
+  let kept = 0;
+  let droppedMissingFields = 0;
+  let droppedLowSignal = 0;
+  let droppedLowScore = 0;
+  let withHighlightCount = 0;
+  let withTitleCount = 0;
+  const domains = new Set<string>();
+
+  for (const candidate of candidates) {
+    if (candidate.highlight) withHighlightCount += 1;
+    if (candidate.title) withTitleCount += 1;
+    if (candidate.sourceDomain) domains.add(candidate.sourceDomain);
+
+    const reason = classifyQualityDropReason(candidate);
+    if (reason === "passes") {
+      kept += 1;
+      continue;
+    }
+
+    if (reason === "missing_fields") {
+      droppedMissingFields += 1;
+      continue;
+    }
+    if (reason === "low_signal") {
+      droppedLowSignal += 1;
+      continue;
+    }
+
+    droppedLowScore += 1;
+  }
+
+  return {
+    total: candidates.length,
+    kept,
+    droppedMissingFields,
+    droppedLowSignal,
+    droppedLowScore,
+    withHighlightCount,
+    withTitleCount,
+    distinctDomains: domains.size
+  };
 }
 
 export function normalizeCandidate(args: {
@@ -276,17 +370,19 @@ export function qualityFilterCandidates(candidates: DiscoveryCandidate[], warnin
   let missingFieldsDropped = 0;
 
   for (const candidate of candidates) {
-    if (!candidate.title || !candidate.highlight) {
+    const dropReason = classifyQualityDropReason(candidate);
+
+    if (dropReason === "missing_fields") {
       missingFieldsDropped += 1;
       continue;
     }
 
-    if (isLikelyLowSignalCandidate(candidate)) {
+    if (dropReason === "low_signal") {
       lowSignalDropped += 1;
       continue;
     }
 
-    if (candidate.exaScore !== null && candidate.exaScore < MIN_ACCEPTABLE_EXA_SCORE) {
+    if (dropReason === "low_score") {
       lowScoreDropped += 1;
       continue;
     }

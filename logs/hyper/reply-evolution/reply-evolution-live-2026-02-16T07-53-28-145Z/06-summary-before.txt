@@ -1,0 +1,52 @@
+[
+  {
+    "title": "Prompt Engineering: The Process, Uses, Techniques, Applications",
+    "url": "https://www.leewayhertz.com/prompt-engineering/",
+    "summary": "Prompt engineering is the practice of designing and refining text prompts to guide Large Language Models toward desired outputs. The process involves analyzing requirements, crafting clear instructions, and optimizing prompt parameters such as length and structure. Applications span text summarization, code generation, translation, and question answering across research and industrial domains."
+  },
+  {
+    "title": "System Design Patterns: Practical Architectures, Tradeoffs, and Interview Use Cases",
+    "url": "https://www.systemdesignhandbook.com/guides/system-design-patterns/",
+    "summary": "System design patterns represent recurring solutions to common constraints like scaling, failure isolation, and latency reduction. Interviewers value candidates who understand patterns as tools reflecting tradeoffs rather than rigid templates. Effective interview preparation involves recognizing patterns through examples, reasoning from constraints first, and clearly explaining design choices rather than memorizing solutions."
+  },
+  {
+    "title": "An Explanation of Software Architecture Explanations - arXiv",
+    "url": "https://arxiv.org/html/2503.08628v2",
+    "summary": "A study investigates how software architects explain system design in practice across five dimensions: topics, explanation plans, supporting artifacts, typical questions, and challenges. Findings show explanations balance technical and problem domains while addressing structure, behavior, and design rationale. The research proposes the Explanation Window framework for adjusting information scope and emphasizes system context importance, providing empirical basis for improving architecture"
+  },
+  {
+    "title": "Data Engineering Project for Beginners - Batch edition",
+    "url": "https://startdataengineering.com/post/data-engineering-project-for-beginners-batch-edition",
+    "summary": "A tutorial for building an end-to-end batch data pipeline using Apache Airflow, Spark on AWS EMR, Redshift, and Postgres. Covers infrastructure setup, pipeline best practices, failure resilience, and design patterns for beginners seeking real-world data engineering experience. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "Agentic System Design | Practical Guide for Engineers",
+    "url": "https://www.aihandbook.io/guides/agentic-system-design/",
+    "summary": "As AI systems move to production, many degrade under real-world conditions due to architectural limitations. Agentic system design addresses this by treating failures as architectural concerns, emphasizing explicit reasoning loops, state management, and observability. The approach requires human oversight mechanisms and system-level thinking rather than reactive fixes."
+  },
+  {
+    "title": "AI System Design: A Complete Guide to Building Scalable Intelligent Systems",
+    "url": "https://grokkingthesystemdesign.com/guides/ai-system-design/",
+    "summary": "AI system design extends beyond model training to encompass full production systems including data pipelines, training workflows, and inference services. The guide outlines three foundational pillars—data, model, and compute—and provides a structured approach for designing systems that address latency, freshness, accuracy, and traffic requirements through data ingestion, feature engineering, training, deployment, inference, monitoring, and scaling."
+  },
+  {
+    "title": "Building A Generative AI Platform",
+    "url": "https://huyenchip.com/2024/07/25/genai-platform.html",
+    "summary": "A generative AI platform typically progresses through five stages: enhancing context via RAGs and external data sources, implementing input and output guardrails, adding model routing and gateways, optimizing latency and costs through caching, and incorporating complex logic with write actions. Observability and orchestration support the entire system."
+  },
+  {
+    "title": "Building a Production AI Application with Tecton",
+    "url": "https://docs.tecton.ai/docs/tutorials/building-a-production-ai-application",
+    "summary": "This tutorial demonstrates building a fraud detection system using Tecton, covering data ingestion from S3, batch feature engineering, training data generation, feature productionization, and real-time inference. Completed in approximately 30 minutes using Python without requiring infrastructure maintenance. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "ML System Design: The Complete Guide 2026",
+    "url": "https://www.systemdesignhandbook.com/guides/ml-system-design/",
+    "summary": "ML System Design combines machine learning, data engineering, and distributed systems to architect scalable systems for training, deploying, and maintaining models. The process encompasses data pipelines, infrastructure, and feedback loops. Key components include caching, indexing, and monitoring for low-latency performance, with continuous retraining to maintain model accuracy."
+  },
+  {
+    "title": "AI Engineering",
+    "url": "https://andrewclark.co.uk/all-media/ai-engineering",
+    "summary": "AI engineering involves building applications on existing foundation models rather than creating new ones. Key techniques include prompt engineering, fine-tuning, and retrieval-augmented generation. Successful implementation requires evaluating entire systems, managing biases, and cross-functional collaboration. Architectures should start simple and add complexity incrementally based on measured impact."
+  }
+]

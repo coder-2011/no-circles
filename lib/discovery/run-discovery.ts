@@ -16,14 +16,22 @@ import {
   filterNonSuppressed,
   normalizeCandidate,
   qualityFilterCandidates,
+  summarizeQualityFilterDiagnostics,
   selectOnePerTopic,
   shouldEarlyStop
 } from "@/lib/discovery/run-discovery-selection";
 
-const DEFAULT_PER_TOPIC_RESULTS = 5;
+const DEFAULT_PER_TOPIC_RESULTS = 7;
 const DEFAULT_MAX_TOPICS = 10;
 const DEFAULT_EARLY_STOP_BUFFER = 2;
 const DEFAULT_MAX_PER_DOMAIN = 3;
+const DEFAULT_BACKFILL_MAX_TOPIC_SHARE = 0.4;
+const DISCOVERY_DEBUG = process.env.DISCOVERY_DEBUG === "1";
+
+function logDiscoveryDebug(event: string, details: Record<string, unknown>) {
+  if (!DISCOVERY_DEBUG) return;
+  console.info(JSON.stringify({ subsystem: "discovery", event, ...details }));
+}
 
 function hasRequiredItemFields(candidate: DiscoveryCandidate): boolean {
   return Boolean(candidate.title && candidate.highlight);
@@ -32,16 +40,36 @@ function hasRequiredItemFields(candidate: DiscoveryCandidate): boolean {
 function fillFromPool(
   selected: DiscoveryCandidate[],
   pool: DiscoveryCandidate[],
-  targetCount: number
+  targetCount: number,
+  maxTopicShare?: number
 ): { items: DiscoveryCandidate[]; added: number } {
   if (selected.length >= targetCount) {
     return { items: selected, added: 0 };
   }
 
   const selectedUrls = new Set(selected.map((candidate) => candidate.canonicalUrl));
+  const topicCounts = new Map<string, number>();
+  for (const candidate of selected) {
+    topicCounts.set(candidate.topic, (topicCounts.get(candidate.topic) ?? 0) + 1);
+  }
+
+  const topicShareCap =
+    typeof maxTopicShare === "number" && maxTopicShare > 0 ? Math.max(1, Math.ceil(targetCount * maxTopicShare)) : null;
   let added = 0;
 
-  for (const candidate of pool) {
+  const orderedPool = [...pool].sort((a, b) => {
+    const aCount = topicCounts.get(a.topic) ?? 0;
+    const bCount = topicCounts.get(b.topic) ?? 0;
+    if (aCount !== bCount) {
+      return aCount - bCount;
+    }
+    if (a.topicRank !== b.topicRank) {
+      return a.topicRank - b.topicRank;
+    }
+    return a.resultRank - b.resultRank;
+  });
+
+  for (const candidate of orderedPool) {
     if (selected.length >= targetCount) {
       break;
     }
@@ -50,8 +78,14 @@ function fillFromPool(
       continue;
     }
 
+    const topicCount = topicCounts.get(candidate.topic) ?? 0;
+    if (topicShareCap !== null && topicCount >= topicShareCap) {
+      continue;
+    }
+
     selected.push(candidate);
     selectedUrls.add(candidate.canonicalUrl);
+    topicCounts.set(candidate.topic, topicCount + 1);
     added += 1;
   }
 
@@ -111,6 +145,15 @@ export async function runDiscovery(
 
       const deduped = dedupeCandidates(aggregateCandidates);
       const nonSuppressed = filterNonSuppressed(deduped);
+      const diagnostics = summarizeQualityFilterDiagnostics(nonSuppressed);
+      logDiscoveryDebug("attempt_topic_progress", {
+        attempt: attempt + 1,
+        topic: topic.topic,
+        aggregate_count: aggregateCandidates.length,
+        deduped_count: deduped.length,
+        non_suppressed_count: nonSuppressed.length,
+        quality_pool_preview: diagnostics
+      });
 
       if (
         shouldEarlyStop({
@@ -134,10 +177,21 @@ export async function runDiscovery(
 
   const deduped = dedupeCandidates(aggregateCandidates);
   const nonSuppressed = filterNonSuppressed(deduped);
+  const qualityDiagnostics = summarizeQualityFilterDiagnostics(nonSuppressed);
   const qualityFiltered = qualityFilterCandidates(nonSuppressed, warnings);
   const domainCapped = applyDomainCap(qualityFiltered, Math.max(targetCount * 2, targetCount), maxPerDomain, true);
   const onePerTopic = selectOnePerTopic(domainCapped, targetCount, warnings);
   const selected = [...onePerTopic];
+  logDiscoveryDebug("post_filter_stage_counts", {
+    deduped_count: deduped.length,
+    non_suppressed_count: nonSuppressed.length,
+    quality_filtered_count: qualityFiltered.length,
+    domain_capped_count: domainCapped.length,
+    one_per_topic_count: onePerTopic.length,
+    target_count: targetCount,
+    quality_pool_diagnostics: qualityDiagnostics,
+    warnings
+  });
 
   if (selected.length < targetCount) {
     warnings.push("INSUFFICIENT_TOPIC_WINNERS");
@@ -150,9 +204,16 @@ export async function runDiscovery(
   const nonTopicQualityPool = qualityFiltered.filter(
     (candidate) => !onePerTopic.some((winner) => winner.canonicalUrl === candidate.canonicalUrl)
   );
-  const qualityBackfill = fillFromPool(selected, nonTopicQualityPool, targetCount);
+  const qualityBackfill = fillFromPool(selected, nonTopicQualityPool, targetCount, DEFAULT_BACKFILL_MAX_TOPIC_SHARE);
   if (qualityBackfill.added > 0) {
     warnings.push(`BACKFILLED_FROM_QUALITY_POOL_${qualityBackfill.added}`);
+  }
+
+  if (selected.length < targetCount) {
+    const relaxedTopicBalanceBackfill = fillFromPool(selected, nonTopicQualityPool, targetCount);
+    if (relaxedTopicBalanceBackfill.added > 0) {
+      warnings.push(`RELAXED_TOPIC_BALANCE_BACKFILL_${relaxedTopicBalanceBackfill.added}`);
+    }
   }
 
   const relaxedNonSuppressedPool = nonSuppressed
@@ -164,6 +225,15 @@ export async function runDiscovery(
   }
 
   if (selected.length < targetCount) {
+    logDiscoveryDebug("insufficient_quality_candidates", {
+      selected_count: selected.length,
+      target_count: targetCount,
+      deduped_count: deduped.length,
+      non_suppressed_count: nonSuppressed.length,
+      quality_filtered_count: qualityFiltered.length,
+      quality_pool_diagnostics: qualityDiagnostics,
+      warnings
+    });
     throw new Error(`INSUFFICIENT_QUALITY_CANDIDATES:${selected.length}/${targetCount}`);
   }
 

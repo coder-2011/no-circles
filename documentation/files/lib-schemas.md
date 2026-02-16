@@ -29,3 +29,10 @@ Defines zod validation for API boundaries.
   - `personality_add`, `personality_remove`
   - `recent_feedback_add`
 - All fields are bounded arrays with safe string length limits and defaults.
+
+## `summaryWriterOutputSchema`
+- Validates PR8 model output for per-item summary generation.
+- Strict keys only:
+  - `title`
+  - `summary`
+- Used by `lib/summary/writer.ts` before final output shaping.

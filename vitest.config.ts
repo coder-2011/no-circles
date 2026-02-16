@@ -3,7 +3,9 @@ import path from "node:path";
 
 export default defineConfig({
   test: {
-    environment: "node"
+    environment: "node",
+    include: ["tests/**/*.test.ts"],
+    exclude: ["tests/hyper/**"]
   },
   resolve: {
     alias: {

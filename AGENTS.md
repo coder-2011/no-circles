@@ -113,6 +113,7 @@ Build a website-first, personalized daily newsletter system that curates 10 high
 - `npm run lint` - lint checks.
 - `npm run test` - unit/integration tests (Vitest).
 - `npx playwright test` - end-to-end tests.
+- Do not run `npm run test` or `npm run test:hyper` unless user explicitly grants permission in the current session.
 
 ## Coding Style and Conventions
 - TypeScript-first. Strict types for API, parsing, and DB boundaries.

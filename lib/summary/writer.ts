@@ -1,0 +1,280 @@
+import { buildSummaryPrompt } from "@/lib/ai/summary-prompts";
+import { summaryWriterOutputSchema } from "@/lib/schemas";
+
+type SummarySourceItem = {
+  url: string;
+  title: string;
+  highlights: string[];
+  topic?: string;
+};
+
+export type NewsletterSummaryItem = {
+  title: string;
+  url: string;
+  summary: string;
+};
+
+type GenerateSummariesInput = {
+  items: SummarySourceItem[];
+  targetWords?: number;
+  minWords?: number;
+  maxWords?: number;
+};
+
+const ANTHROPIC_MESSAGES_API_URL = "https://api.anthropic.com/v1/messages";
+const DEFAULT_TARGET_WORDS = 50;
+const DEFAULT_WORD_RANGE_DELTA = 10;
+const MAX_RETRY_COUNT = 1;
+const FALLBACK_SENTENCE =
+  "It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions.";
+
+type CallSummaryModelArgs = {
+  prompt: string;
+};
+
+type SummarizeOneItemResult = {
+  item: NewsletterSummaryItem;
+  usedFallback: boolean;
+};
+
+function logSummaryEvent(level: "info" | "warn", event: string, details: Record<string, unknown>) {
+  const payload = JSON.stringify({ subsystem: "summary_writer", event, ...details });
+  if (level === "warn") {
+    console.warn(payload);
+    return;
+  }
+
+  console.info(payload);
+}
+
+function extractTextContent(value: unknown): string {
+  if (!value || typeof value !== "object") {
+    throw new Error("INVALID_MODEL_RESPONSE");
+  }
+
+  const content = (value as { content?: unknown }).content;
+  if (!Array.isArray(content)) {
+    throw new Error("INVALID_MODEL_RESPONSE");
+  }
+
+  const text = content
+    .filter((chunk): chunk is { type: string; text: string } => {
+      if (!chunk || typeof chunk !== "object") {
+        return false;
+      }
+
+      const candidate = chunk as { type?: unknown; text?: unknown };
+      return candidate.type === "text" && typeof candidate.text === "string";
+    })
+    .map((chunk) => chunk.text.trim())
+    .filter(Boolean)
+    .join("\n")
+    .trim();
+
+  if (!text) {
+    throw new Error("EMPTY_MODEL_RESPONSE");
+  }
+
+  return text;
+}
+
+function parseJsonFromModelText(text: string): unknown {
+  const trimmed = text.trim();
+  const fencedMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  const candidate = (fencedMatch?.[1] ?? trimmed).trim();
+  return JSON.parse(candidate);
+}
+
+function clampSummaryLength(summary: string, minWords: number, maxWords: number): string {
+  const normalized = summary.replace(/\s+/g, " ").trim();
+  if (!normalized) return normalized;
+
+  const words = normalized.split(" ");
+  if (words.length > maxWords) {
+    const truncated = words.slice(0, maxWords).join(" ");
+    const sentenceBoundary = Math.max(truncated.lastIndexOf("."), truncated.lastIndexOf("!"), truncated.lastIndexOf("?"));
+    if (sentenceBoundary >= 0) {
+      const sentenceTrimmed = truncated.slice(0, sentenceBoundary + 1).trim();
+      if (sentenceTrimmed.split(" ").filter(Boolean).length >= minWords) {
+        return sentenceTrimmed;
+      }
+    }
+
+    return truncated.trim();
+  }
+
+  if (words.length >= minWords) {
+    return normalized;
+  }
+
+  let paddedWords = [...words];
+  const fillerWords = FALLBACK_SENTENCE.split(" ");
+
+  while (paddedWords.length < minWords) {
+    paddedWords = [...paddedWords, ...fillerWords];
+  }
+
+  return paddedWords.length > maxWords ? paddedWords.slice(0, maxWords).join(" ") : paddedWords.join(" ");
+}
+
+function normalizeHighlightText(highlights: string[]): string {
+  const merged = highlights
+    .map((highlight) => highlight.trim())
+    .filter(Boolean)
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!merged) {
+    return "No summary text is available from source highlights.";
+  }
+
+  return merged;
+}
+
+function buildFallbackSummary(item: SummarySourceItem, minWords: number, maxWords: number): string {
+  return clampSummaryLength(normalizeHighlightText(item.highlights), minWords, maxWords);
+}
+
+async function callSummaryModel(args: CallSummaryModelArgs): Promise<string> {
+  const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
+  const modelName = process.env.ANTHROPIC_SUMMARY_MODEL?.trim() || process.env.ANTHROPIC_MEMORY_MODEL?.trim();
+
+  if (!apiKey) {
+    throw new Error("MISSING_ANTHROPIC_API_KEY");
+  }
+
+  if (!modelName) {
+    throw new Error("MISSING_ANTHROPIC_SUMMARY_OR_MEMORY_MODEL");
+  }
+
+  const response = await fetch(ANTHROPIC_MESSAGES_API_URL, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01"
+    },
+    body: JSON.stringify({
+      model: modelName,
+      max_tokens: 350,
+      temperature: 0,
+      messages: [{ role: "user", content: args.prompt }]
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`ANTHROPIC_HTTP_${response.status}`);
+  }
+
+  const json = (await response.json().catch(() => null)) as unknown;
+  if (!json) {
+    throw new Error("INVALID_MODEL_RESPONSE");
+  }
+
+  return extractTextContent(json);
+}
+
+function resolveWordRange(input: GenerateSummariesInput): { minWords: number; maxWords: number } {
+  if (typeof input.minWords === "number" && typeof input.maxWords === "number") {
+    const minWords = Math.max(1, Math.floor(input.minWords));
+    const maxWords = Math.max(minWords, Math.floor(input.maxWords));
+    return { minWords, maxWords };
+  }
+
+  const targetWords = Math.max(1, Math.floor(input.targetWords ?? DEFAULT_TARGET_WORDS));
+  return {
+    minWords: Math.max(1, targetWords - DEFAULT_WORD_RANGE_DELTA),
+    maxWords: targetWords + DEFAULT_WORD_RANGE_DELTA
+  };
+}
+
+async function summarizeOneItem(
+  item: SummarySourceItem,
+  minWords: number,
+  maxWords: number
+): Promise<SummarizeOneItemResult> {
+  let lastError = "UNKNOWN_ERROR";
+
+  for (let attempt = 0; attempt <= MAX_RETRY_COUNT; attempt += 1) {
+    try {
+      const prompt = buildSummaryPrompt({
+        title: item.title,
+        url: item.url,
+        highlights: item.highlights,
+        topic: item.topic,
+        minWords,
+        maxWords
+      });
+
+      const modelText = await callSummaryModel({ prompt });
+      const parsedJson = parseJsonFromModelText(modelText);
+      const parsed = summaryWriterOutputSchema.safeParse(parsedJson);
+
+      if (!parsed.success) {
+        throw new Error("SUMMARY_SCHEMA_INVALID");
+      }
+
+      const summary = clampSummaryLength(parsed.data.summary, minWords, maxWords);
+      if (!summary) {
+        throw new Error("SUMMARY_EMPTY_AFTER_NORMALIZATION");
+      }
+
+      return {
+        item: {
+          title: parsed.data.title || item.title,
+          url: item.url,
+          summary
+        },
+        usedFallback: false
+      };
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : "UNKNOWN_ERROR";
+      if (attempt === MAX_RETRY_COUNT) {
+        break;
+      }
+    }
+  }
+
+  logSummaryEvent("warn", "summary_fallback_used", {
+    url: item.url,
+    reason: lastError
+  });
+
+  return {
+    item: {
+      title: item.title,
+      url: item.url,
+      summary: buildFallbackSummary(item, minWords, maxWords)
+    },
+    usedFallback: true
+  };
+}
+
+export async function generateNewsletterSummaries(input: GenerateSummariesInput): Promise<NewsletterSummaryItem[]> {
+  const { minWords, maxWords } = resolveWordRange(input);
+
+  const normalizedItems = input.items.map((item) => ({
+    url: item.url,
+    title: item.title.trim() || "Untitled",
+    highlights: item.highlights.map((highlight) => highlight.trim()).filter(Boolean),
+    topic: item.topic?.trim() || undefined
+  }));
+
+  const results: NewsletterSummaryItem[] = [];
+  let fallbackCount = 0;
+  for (const item of normalizedItems) {
+    const summaryResult = await summarizeOneItem(item, minWords, maxWords);
+    if (summaryResult.usedFallback) {
+      fallbackCount += 1;
+    }
+    results.push(summaryResult.item);
+  }
+
+  logSummaryEvent("info", "summary_run_complete", {
+    item_count: results.length,
+    fallback_count: fallbackCount
+  });
+
+  return results;
+}

@@ -1,0 +1,11 @@
+PERSONALITY:
+- Pragmatic, implementation-focused learner - Values concrete examples and real-world operational context over theoretical abstraction - Interested in tradeoffs and decision-making rationale, not just best practices - Skeptical of hype; prefers grounded, production-tested insights - Draws connections across domains (engineering, product, economics)
+
+ACTIVE_INTERESTS:
+- AI engineering - Distributed systems - Software architecture - Data engineering - Product strategy - Behavioral economics - Migration patterns and tradeoffs - Operational lessons and production case studies
+
+SUPPRESSED_INTERESTS:
+- Hype-driven coverage
+
+RECENT_FEEDBACK:
+- Onboarding intent: build a newsletter focused on practical, production-grounded content across AI, systems, and architecture domains - Prefers concrete implementation details and operational lessons over theoretical coverage - Values cross-domain connections, especially where product strategy or behavioral economics inform engineering decisions - Wants to reduce exposure to hype-driven narratives
