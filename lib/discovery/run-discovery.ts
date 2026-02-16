@@ -13,13 +13,13 @@ import {
 
 const DEFAULT_PER_TOPIC_RESULTS = 5;
 const DEFAULT_MAX_TOPICS = 10;
-const DEFAULT_EARLY_STOP_BUFFER = 4;
-const DEFAULT_MAX_PER_DOMAIN = 2;
+const DEFAULT_EARLY_STOP_BUFFER = 2;
+const DEFAULT_MAX_PER_DOMAIN = 3;
 
 const ATTEMPT_POLICIES = [
-  { minDistinctDomains: 6, minAvgScore: 0.65, minHighlightCoverage: 0.9 },
-  { minDistinctDomains: 5, minAvgScore: 0.6, minHighlightCoverage: 0.8 },
-  { minDistinctDomains: 4, minAvgScore: 0.55, minHighlightCoverage: 0.8 }
+  { minDistinctDomains: 4, minAvgScore: 0.58, minHighlightCoverage: 0.75 },
+  { minDistinctDomains: 4, minAvgScore: 0.55, minHighlightCoverage: 0.7 },
+  { minDistinctDomains: 3, minAvgScore: 0.5, minHighlightCoverage: 0.65 }
 ] as const;
 
 function canonicalizeUrl(rawUrl: string): string | null {

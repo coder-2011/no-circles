@@ -18,11 +18,12 @@ Runs one PR6 discovery pass for a user: derive topics, query Exa, normalize, ded
 
 ## Early-Stop Policy
 Attempt-tier gates (strict -> relaxed):
-- Attempt 1: min domains `6`, min avg score `0.65`, min highlight coverage `0.9`
-- Attempt 2: min domains `5`, min avg score `0.60`, min highlight coverage `0.8`
-- Attempt 3+: min domains `4`, min avg score `0.55`, min highlight coverage `0.8`
+- Attempt 1: min domains `4`, min avg score `0.58`, min highlight coverage `0.75`
+- Attempt 2: min domains `4`, min avg score `0.55`, min highlight coverage `0.70`
+- Attempt 3+: min domains `3`, min avg score `0.50`, min highlight coverage `0.65`
 
 Stop triggers only when all gates pass for `targetCount + earlyStopBuffer` candidates.
+Default `earlyStopBuffer` is `2` and default per-domain cap is `3`.
 
 ## Retry Strategy
 - Attempt 1: base query, base `perTopicResults`

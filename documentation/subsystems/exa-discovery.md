@@ -22,5 +22,5 @@ Output: deterministic deduped candidate list (default target 10), topics used, a
 
 ## Policy Highlights
 - Suppressed interests are soft-ranked in topic derivation but hard-excluded at final candidate output.
-- Discovery attempts relax quality thresholds gradually while still prioritizing diversity.
+- Discovery attempts use calibrated relaxed thresholds to improve first-attempt pass rate while preserving diversity checks.
 - System tries to fill to target count from non-suppressed pool whenever possible.
