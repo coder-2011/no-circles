@@ -107,6 +107,104 @@ describe("runDiscovery", () => {
     expect(result.warnings).toEqual([]);
   });
 
+  it("triggers early-stop only when quality and diversity thresholds are met", async () => {
+    const exaSearch = vi.fn(async () => [
+      { url: "https://d1.com/a", title: "a", highlights: ["x"], score: 0.95 },
+      { url: "https://d2.com/b", title: "b", highlights: ["x"], score: 0.92 },
+      { url: "https://d3.com/c", title: "c", highlights: ["x"], score: 0.91 },
+      { url: "https://d4.com/d", title: "d", highlights: ["x"], score: 0.9 },
+      { url: "https://d5.com/e", title: "e", highlights: ["x"], score: 0.89 },
+      { url: "https://d6.com/f", title: "f", highlights: ["x"], score: 0.88 }
+    ]);
+
+    const result = await runDiscovery(
+      {
+        interestMemoryText: memory,
+        targetCount: 6,
+        maxRetries: 3,
+        maxTopics: 2,
+        perTopicResults: 6,
+        earlyStopBuffer: 0,
+        maxPerDomain: 2
+      },
+      { exaSearch }
+    );
+
+    expect(result.candidates).toHaveLength(6);
+    expect(exaSearch).toHaveBeenCalledTimes(1);
+    expect(result.warnings).toContain("EARLY_STOP_TRIGGERED_ATTEMPT_1");
+  });
+
+  it("hard-blocks soft-suppressed topic candidates from final output", async () => {
+    const suppressedMemory = [
+      "PERSONALITY:",
+      "- curious",
+      "",
+      "ACTIVE_INTERESTS:",
+      "- AI",
+      "- crypto",
+      "",
+      "SUPPRESSED_INTERESTS:",
+      "- crypto",
+      "",
+      "RECENT_FEEDBACK:",
+      "- avoid crypto"
+    ].join("\n");
+
+    const exaSearch = vi.fn(async ({ query }: { query: string; numResults: number }) => {
+      if (query.startsWith("AI")) {
+        return [{ url: "https://ai.com/a", title: "AI", highlights: ["ok"], score: 0.8 }];
+      }
+
+      return [
+        { url: "https://crypto.com/1", title: "C1", highlights: ["c"], score: 0.99 },
+        { url: "https://crypto.com/2", title: "C2", highlights: ["c"], score: 0.99 }
+      ];
+    });
+
+    const result = await runDiscovery(
+      {
+        interestMemoryText: suppressedMemory,
+        targetCount: 2,
+        maxRetries: 1,
+        maxTopics: 2,
+        perTopicResults: 2
+      },
+      { exaSearch }
+    );
+
+    expect(result.candidates.map((candidate) => candidate.topic)).toEqual(["AI"]);
+    expect(result.warnings).toContain("INSUFFICIENT_UNIQUE_CANDIDATES");
+    expect(result.warnings).toContain("NON_SUPPRESSED_POOL_BELOW_TARGET");
+  });
+
+  it("fills to target by relaxing domain cap only after strict pass", async () => {
+    const exaSearch = vi.fn(async () => [
+      { url: "https://same.com/a", title: "A", highlights: ["x"], score: 0.8 },
+      { url: "https://same.com/b", title: "B", highlights: ["x"], score: 0.79 },
+      { url: "https://same.com/c", title: "C", highlights: ["x"], score: 0.78 }
+    ]);
+
+    const result = await runDiscovery(
+      {
+        interestMemoryText: memory,
+        targetCount: 3,
+        maxRetries: 1,
+        maxTopics: 1,
+        perTopicResults: 3,
+        maxPerDomain: 1
+      },
+      { exaSearch }
+    );
+
+    expect(result.candidates).toHaveLength(3);
+    expect(result.candidates.map((candidate) => candidate.canonicalUrl)).toEqual([
+      "https://same.com/a",
+      "https://same.com/b",
+      "https://same.com/c"
+    ]);
+  });
+
   it("keeps partial results and reports warnings when topic queries fail", async () => {
     const exaSearch = vi.fn(async ({ query }: { query: string; numResults: number }) => {
       if (query.startsWith("AI engineering")) {
