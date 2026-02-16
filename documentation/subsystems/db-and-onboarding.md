@@ -1,7 +1,7 @@
 # Subsystem: DB and Onboarding
 
 ## Scope
-Implements foundational persistence and first write path for V1:
+Implements foundational persistence and onboarding write path for V1:
 - Drizzle + Postgres schema
 - migration generation/apply flow
 - `POST /api/onboarding` validation + upsert
@@ -33,7 +33,7 @@ Error cases:
 - memory processor failure -> `500 INTERNAL_ERROR`
 
 ## Data Model in Scope
-- `users`: `id`, `email`, `preferred_name`, `timezone`, `send_time_local`, `interest_memory_text`
+- `users`: `id`, `email`, `preferred_name`, `timezone`, `send_time_local`, `interest_memory_text`, `last_issue_sent_at`
 - `newsletter_items`: `id`, `user_id`, `url`, `title`, `sent_at`
 - `processed_webhooks`: `id`, `provider`, `webhook_id`, `processed_at`
 - Constraints:
@@ -51,3 +51,6 @@ Error cases:
 ## Boundary Note
 Inbound reply webhook processing now has its own subsystem document:
 - `documentation/subsystems/inbound-reply-memory-update.md`
+
+Scheduler due-user selection uses `users.last_issue_sent_at` as delivery-state authority and is documented in:
+- `documentation/files/app-api-cron-generate-next-route.md`
