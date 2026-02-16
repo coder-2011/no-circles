@@ -16,9 +16,6 @@ Versioned SQL history for database schema state.
   - adds `users.preferred_name`
   - backfills existing users from email local-part
   - enforces `NOT NULL` after backfill
-- `db/migrations/0003_misty_calm.sql`
-  - adds nullable `users.last_issue_sent_at`
-  - establishes scheduler delivery-state authority on `users` (not `newsletter_items`)
 
 ## Metadata
 - `db/migrations/meta/_journal.json`: migration journal
