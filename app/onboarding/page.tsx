@@ -8,6 +8,35 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 type AuthState = "loading" | "signed_in" | "signed_out" | "error";
 type SubmitState = "idle" | "saving" | "saved" | "error";
+const BRAIN_DUMP_WORD_LIMIT = 500;
+const PREFERRED_NAME_SUGGESTIONS = [
+  "Alan Turing",
+  "Fyodor Dostoevsky",
+  "Nikola Tesla",
+  "Ada Lovelace",
+  "Marie Curie",
+  "Srinivasa Ramanujan",
+  "Hannah Arendt",
+  "Carl Sagan"
+] as const;
+
+function countWords(text: string): number {
+  const trimmed = text.trim();
+  if (!trimmed) {
+    return 0;
+  }
+
+  return trimmed.split(/\s+/).length;
+}
+
+function truncateToWordLimit(text: string, wordLimit: number): string {
+  const words = text.trim().split(/\s+/);
+  if (words.length <= wordLimit) {
+    return text;
+  }
+
+  return words.slice(0, wordLimit).join(" ");
+}
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -15,11 +44,21 @@ export default function OnboardingPage() {
   const [email, setEmail] = useState<string | null>(null);
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
   const [message, setMessage] = useState<string | null>(null);
+  const [showCelebration, setShowCelebration] = useState(false);
   const [preferredName, setPreferredName] = useState("");
+  const [preferredNameSuggestion, setPreferredNameSuggestion] = useState(
+    PREFERRED_NAME_SUGGESTIONS[0]
+  );
   const [timezone, setTimezone] = useState(() => Intl.DateTimeFormat().resolvedOptions().timeZone);
   const [sendTime, setSendTime] = useState("08:00");
   const [brainDumpText, setBrainDumpText] = useState("");
   const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
+  const brainDumpWordCount = countWords(brainDumpText);
+
+  useEffect(() => {
+    const randomIndex = Math.floor(Math.random() * PREFERRED_NAME_SUGGESTIONS.length);
+    setPreferredNameSuggestion(PREFERRED_NAME_SUGGESTIONS[randomIndex]);
+  }, []);
 
   useEffect(() => {
     try {
@@ -100,6 +139,13 @@ export default function OnboardingPage() {
     event.preventDefault();
     setSubmitState("saving");
     setMessage(null);
+    setShowCelebration(false);
+
+    if (brainDumpWordCount > BRAIN_DUMP_WORD_LIMIT) {
+      setSubmitState("error");
+      setMessage(`Interest brain dump must be ${BRAIN_DUMP_WORD_LIMIT} words or fewer.`);
+      return;
+    }
 
     const response = await fetch("/api/onboarding", {
       method: "POST",
@@ -120,6 +166,10 @@ export default function OnboardingPage() {
     if (response.ok) {
       setSubmitState("saved");
       setMessage("Onboarding saved. You are configured for daily delivery.");
+      setShowCelebration(true);
+      window.setTimeout(() => {
+        router.replace("/");
+      }, 900);
       return;
     }
 
@@ -179,7 +229,7 @@ export default function OnboardingPage() {
               <input
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
                 onChange={(event) => setPreferredName(event.target.value)}
-                placeholder="Naman"
+                placeholder={preferredNameSuggestion}
                 required
                 value={preferredName}
               />
@@ -211,21 +261,44 @@ export default function OnboardingPage() {
               <span className="mb-1 block text-sm font-medium text-slate-700">Interest brain dump</span>
               <textarea
                 className="h-48 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm leading-6 focus:border-slate-500 focus:outline-none"
-                onChange={(event) => setBrainDumpText(event.target.value)}
+                onChange={(event) =>
+                  setBrainDumpText(truncateToWordLimit(event.target.value, BRAIN_DUMP_WORD_LIMIT))
+                }
                 placeholder="What are you curious about lately? What do you want to avoid?"
                 required
                 value={brainDumpText}
               />
+              <span className="mt-1 block text-xs text-slate-500">
+                {brainDumpWordCount}/{BRAIN_DUMP_WORD_LIMIT} words
+              </span>
             </label>
 
             <div className="flex flex-wrap gap-3">
-              <button
-                className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:opacity-50"
-                disabled={submitState === "saving"}
-                type="submit"
-              >
-                {submitState === "saving" ? "Saving..." : "Save preferences"}
-              </button>
+              <div className="relative">
+                <button
+                  className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:opacity-50"
+                  disabled={submitState === "saving"}
+                  type="submit"
+                >
+                  {submitState === "saving" ? "Saving..." : "Save preferences"}
+                </button>
+                {showCelebration ? (
+                  <div className="pointer-events-none absolute -right-3 -top-3">
+                    <span className="absolute -left-14 -top-8 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-[11px] font-medium text-emerald-700 animate-pulse">
+                      Saved
+                    </span>
+                    <span className="absolute left-0 top-0 h-2 w-2 rounded-full bg-emerald-400 opacity-80 animate-ping" />
+                    <span
+                      className="absolute left-3 -top-2 h-1.5 w-1.5 rounded-full bg-sky-400 opacity-80 animate-ping"
+                      style={{ animationDelay: "120ms" }}
+                    />
+                    <span
+                      className="absolute left-4 top-2 h-1.5 w-1.5 rounded-full bg-amber-300 opacity-80 animate-ping"
+                      style={{ animationDelay: "220ms" }}
+                    />
+                  </div>
+                ) : null}
+              </div>
               <button
                 className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
                 onClick={signOut}
