@@ -159,6 +159,12 @@ These are candidate features for future scoped PRs after core pipeline stability
   - select one due user atomically.
   - return `no_due_user` when queue empty.
 - Data and contracts:
+  - due rule: user is due only when local run time is at/after local `send_time_local`.
+  - already-sent-today rule: exclude users when `last_issue_sent_at` local date equals local run date.
+  - scheduler delivery-state authority is `users.last_issue_sent_at` (not `newsletter_items`).
+  - endpoint output shape:
+    - `{ ok: true, status: "selected", user_id: string }`
+    - `{ ok: true, status: "no_due_user" }`
   - maintain idempotent behavior under duplicate cron triggers.
   - consume `interest_memory_text` as opaque input; non-goal: memory processor/format changes.
   - non-goal: changing inbound webhook verification/signature/idempotency behavior from PR 3.
@@ -170,6 +176,8 @@ These are candidate features for future scoped PRs after core pipeline stability
 - Tests required:
   - picks one due user.
   - returns `no_due_user` when none due.
+  - already-sent-today users are excluded.
+  - timezone boundary behavior around local midnight is correct.
   - unauthorized cron call rejected.
 - Done when:
   - endpoint behaves deterministically for due/empty/unauthorized cases.
