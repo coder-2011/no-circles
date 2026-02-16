@@ -20,6 +20,24 @@ export type DiscoveryCandidate = {
   sourceDomain: string | null;
   publishedAt: string | null;
   exaScore: number | null;
+  highlightScore: number | null;
+};
+
+export type DiscoveryDiversityCard = {
+  itemCount: number;
+  targetCount: number;
+  distinctTopics: number;
+  distinctDomains: number;
+  maxTopicShare: number;
+  maxDomainShare: number;
+  topicEntropyNormalized: number;
+  thresholds: {
+    minDistinctTopics: number;
+    maxTopicShare: number;
+    minDistinctDomains: number;
+    maxDomainShare: number;
+  };
+  passes: boolean;
 };
 
 export type DiscoveryRunInput = {
@@ -37,6 +55,7 @@ export type DiscoveryRunResult = {
   topics: DiscoveryTopic[];
   attempts: number;
   warnings: string[];
+  diversityCard: DiscoveryDiversityCard;
 };
 
 export type ExaSearchResult = {
@@ -45,6 +64,7 @@ export type ExaSearchResult = {
   publishedDate?: string;
   score?: number;
   highlights?: string[];
+  highlightScores?: number[];
 };
 
 export type ExaSearchFn = (args: {
