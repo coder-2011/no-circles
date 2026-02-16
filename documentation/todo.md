@@ -207,33 +207,36 @@ These are candidate features for future scoped PRs after core pipeline stability
 - Done when:
   - one user run yields a stable candidate pool ready for extraction.
 
-## PR 7: Content Extraction + Fallback
-- Branch: `feature/content-extraction`
+## PR 7: Content Readiness (Exa-First)
+- Branch: `feature/content-readiness`
 - Primary objective:
-  - reliably extract article content from candidate URLs.
+  - convert PR6 discovery candidates into summary-ready content payloads using Exa highlights metadata.
 - Frontend scope:
   - none.
 - Backend scope:
-  - implement default fetch/extract path.
-  - implement Playwright fallback for JS-heavy pages.
-  - normalize extracted output shape.
+  - normalize and validate highlight payloads from discovery candidates.
+  - apply content-quality gates (minimum highlight coverage, non-empty text/title requirements).
+  - preserve ranking metadata (`exaScore`, topic rank, source domain) for PR8 scoring.
 - Data and contracts:
-  - extraction output should include URL, title (if available), and body text.
-  - consume discovery candidates from PR 6, do not alter topic/discovery ranking rules.
+  - output shape should include `url`, `title`, and summary-ready highlight text blocks.
+  - consume discovery candidates from PR 6 without changing topic/discovery ranking semantics.
 - Explicit non-goals:
+  - no URL fetch/HTML extraction pipeline in this PR.
+  - no Playwright/browser-rendered extraction in this PR.
+  - no Exa `/contents` full-text expansion pipeline in this PR.
   - no summary-writing prompts.
   - no email send/persistence behavior.
 - Tests required:
-  - success on standard HTML page.
-  - fallback path invoked on failure case.
-  - graceful handling for unreadable pages.
+  - rejects candidates with weak/empty highlight coverage.
+  - preserves metadata needed for downstream scoring/ranking.
+  - deterministic normalized output shape for PR8 input.
 - Done when:
-  - extraction success rate is high enough for daily 10-item assembly.
+  - PR8 can consume PR7 output directly without additional content-fetch logic.
 
 ## PR 8: Summary Generation (Claude)
 - Branch: `feature/summary-writer`
 - Primary objective:
-  - transform extracted content into neutral, grounded newsletter items.
+  - transform PR7 summary-ready content into neutral, grounded newsletter items.
 - Frontend scope:
   - none.
 - Backend scope:
@@ -242,7 +245,7 @@ These are candidate features for future scoped PRs after core pipeline stability
   - enforce style rules: neutral, concise, source-grounded.
 - Data and contracts:
   - output shape locked for email renderer.
-  - consume extraction output from PR 7, do not change extraction transport/fallback policy.
+  - consume PR7 content-readiness output, do not introduce new content-fetch behavior.
 - Explicit non-goals:
   - no Resend send integration.
   - no newsletter history pruning logic.
