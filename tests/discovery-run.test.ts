@@ -138,7 +138,7 @@ describe("runDiscovery", () => {
     expect(exaSearch.mock.calls.length).toBeGreaterThan(1);
   });
 
-  it("uses suppressed-topic fallback only when required to hit target count", async () => {
+  it("never uses suppressed-topic fallback and fails when non-suppressed pool cannot hit target", async () => {
     const suppressedMemory = [
       "PERSONALITY:",
       "- curious",
@@ -165,20 +165,18 @@ describe("runDiscovery", () => {
       ];
     });
 
-    const result = await runDiscovery(
-      {
-        interestMemoryText: suppressedMemory,
-        targetCount: 2,
-        maxRetries: 1,
-        maxTopics: 2,
-        perTopicResults: 2
-      },
-      { exaSearch }
-    );
-
-    expect(result.candidates.map((candidate) => candidate.topic)).toEqual(["AI", "crypto"]);
-    expect(result.warnings).toContain("RELAXED_SUPPRESSION_BACKFILL_1");
-    expect(result.warnings).toContain("NON_SUPPRESSED_POOL_BELOW_TARGET");
+    await expect(
+      runDiscovery(
+        {
+          interestMemoryText: suppressedMemory,
+          targetCount: 2,
+          maxRetries: 1,
+          maxTopics: 2,
+          perTopicResults: 2
+        },
+        { exaSearch }
+      )
+    ).rejects.toThrow("INSUFFICIENT_QUALITY_CANDIDATES");
   });
 
   it("backfills with same-topic candidates when strict one-per-topic is insufficient", async () => {
@@ -236,10 +234,10 @@ describe("runDiscovery", () => {
     expect(result.warnings).toContain("BACKFILLED_FROM_QUALITY_POOL_1");
   });
 
-  it("throws when no valid active interests are present", async () => {
-    const emptyMemory = [
+  it("derives topic seeds from personality/feedback when active interests are missing", async () => {
+    const noActiveMemory = [
       "PERSONALITY:",
-      "- curious",
+      "- distributed systems design",
       "",
       "ACTIVE_INTERESTS:",
       "-",
@@ -251,18 +249,24 @@ describe("runDiscovery", () => {
       "-"
     ].join("\n");
 
-    const exaSearch = vi.fn();
+    const exaSearch = vi.fn(async () => [
+      { url: "https://example.com/seed", title: "seed", highlights: ["seed highlight"], score: 0.9 }
+    ]);
 
-    await expect(
-      runDiscovery(
-        {
-          interestMemoryText: emptyMemory,
-          targetCount: 10
-        },
-        { exaSearch }
-      )
-    ).rejects.toThrow("NO_ACTIVE_TOPICS");
-    expect(exaSearch).not.toHaveBeenCalled();
+    const result = await runDiscovery(
+      {
+        interestMemoryText: noActiveMemory,
+        targetCount: 1,
+        maxRetries: 1,
+        maxTopics: 3,
+        perTopicResults: 1
+      },
+      { exaSearch }
+    );
+
+    expect(result.candidates).toHaveLength(1);
+    expect(result.topics.length).toBeGreaterThanOrEqual(1);
+    expect(exaSearch).toHaveBeenCalled();
   });
 
   it("filters known low-signal domains before selecting topic winners", async () => {
@@ -291,5 +295,52 @@ describe("runDiscovery", () => {
     expect(result.candidates).toHaveLength(2);
     expect(result.candidates.every((candidate) => candidate.sourceDomain !== "itbooks.ir")).toBe(true);
     expect(result.warnings.some((warning) => warning.startsWith("LOW_SIGNAL_FILTERED_"))).toBe(true);
+  });
+
+  it("uses top-2 mean highlight score when Exa score is unavailable", async () => {
+    const highlightScoreMemory = [
+      "PERSONALITY:",
+      "- practical",
+      "",
+      "ACTIVE_INTERESTS:",
+      "- ranking",
+      "",
+      "SUPPRESSED_INTERESTS:",
+      "-",
+      "",
+      "RECENT_FEEDBACK:",
+      "- use evidence"
+    ].join("\n");
+
+    const exaSearch = vi.fn(async () => [
+      {
+        url: "https://example.com/high-a",
+        title: "A",
+        highlights: ["h1", "h2", "h3"],
+        highlightScores: [0.4, 0.95, 0.9]
+      },
+      {
+        url: "https://example.com/high-b",
+        title: "B",
+        highlights: ["x1", "x2"],
+        highlightScores: [0.8, 0.81]
+      }
+    ]);
+
+    const result = await runDiscovery(
+      {
+        interestMemoryText: highlightScoreMemory,
+        targetCount: 1,
+        maxRetries: 1,
+        maxTopics: 1,
+        perTopicResults: 2
+      },
+      { exaSearch }
+    );
+
+    expect(result.candidates).toHaveLength(1);
+    expect(result.candidates[0]?.canonicalUrl).toBe("https://example.com/high-a");
+    expect(result.candidates[0]?.highlights).toEqual(["h1", "h2", "h3"]);
+    expect(result.candidates[0]?.highlightScores).toEqual([0.4, 0.95, 0.9]);
   });
 });

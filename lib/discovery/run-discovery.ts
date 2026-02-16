@@ -163,23 +163,8 @@ export async function runDiscovery(
     warnings.push(`RELAXED_QUALITY_BACKFILL_${relaxedQualityBackfill.added}`);
   }
 
-  const suppressedPool = deduped.filter((candidate) => candidate.softSuppressed);
-  const qualitySuppressedPool = qualityFilterCandidates(suppressedPool, warnings);
-  const suppressedQualityBackfill = fillFromPool(selected, qualitySuppressedPool, targetCount);
-  if (suppressedQualityBackfill.added > 0) {
-    warnings.push(`RELAXED_SUPPRESSION_BACKFILL_${suppressedQualityBackfill.added}`);
-  }
-
-  const relaxedSuppressedPool = suppressedPool
-    .filter(hasRequiredItemFields)
-    .filter((candidate) => !qualitySuppressedPool.some((qualityCandidate) => qualityCandidate.canonicalUrl === candidate.canonicalUrl));
-  const relaxedSuppressedBackfill = fillFromPool(selected, relaxedSuppressedPool, targetCount);
-  if (relaxedSuppressedBackfill.added > 0) {
-    warnings.push(`RELAXED_SUPPRESSION_QUALITY_BACKFILL_${relaxedSuppressedBackfill.added}`);
-  }
-
   if (selected.length < targetCount) {
-    throw new Error(`INSUFFICIENT_CANDIDATES_FOR_TARGET_COUNT:${selected.length}/${targetCount}`);
+    throw new Error(`INSUFFICIENT_QUALITY_CANDIDATES:${selected.length}/${targetCount}`);
   }
 
   const finalItems = selected.slice(0, targetCount);

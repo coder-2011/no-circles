@@ -53,12 +53,12 @@ describe("deriveTopicsFromMemory", () => {
     expect(topics[1].softSuppressed).toBe(true);
   });
 
-  it("returns empty list when memory is invalid or has no active topics", () => {
+  it("returns empty list for invalid memory and falls back to personality/feedback when active is empty", () => {
     const missingHeaders = deriveTopicsFromMemory({ interestMemoryText: "ACTIVE_INTERESTS:\n- AI" });
     const noActive = deriveTopicsFromMemory({
       interestMemoryText: [
         "PERSONALITY:",
-        "- curious",
+        "- distributed systems",
         "",
         "ACTIVE_INTERESTS:",
         "-",
@@ -72,6 +72,7 @@ describe("deriveTopicsFromMemory", () => {
     });
 
     expect(missingHeaders).toEqual([]);
-    expect(noActive).toEqual([]);
+    expect(noActive.length).toBeGreaterThanOrEqual(1);
+    expect(noActive[0]?.topic).toContain("distributed systems");
   });
 });

@@ -13,6 +13,7 @@ export type DiscoveryCandidate = {
   canonicalUrl: string;
   title: string | null;
   highlight: string | null;
+  highlights: string[];
   topic: string;
   topicRank: number;
   softSuppressed: boolean;
@@ -21,6 +22,7 @@ export type DiscoveryCandidate = {
   publishedAt: string | null;
   exaScore: number | null;
   highlightScore: number | null;
+  highlightScores: number[];
 };
 
 export type DiscoveryDiversityCard = {
