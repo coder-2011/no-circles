@@ -7,7 +7,8 @@ Implements candidate discovery stage only.
 - Topic derivation from canonical user memory (`ACTIVE_INTERESTS` source of topics)
 - Exa search per topic
 - Result normalization and global URL dedupe
-- Retry expansion when unique candidate pool is insufficient
+- Attempt-tier quality/diversity early-stop gating
+- Hard suppression exclusion in final candidate output
 
 ## Out of Scope
 - Extraction/fetch fallback (PR7)
@@ -18,3 +19,8 @@ Implements candidate discovery stage only.
 ## Runtime Contract
 Input: `interest_memory_text` and run knobs.
 Output: deterministic deduped candidate list (default target 10), topics used, attempts used, warnings.
+
+## Policy Highlights
+- Suppressed interests are soft-ranked in topic derivation but hard-excluded at final candidate output.
+- Discovery attempts relax quality thresholds gradually while still prioritizing diversity.
+- System tries to fill to target count from non-suppressed pool whenever possible.

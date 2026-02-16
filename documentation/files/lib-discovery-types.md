@@ -13,5 +13,9 @@ Declares shared contracts and defaults for discovery pipeline stage (PR6).
 - `ExaSearchResult`
 - `ExaSearchFn`
 
-## Why It Exists
-Keeps PR6 interfaces explicit and stable so PR7 extraction can consume discovery output without contract drift.
+## Contract Notes
+- `DiscoveryCandidate.softSuppressed` carries topic suppression context into final filtering.
+- `DiscoveryRunInput` includes tuning knobs for:
+  - early-stop buffer (`earlyStopBuffer`)
+  - per-domain diversity cap (`maxPerDomain`)
+- Caller can keep defaults or override per run.
