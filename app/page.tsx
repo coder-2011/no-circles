@@ -1,6 +1,5 @@
- "use client";
+"use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getBrowserSupabaseClient } from "@/lib/auth/browser-client";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -95,19 +94,13 @@ export default function HomePage() {
         <section className="rounded-3xl border border-white/15 bg-white/5 p-8 backdrop-blur">
           <h1 className="text-4xl font-semibold leading-tight text-white md:text-5xl">Serendipitous Encounters</h1>
           <div className="mt-4 flex flex-wrap gap-3">
-            <Link
-              className="inline-flex rounded-lg border border-amber-300/60 bg-amber-300/10 px-4 py-2 text-sm font-medium text-amber-100 transition hover:bg-amber-300/20"
-              href="/onboarding"
-            >
-              Get started
-            </Link>
             <button
-              className="rounded-lg border border-sky-300/60 bg-sky-300/10 px-4 py-2 text-sm font-medium text-sky-100 transition hover:bg-sky-300/20 disabled:opacity-60"
+              className="rounded-lg border border-amber-300/60 bg-amber-300/10 px-4 py-2 text-sm font-medium text-amber-100 transition hover:bg-amber-300/20 disabled:opacity-60"
               disabled={authState === "loading"}
               onClick={signInWithGoogle}
               type="button"
             >
-              Continue with Google
+              Get started
             </button>
             {authState === "signed_in" ? (
               <button
