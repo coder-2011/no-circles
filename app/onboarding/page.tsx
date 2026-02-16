@@ -186,17 +186,17 @@ export default function OnboardingPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-100 px-6 py-12">
-      <div className="mx-auto w-full max-w-3xl rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-        <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Onboarding</p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">Set your daily brief</h1>
-        <p className="mt-3 text-sm leading-6 text-slate-600">
+    <main className="min-h-screen bg-[#F3ECD8] px-6 py-12 text-[#2D3426]">
+      <div className="mx-auto w-full max-w-3xl rounded-3xl border border-[#C9BD9A] bg-[#FAF5E8] p-8 shadow-sm">
+        <p className="text-xs uppercase tracking-[0.18em] text-[#6B775D]">Onboarding</p>
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-[#2B3125]">Set your daily brief</h1>
+        <p className="mt-3 text-sm leading-6 text-[#4B5943]">
           Auth state is required for this page. Signed-out users are redirected to home.
         </p>
 
-        <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
-          <span className="font-medium text-slate-700">Session:</span>{" "}
-          <span className="text-slate-600">
+        <div className="mt-5 rounded-lg border border-[#D8CCAA] bg-[#F4EEDC] px-4 py-3 text-sm">
+          <span className="font-medium text-[#3E4A36]">Session:</span>{" "}
+          <span className="text-[#5A6650]">
             {authState === "loading" && "Checking..."}
             {authState === "signed_in" && `Signed in as ${email}`}
             {authState === "signed_out" && "Signed out. Redirecting..."}
@@ -207,14 +207,14 @@ export default function OnboardingPage() {
         {authState === "signed_out" ? (
           <div className="mt-5 flex flex-wrap gap-3">
             <button
-              className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
+              className="rounded-lg bg-[#3D6F49] px-4 py-2 text-sm font-medium text-[#F3ECD8] transition hover:bg-[#315E3E]"
               onClick={signInWithGoogle}
               type="button"
             >
               Sign in again
             </button>
             <Link
-              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+              className="rounded-lg border border-[#B8AA84] px-4 py-2 text-sm font-medium text-[#40503A] transition hover:bg-[#EFE5CD]"
               href="/"
             >
               Back to home
@@ -225,9 +225,9 @@ export default function OnboardingPage() {
         {authState === "signed_in" ? (
           <form className="mt-7 space-y-5" onSubmit={submitOnboarding}>
             <label className="block">
-              <span className="mb-1 block text-sm font-medium text-slate-700">Preferred name</span>
+              <span className="mb-1 block text-sm font-medium text-[#3E4A36]">Preferred name</span>
               <input
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+                className="w-full rounded-lg border border-[#C7BA95] bg-[#FFFDF8] px-3 py-2 text-sm focus:border-[#3D6F49] focus:outline-none"
                 onChange={(event) => setPreferredName(event.target.value)}
                 placeholder={preferredNameSuggestion}
                 required
@@ -237,18 +237,18 @@ export default function OnboardingPage() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="block">
-                <span className="mb-1 block text-sm font-medium text-slate-700">Timezone</span>
+                <span className="mb-1 block text-sm font-medium text-[#3E4A36]">Timezone</span>
                 <input
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+                  className="w-full rounded-lg border border-[#C7BA95] bg-[#FFFDF8] px-3 py-2 text-sm focus:border-[#3D6F49] focus:outline-none"
                   onChange={(event) => setTimezone(event.target.value)}
                   required
                   value={timezone}
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-sm font-medium text-slate-700">Send time (local)</span>
+                <span className="mb-1 block text-sm font-medium text-[#3E4A36]">Send time (local)</span>
                 <input
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+                  className="w-full rounded-lg border border-[#C7BA95] bg-[#FFFDF8] px-3 py-2 text-sm focus:border-[#3D6F49] focus:outline-none"
                   onChange={(event) => setSendTime(event.target.value)}
                   required
                   type="time"
@@ -258,9 +258,9 @@ export default function OnboardingPage() {
             </div>
 
             <label className="block">
-              <span className="mb-1 block text-sm font-medium text-slate-700">Interest brain dump</span>
+              <span className="mb-1 block text-sm font-medium text-[#3E4A36]">Interest brain dump</span>
               <textarea
-                className="h-48 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm leading-6 focus:border-slate-500 focus:outline-none"
+                className="h-48 w-full rounded-lg border border-[#C7BA95] bg-[#FFFDF8] px-3 py-2 text-sm leading-6 focus:border-[#3D6F49] focus:outline-none"
                 onChange={(event) =>
                   setBrainDumpText(truncateToWordLimit(event.target.value, BRAIN_DUMP_WORD_LIMIT))
                 }
@@ -268,7 +268,7 @@ export default function OnboardingPage() {
                 required
                 value={brainDumpText}
               />
-              <span className="mt-1 block text-xs text-slate-500">
+              <span className="mt-1 block text-xs text-[#6B775D]">
                 {brainDumpWordCount}/{BRAIN_DUMP_WORD_LIMIT} words
               </span>
             </label>
@@ -276,7 +276,7 @@ export default function OnboardingPage() {
             <div className="flex flex-wrap gap-3">
               <div className="relative">
                 <button
-                  className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:opacity-50"
+                  className="rounded-lg bg-[#3D6F49] px-4 py-2 text-sm font-medium text-[#F3ECD8] transition hover:bg-[#315E3E] disabled:opacity-50"
                   disabled={submitState === "saving"}
                   type="submit"
                 >
@@ -292,7 +292,7 @@ export default function OnboardingPage() {
                 </span>
               </div>
               <button
-                className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+                className="rounded-lg border border-[#B8AA84] px-4 py-2 text-sm font-medium text-[#40503A] transition hover:bg-[#EFE5CD]"
                 onClick={signOut}
                 type="button"
               >
