@@ -1,7 +1,8 @@
 # Glossary
 
 - `interest_memory_text`: per-user evolving text profile used to drive newsletter topic selection.
-- `newsletter_items`: per-user sent-history table used to prevent repeated URLs.
+- `bloom filter`: space-efficient probabilistic set used to test likely membership; allows false positives, not false negatives after successful inserts.
+- `per-user bloom anti-repeat`: approach where each user has Bloom state updated with sent URL fingerprints to suppress repeats without row-per-link history.
 - `upsert`: insert a row; if conflict key exists, update instead.
 - `drizzle-kit`: migration CLI for generating and applying schema SQL changes.
 - `migration journal`: drizzle metadata file tracking applied/generated migration entries.

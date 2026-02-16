@@ -8,4 +8,4 @@ Adds scheduler delivery-state timestamp to users.
 
 ## Why It Exists
 - PR5 scheduler selection uses `users.last_issue_sent_at` to enforce "already sent today" exclusion by local day.
-- decouples scheduler delivery-state tracking from `newsletter_items` content history.
+- decouples scheduler delivery-state tracking from per-item content-history dependencies.

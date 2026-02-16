@@ -1,7 +1,7 @@
 # Architecture
 
 ## Overview
-This system is a website-first, email-delivered personalized newsletter product. It uses a single Next.js codebase with a minimal persistent data model. Personalization is driven by one evolving text memory per user and a per-user sent URL history to prevent repeats.
+This system is a website-first, email-delivered personalized newsletter product. It uses a single Next.js codebase with a minimal persistent data model. Personalization is driven by one evolving text memory per user and per-user probabilistic anti-repeat state (Bloom filter) to suppress repeats.
 
 ## Root Folder Structure
 - `app/`: Next.js application routes and API endpoints.
@@ -67,7 +67,7 @@ This system is a website-first, email-delivered personalized newsletter product.
 3. System runs the Agent Pipeline Spec to curate and compose a high-quality issue.
 4. Newsletter template is rendered and sent via Resend.
 5. Footer message includes ongoing calibration instruction (no special first-week mode), e.g. reply as much as the user wants to improve curation.
-6. Sent URLs/titles are saved in `newsletter_items` to prevent repeats.
+6. Sent URLs are hashed into per-user Bloom filter state to suppress repeats in future runs.
 
 ### 3) Inbound Reply Update Flow
 1. User replies to newsletter email.
@@ -80,7 +80,7 @@ This system is a website-first, email-delivered personalized newsletter product.
 ### 4) Idempotency and Duplicate Handling
 - Cron flow must be idempotent to prevent duplicate sends if a scheduled trigger runs twice.
 - Inbound webhook handling must be idempotent to prevent applying the same reply update more than once.
-- Duplicate-prevention for content is enforced via `newsletter_items` URL/title history before send.
+- Duplicate-prevention for content is enforced via per-user Bloom membership checks before send.
 
 ## API Contracts (V1)
 V1 intentionally excludes a manual regenerate endpoint.
@@ -202,20 +202,20 @@ Behavior:
 - On each inbound reply, processor output from `{ current_interest_memory_text, inbound_reply_text }` updates `interest_memory_text` once per unique webhook event.
 - Scheduler selection authority for "already sent today" is `users.last_issue_sent_at`.
 
-### Table: `newsletter_items`
-Purpose: per-user sent-item history to prevent repeated URLs/titles.
+### Anti-repeat Bloom State (Per User)
+Purpose: compact probabilistic repeat suppression without per-item history rows.
 
-Fields:
-- `id` (primary key)
-- `user_id` (foreign key -> `users.id`, indexed)
-- `url`
-- `title`
-- `sent_at`
+Stored with each user (field names TBD by implementation PR):
+- bloom bitset payload
+- hash-function count
+- capacity/config version metadata
+- optional rolling-epoch marker for reset/rotation
 
-Recommended constraints/indexes:
-- Index: (`user_id`, `sent_at`)
-- Unique: (`user_id`, `url`) for never-repeat behavior.
-- Retention cap: keep only the latest 100 sent URLs per user; older rows are pruned.
+Behavior:
+- Before finalizing send candidates, check URL fingerprint membership in user Bloom filter.
+- After successful send, set bits for all sent URL fingerprints.
+- False positives are possible (new link may be filtered), false negatives are not expected after successful writes.
+- Rotation/reset policy is required to bound false-positive rate growth over time.
 
 ### Table: `processed_webhooks`
 Purpose: inbound webhook replay guard for one-time memory updates.
@@ -236,9 +236,9 @@ Retention policy:
 ## Runtime Flow with Minimal State
 1. Read `users.interest_memory_text`.
 2. Discover and rank candidate links.
-3. Exclude already-sent links from `newsletter_items` (and optionally near-duplicate titles).
+3. Exclude likely already-sent links using per-user Bloom membership checks.
 4. Generate and send the daily newsletter.
-5. Insert sent links into `newsletter_items`.
+5. Update per-user Bloom state with sent URL fingerprints.
 6. Parse inbound user reply and update `users.interest_memory_text`.
 
 ## Explicitly Out of Scope (Current)
@@ -248,7 +248,7 @@ Retention policy:
 - No deterministic mute-topic table.
 - Exact email template character/sentence limits (to be defined in the next phase).
 
-This keeps the architecture minimal while preserving multi-user support, dynamic personalization, and anti-repeat behavior.
+This keeps the architecture minimal while preserving multi-user support, dynamic personalization, and anti-repeat behavior with compact per-user state.
 
 ## Planned UX Enhancements (Post-Core Pipeline)
 These are roadmap candidates after baseline send quality/reliability are stable.
