@@ -10,11 +10,29 @@ Builds onboarding/reply memory updates through a shared processing flow.
 - `buildFallbackReplyMemory`
 
 ## Processing Strategy
-1. Build prompt for the model (placeholder prompt builders for now).
+1. Build onboarding/reply prompt text from `lib/ai/memory-prompts.ts`.
 2. Attempt model generation with one retry.
-3. Validate against canonical memory contract.
-4. Fall back to deterministic local formatter when model output is invalid/unavailable.
+3. For reply updates, require structured JSON ops validated by `memoryUpdateOpsSchema`.
+4. Apply deterministic merge rules in code, then validate canonical memory contract.
+5. Fall back to deterministic local formatter when model output is invalid/unavailable.
+
+## Observability (Lightweight)
+- Emits structured JSON logs to stdout/stderr for model and fallback outcomes.
+- Current events:
+  - `onboarding_model_success`
+  - `onboarding_model_invalid_output`
+  - `onboarding_model_error`
+  - `onboarding_fallback_used`
+  - `reply_model_success`
+  - `reply_model_schema_invalid`
+  - `reply_model_merge_invalid`
+  - `reply_model_error`
+  - `reply_fallback_used`
+- Goal: keep telemetry minimal while making fallback reasons measurable.
 
 ## Notes
 - Keeps route handlers thin.
 - Ensures memory structure remains stable for downstream topic derivation.
+- Model provider: Anthropic Messages API.
+- Required envs: `ANTHROPIC_API_KEY` and `ANTHROPIC_MEMORY_MODEL`.
+- On `401/403` from Anthropic, onboarding path raises `ANTHROPIC_AUTH_FAILED` (no retry fallback).

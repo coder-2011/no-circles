@@ -38,12 +38,23 @@ export async function POST(request: Request) {
     );
   }
 
-  const { timezone, send_time_local, brain_dump_text } = parsed.data;
+  const { preferred_name, timezone, send_time_local, brain_dump_text } = parsed.data;
   let interestMemoryText = "";
 
   try {
     interestMemoryText = await formatOnboardingMemory(brain_dump_text);
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && error.message === "ANTHROPIC_AUTH_FAILED") {
+      return NextResponse.json(
+        {
+          ok: false,
+          error_code: "MODEL_AUTH_ERROR",
+          message: "Anthropic authentication failed. Check server API key env and restart dev server."
+        },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json(
       { ok: false, error_code: "INTERNAL_ERROR", message: "Failed to process onboarding memory." },
       { status: 500 }
@@ -55,6 +66,7 @@ export async function POST(request: Request) {
       .insert(users)
       .values({
         email: authenticatedEmail,
+        preferredName: preferred_name,
         timezone,
         sendTimeLocal: send_time_local,
         interestMemoryText
@@ -62,6 +74,7 @@ export async function POST(request: Request) {
       .onConflictDoUpdate({
         target: users.email,
         set: {
+          preferredName: preferred_name,
           timezone,
           sendTimeLocal: send_time_local,
           interestMemoryText

@@ -98,6 +98,27 @@ If the email quality is weak (“shitty”), the system should still be easy to 
 - Use user replies to steer future topic selection.
 - Product should improve toward perceived value, not toward sounding “smart.”
 
+## Future UX Value Enhancements (Planned)
+These additions are aligned with the product vision and are candidates for future implementation:
+
+1. Pre-send preview during onboarding
+- Let users preview a sample issue before first save.
+
+2. Clear delivery status transparency
+- Show users when the last issue was sent and when the next one is scheduled.
+
+3. Fast feedback controls
+- Add one-tap feedback options (`more like this`, `less like this`, `too basic`, `too advanced`).
+
+4. Source preference controls
+- Let users influence source style/quality mix based on trust and depth preference.
+
+5. Starter onboarding templates
+- Offer optional presets to reduce blank-page friction during first setup.
+
+6. Adjustable digest intensity
+- Allow users to choose how dense each daily issue should be.
+
 ## Success Definition
 Product-market fit is defined by user value:
 - Does the user enjoy reading it?

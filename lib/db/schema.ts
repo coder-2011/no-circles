@@ -3,6 +3,7 @@ import { index, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
   email: text("email").notNull().unique(),
+  preferredName: text("preferred_name").notNull(),
   timezone: text("timezone").notNull(),
   sendTimeLocal: text("send_time_local").notNull(),
   interestMemoryText: text("interest_memory_text").notNull()

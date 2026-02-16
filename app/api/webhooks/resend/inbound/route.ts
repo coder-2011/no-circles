@@ -15,6 +15,27 @@ function extractSenderEmail(fromField: string): string | null {
   return candidate.includes("@") ? candidate : null;
 }
 
+function toNonEmptyString(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function resolveMessageId(payload: (typeof resendInboundWebhookSchema)["_output"]): string | null {
+  const data = payload.data;
+  const headerMessageId = toNonEmptyString(data.headers?.["message-id"]);
+
+  return (
+    toNonEmptyString(data.email_id) ??
+    toNonEmptyString(data.message_id) ??
+    toNonEmptyString(data.id) ??
+    headerMessageId
+  );
+}
+
 export async function POST(request: Request) {
   const webhookSecret = process.env.RESEND_WEBHOOK_SECRET;
 
@@ -86,10 +107,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true, status: "ignored" });
     }
 
+    const dedupeKey = (() => {
+      const messageId = resolveMessageId(parsedPayload.data);
+      if (messageId) {
+        return `message:${messageId}`;
+      }
+
+      return `event:${signatureHeaders.svixId}`;
+    })();
+
     const status = await db.transaction(async (tx) => {
       const inserted = await tx
         .insert(processedWebhooks)
-        .values({ provider: PROVIDER, webhookId: signatureHeaders.svixId })
+        .values({ provider: PROVIDER, webhookId: dedupeKey })
         .onConflictDoNothing({ target: [processedWebhooks.provider, processedWebhooks.webhookId] })
         .returning({ id: processedWebhooks.id });
 

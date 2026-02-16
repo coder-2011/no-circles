@@ -7,7 +7,8 @@ Defines the root Next.js layout wrapper and page metadata.
 1. Imports global Tailwind/CSS styles once.
 2. Sets top-level metadata (`title`, `description`).
 3. Wraps all routes in root HTML/body shell.
-4. Uses hydration-warning suppression for client-auth surfaces.
+4. Renders a fixed top-left home link with the app logo (`/image.svg`) using no surrounding border/background chrome.
+5. Uses hydration-warning suppression for client-auth surfaces.
 
 ## Why It Exists
 - Centralizes document-level structure shared by every route.
