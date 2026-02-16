@@ -15,10 +15,16 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body suppressHydrationWarning>
         <Link
           aria-label="Go to home"
-          className="fixed left-4 top-4 z-50 inline-flex items-center rounded-full border border-white/30 bg-slate-950/70 p-2 backdrop-blur transition hover:bg-slate-900/90"
+          className="fixed left-4 top-4 z-50 inline-block leading-none"
           href="/#top"
         >
-          <Image alt="Serendipitous Encounters logo" height={32} src="/image.svg" width={32} />
+          <Image
+            alt="Serendipitous Encounters logo"
+            className="block h-8 w-8 rounded-none"
+            height={32}
+            src="/image.svg"
+            width={32}
+          />
         </Link>
         {children}
       </body>
