@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { deriveTopicsFromMemory } from "@/lib/discovery/topic-derivation";
 
 describe("deriveTopicsFromMemory", () => {
-  it("derives unique topics from ACTIVE_INTERESTS and includes personality/feedback context", () => {
+  it("derives unique topics from ACTIVE_INTERESTS and uses topic-focused queries", () => {
     const memory = [
       "PERSONALITY:",
       "- prefers practical tutorials",
@@ -24,8 +24,8 @@ describe("deriveTopicsFromMemory", () => {
     expect(topics).toHaveLength(2);
     expect(topics[0].topic).toBe("AI engineering");
     expect(topics[1].topic).toBe("philosophy");
-    expect(topics[0].query).toContain("prefers practical tutorials");
-    expect(topics[0].query).toContain("wants less hype");
+    expect(topics[0].query).toBe("AI engineering");
+    expect(topics[1].query).toBe("philosophy");
   });
 
   it("soft-suppresses matching topics instead of removing them", () => {
@@ -74,5 +74,30 @@ describe("deriveTopicsFromMemory", () => {
     expect(missingHeaders).toEqual([]);
     expect(noActive.length).toBeGreaterThanOrEqual(1);
     expect(noActive[0]?.topic).toContain("distributed systems");
+  });
+
+  it("splits merged topic bullets into distinct topics", () => {
+    const memory = [
+      "PERSONALITY:",
+      "- practical",
+      "",
+      "ACTIVE_INTERESTS:",
+      "- AI engineering - distributed systems - software architecture",
+      "",
+      "SUPPRESSED_INTERESTS:",
+      "- software architecture - observability",
+      "",
+      "RECENT_FEEDBACK:",
+      "-"
+    ].join("\n");
+
+    const topics = deriveTopicsFromMemory({ interestMemoryText: memory, maxTopics: 10 });
+    const topicNames = topics.map((topic) => topic.topic.toLowerCase());
+
+    expect(topicNames).toContain("ai engineering");
+    expect(topicNames).toContain("distributed systems");
+    expect(topicNames).toContain("software architecture");
+    expect(topicNames).not.toContain("observability");
+    expect(topics.find((topic) => topic.topic.toLowerCase() === "software architecture")?.softSuppressed).toBe(true);
   });
 });

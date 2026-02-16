@@ -7,18 +7,33 @@ function cleanLine(line: string): string {
   return line.replace(/^[-*\d.)\s]+/, "").trim();
 }
 
+function splitCompoundTopicLine(line: string): string[] {
+  const cleaned = cleanLine(line);
+  if (!cleaned || cleaned === "-") {
+    return [];
+  }
+
+  const normalized = cleaned.replace(/\s{2,}/g, " ").trim();
+  const dashSegments = normalized.split(/\s-\s/).map((segment) => segment.trim()).filter(Boolean);
+  const primarySegments = dashSegments.length > 1 ? dashSegments : [normalized];
+  const finalSegments = primarySegments
+    .flatMap((segment) => segment.split(/\s*,\s*/))
+    .map((segment) => segment.trim())
+    .filter(Boolean);
+
+  return finalSegments.length > 0 ? finalSegments : [normalized];
+}
+
 function parseBulletLines(section: string): string[] {
   const seen = new Map<string, string>();
 
   for (const raw of section.split("\n")) {
-    const cleaned = cleanLine(raw);
-    if (!cleaned || cleaned === "-") {
-      continue;
-    }
-
-    const key = cleaned.toLowerCase();
-    if (!seen.has(key)) {
-      seen.set(key, cleaned);
+    const topics = splitCompoundTopicLine(raw);
+    for (const topic of topics) {
+      const key = topic.toLowerCase();
+      if (!seen.has(key)) {
+        seen.set(key, topic);
+      }
     }
   }
 
@@ -31,20 +46,6 @@ function softSuppressed(topic: string, suppressedLines: string[]): boolean {
     const normalizedEntry = entry.toLowerCase();
     return normalizedEntry.includes(normalizedTopic) || normalizedTopic.includes(normalizedEntry);
   });
-}
-
-function buildContextSnippet(personalityLines: string[], feedbackLines: string[]): string {
-  const context = [...personalityLines.slice(0, 2), ...feedbackLines.slice(0, 2)]
-    .map((line) => cleanLine(line))
-    .filter(Boolean)
-    .join("; ")
-    .trim();
-
-  if (!context) {
-    return "";
-  }
-
-  return ` (${context})`;
 }
 
 function deriveSeedTopics(personalityLines: string[], feedbackLines: string[]): string[] {
@@ -86,11 +87,10 @@ export function deriveTopicsFromMemory(args: {
   }
 
   const suppressedLines = parseBulletLines(sections.SUPPRESSED_INTERESTS);
-  const contextSnippet = buildContextSnippet(personalityLines, feedbackLines);
 
   const topics = topicBase.map((topic, originalIndex) => ({
     topic,
-    query: `${topic}${contextSnippet}`,
+    query: topic,
     topicRank: originalIndex,
     softSuppressed: softSuppressed(topic, suppressedLines)
   }));

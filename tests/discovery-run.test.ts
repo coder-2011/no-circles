@@ -200,7 +200,73 @@ describe("runDiscovery", () => {
 
     expect(result.candidates).toHaveLength(3);
     expect(result.candidates[0]?.canonicalUrl).toBe("https://same.com/a");
-    expect(result.warnings).toContain("BACKFILLED_FROM_QUALITY_POOL_2");
+    expect(
+      result.warnings.some(
+        (warning) =>
+          warning.startsWith("BACKFILLED_FROM_QUALITY_POOL_") ||
+          warning.startsWith("RELAXED_TOPIC_BALANCE_BACKFILL_")
+      )
+    ).toBe(true);
+  });
+
+  it("prefers underrepresented topics during backfill before repeating a dominant topic", async () => {
+    const breadthMemory = [
+      "PERSONALITY:",
+      "- practical",
+      "",
+      "ACTIVE_INTERESTS:",
+      "- topic a",
+      "- topic b",
+      "- topic c",
+      "",
+      "SUPPRESSED_INTERESTS:",
+      "-",
+      "",
+      "RECENT_FEEDBACK:",
+      "-"
+    ].join("\n");
+
+    const exaSearch = vi.fn(async ({ query }: { query: string; numResults: number }) => {
+      if (query.startsWith("topic a")) {
+        return [
+          { url: "https://a.com/one", title: "a1", highlights: ["x"], score: 0.9 },
+          { url: "https://a.com/two", title: "a2", highlights: ["x"], score: 0.86 },
+          { url: "https://a.com/three", title: "a3", highlights: ["x"], score: 0.84 }
+        ];
+      }
+      if (query.startsWith("topic b")) {
+        return [{ url: "https://b.com/one", title: "b1", highlights: ["x"], score: 0.83 }];
+      }
+      return [{ url: "https://c.com/one", title: "c1", highlights: ["x"], score: 0.82 }];
+    });
+
+    const result = await runDiscovery(
+      {
+        interestMemoryText: breadthMemory,
+        targetCount: 4,
+        maxRetries: 1,
+        maxTopics: 3,
+        perTopicResults: 3,
+        maxPerDomain: 4
+      },
+      { exaSearch }
+    );
+
+    const countsByTopic = result.candidates.reduce<Record<string, number>>((acc, candidate) => {
+      acc[candidate.topic] = (acc[candidate.topic] ?? 0) + 1;
+      return acc;
+    }, {});
+
+    expect(result.candidates).toHaveLength(4);
+    expect(countsByTopic["topic a"]).toBe(2);
+    expect(countsByTopic["topic b"]).toBe(1);
+    expect(countsByTopic["topic c"]).toBe(1);
+    expect(
+      result.warnings.some(
+        (warning) =>
+          warning === "BACKFILLED_FROM_QUALITY_POOL_1" || warning === "RELAXED_TOPIC_BALANCE_BACKFILL_1"
+      )
+    ).toBe(true);
   });
 
   it("keeps partial results and reports warnings when topic queries fail", async () => {
@@ -231,7 +297,13 @@ describe("runDiscovery", () => {
     expect(result.candidates[0].canonicalUrl).toBe("https://example.com/good");
     expect(result.candidates[1].canonicalUrl).toBe("https://example.com/good-2");
     expect(result.warnings.some((warning) => warning.startsWith("EXA_TOPIC_FAILURE:AI engineering"))).toBe(true);
-    expect(result.warnings).toContain("BACKFILLED_FROM_QUALITY_POOL_1");
+    expect(
+      result.warnings.some(
+        (warning) =>
+          warning.startsWith("BACKFILLED_FROM_QUALITY_POOL_") ||
+          warning.startsWith("RELAXED_TOPIC_BALANCE_BACKFILL_")
+      )
+    ).toBe(true);
   });
 
   it("derives topic seeds from personality/feedback when active interests are missing", async () => {
@@ -294,6 +366,34 @@ describe("runDiscovery", () => {
 
     expect(result.candidates).toHaveLength(2);
     expect(result.candidates.every((candidate) => candidate.sourceDomain !== "itbooks.ir")).toBe(true);
+    expect(result.warnings.some((warning) => warning.startsWith("LOW_SIGNAL_FILTERED_"))).toBe(true);
+  });
+
+  it("filters index/hub-style pages before selecting winners", async () => {
+    const exaSearch = vi.fn(async ({ query }: { query: string; numResults: number }) => {
+      if (query.startsWith("AI engineering")) {
+        return [
+          { url: "https://example.org/resources", title: "resources index", highlights: ["x"], score: 0.85 },
+          { url: "https://example.org/ai/practical-implementation", title: "ai practical", highlights: ["x"], score: 0.84 }
+        ];
+      }
+
+      return [{ url: "https://dist.dev/ops/rollout-patterns", title: "dist practical", highlights: ["y"], score: 0.83 }];
+    });
+
+    const result = await runDiscovery(
+      {
+        interestMemoryText: memory,
+        targetCount: 2,
+        maxRetries: 1,
+        maxTopics: 2,
+        perTopicResults: 2
+      },
+      { exaSearch }
+    );
+
+    expect(result.candidates).toHaveLength(2);
+    expect(result.candidates.every((candidate) => !candidate.canonicalUrl.endsWith("/resources"))).toBe(true);
     expect(result.warnings.some((warning) => warning.startsWith("LOW_SIGNAL_FILTERED_"))).toBe(true);
   });
 
