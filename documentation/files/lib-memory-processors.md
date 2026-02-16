@@ -15,6 +15,7 @@ Builds onboarding/reply memory updates through a shared processing flow.
 3. For reply updates, require structured JSON ops validated by `memoryUpdateOpsSchema`.
 4. Apply deterministic merge rules in code, then validate canonical memory contract.
 5. Fall back to deterministic local formatter when model output is invalid/unavailable.
+6. Normalize canonical memory topic lines (split merged topic bullets and remove active/suppressed overlaps).
 
 ## Observability (Lightweight)
 - Emits structured JSON logs to stdout/stderr for model and fallback outcomes.

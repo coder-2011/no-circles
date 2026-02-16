@@ -170,4 +170,37 @@ describe("generateNewsletterSummaries", () => {
     expect(result[0].url).toBe("https://example.com/a");
     expect(result[1].url).toBe("https://example.com/b");
   });
+
+  it("trims overlong summaries at sentence boundary when possible", async () => {
+    process.env.ANTHROPIC_API_KEY = "test-key";
+    process.env.ANTHROPIC_SUMMARY_MODEL = "claude-haiku-4-5";
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: true,
+        json: async () => ({
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({
+                title: "Original A",
+                summary:
+                  "Sentence one explains the setup clearly. Sentence two goes much longer and contains many additional details that should be trimmed when enforcing maximum length limits for concise output."
+              })
+            }
+          ]
+        })
+      }))
+    );
+
+    const result = await generateNewsletterSummaries({
+      items: [sourceItems[0]],
+      minWords: 5,
+      maxWords: 10
+    });
+
+    expect(result[0].summary.endsWith(".")).toBe(true);
+    expect(wordCount(result[0].summary)).toBeLessThanOrEqual(10);
+  });
 });

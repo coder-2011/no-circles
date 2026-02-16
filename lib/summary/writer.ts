@@ -91,7 +91,16 @@ function clampSummaryLength(summary: string, minWords: number, maxWords: number)
 
   const words = normalized.split(" ");
   if (words.length > maxWords) {
-    return words.slice(0, maxWords).join(" ");
+    const truncated = words.slice(0, maxWords).join(" ");
+    const sentenceBoundary = Math.max(truncated.lastIndexOf("."), truncated.lastIndexOf("!"), truncated.lastIndexOf("?"));
+    if (sentenceBoundary >= 0) {
+      const sentenceTrimmed = truncated.slice(0, sentenceBoundary + 1).trim();
+      if (sentenceTrimmed.split(" ").filter(Boolean).length >= minWords) {
+        return sentenceTrimmed;
+      }
+    }
+
+    return truncated.trim();
   }
 
   if (words.length >= minWords) {
