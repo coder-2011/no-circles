@@ -25,5 +25,6 @@ Required request keys:
 ## Error Envelope
 - `400` with `{ ok: false, error_code: "INVALID_PAYLOAD", ... }`
 - `401` with `{ ok: false, error_code: "UNAUTHORIZED", ... }`
+- `500` with `{ ok: false, error_code: "MODEL_AUTH_ERROR", message: "Anthropic authentication failed. Check server API key env and restart dev server." }` when Anthropic returns auth failure
 - `500` with `{ ok: false, error_code: "INTERNAL_ERROR", message: "Failed to process onboarding memory." }` when memory processor fails
 - `500` with `{ ok: false, error_code: "INTERNAL_ERROR", ... }`

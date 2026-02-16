@@ -34,5 +34,5 @@ Builds onboarding/reply memory updates through a shared processing flow.
 - Keeps route handlers thin.
 - Ensures memory structure remains stable for downstream topic derivation.
 - Model provider: Anthropic Messages API.
-- Required env: `ANTHROPIC_API_KEY`.
-- Optional env override: `ANTHROPIC_MEMORY_MODEL` (default: `claude-opus-4-6`).
+- Required envs: `ANTHROPIC_API_KEY` and `ANTHROPIC_MEMORY_MODEL`.
+- On `401/403` from Anthropic, onboarding path raises `ANTHROPIC_AUTH_FAILED` (no retry fallback).

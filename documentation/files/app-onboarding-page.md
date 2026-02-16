@@ -9,8 +9,9 @@ Frontend onboarding screen for authenticated users.
 3. Redirects signed-out users to home after a short delay.
 4. Randomizes the preferred-name placeholder suggestion from a curated famous-intellectual list on each page load.
 5. Posts onboarding preferences to `POST /api/onboarding`.
-6. Shows a brief, subtle success celebration near the save button on successful submit before redirect.
-7. Handles success, auth expiration (`401`), and general errors with actionable UI messages.
+6. Shows a brief, subtle success celebration near the save button on successful submit.
+7. Stays on-page after successful submit and presents a clear completed state.
+8. Handles success, auth expiration (`401`), and general errors with actionable UI messages.
 
 ## Form Fields
 - `preferred_name`
