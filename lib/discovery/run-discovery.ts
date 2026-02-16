@@ -13,6 +13,14 @@ import {
 
 const DEFAULT_PER_TOPIC_RESULTS = 5;
 const DEFAULT_MAX_TOPICS = 10;
+const DEFAULT_EARLY_STOP_BUFFER = 4;
+const DEFAULT_MAX_PER_DOMAIN = 2;
+
+const ATTEMPT_POLICIES = [
+  { minDistinctDomains: 6, minAvgScore: 0.65, minHighlightCoverage: 0.9 },
+  { minDistinctDomains: 5, minAvgScore: 0.6, minHighlightCoverage: 0.8 },
+  { minDistinctDomains: 4, minAvgScore: 0.55, minHighlightCoverage: 0.8 }
+] as const;
 
 function canonicalizeUrl(rawUrl: string): string | null {
   try {
@@ -69,6 +77,7 @@ function normalizeCandidate(args: {
     highlight,
     topic: args.topic.topic,
     topicRank: args.topic.topicRank,
+    softSuppressed: args.topic.softSuppressed,
     resultRank: args.resultRank,
     sourceDomain: getDomain(canonicalUrl),
     publishedAt: args.result.publishedDate ?? null,
@@ -118,6 +127,122 @@ function dedupeCandidates(candidates: DiscoveryCandidate[]): DiscoveryCandidate[
   });
 }
 
+function filterNonSuppressed(candidates: DiscoveryCandidate[]): DiscoveryCandidate[] {
+  return candidates.filter((candidate) => !candidate.softSuppressed);
+}
+
+function applyDomainCap(
+  candidates: DiscoveryCandidate[],
+  targetCount: number,
+  maxPerDomain: number,
+  allowDomainCapRelaxation: boolean
+): DiscoveryCandidate[] {
+  const selected: DiscoveryCandidate[] = [];
+  const domainCounts = new Map<string, number>();
+
+  for (const candidate of candidates) {
+    if (selected.length >= targetCount) {
+      break;
+    }
+
+    const domain = candidate.sourceDomain ?? "unknown";
+    const currentCount = domainCounts.get(domain) ?? 0;
+
+    if (currentCount >= maxPerDomain) {
+      continue;
+    }
+
+    selected.push(candidate);
+    domainCounts.set(domain, currentCount + 1);
+  }
+
+  if (!allowDomainCapRelaxation || selected.length >= targetCount) {
+    return selected;
+  }
+
+  const selectedUrls = new Set(selected.map((candidate) => candidate.canonicalUrl));
+  for (const candidate of candidates) {
+    if (selected.length >= targetCount) {
+      break;
+    }
+
+    if (selectedUrls.has(candidate.canonicalUrl)) {
+      continue;
+    }
+
+    selected.push(candidate);
+    selectedUrls.add(candidate.canonicalUrl);
+  }
+
+  return selected;
+}
+
+function averageScore(candidates: DiscoveryCandidate[]): number {
+  const scores = candidates.map((candidate) => candidate.exaScore).filter((score): score is number => score !== null);
+  if (scores.length === 0) {
+    return 0;
+  }
+
+  return scores.reduce((sum, score) => sum + score, 0) / scores.length;
+}
+
+function highlightCoverage(candidates: DiscoveryCandidate[]): number {
+  if (candidates.length === 0) {
+    return 0;
+  }
+
+  const countWithHighlight = candidates.filter((candidate) => Boolean(candidate.highlight)).length;
+  return countWithHighlight / candidates.length;
+}
+
+function distinctDomains(candidates: DiscoveryCandidate[]): number {
+  return new Set(candidates.map((candidate) => candidate.sourceDomain ?? "unknown")).size;
+}
+
+function maxDomainCount(candidates: DiscoveryCandidate[]): number {
+  const counts = new Map<string, number>();
+  for (const candidate of candidates) {
+    const domain = candidate.sourceDomain ?? "unknown";
+    counts.set(domain, (counts.get(domain) ?? 0) + 1);
+  }
+
+  return Math.max(0, ...counts.values());
+}
+
+function shouldEarlyStop(args: {
+  candidates: DiscoveryCandidate[];
+  attempt: number;
+  targetCount: number;
+  earlyStopBuffer: number;
+  maxPerDomain: number;
+}): boolean {
+  const policy = ATTEMPT_POLICIES[Math.min(args.attempt, ATTEMPT_POLICIES.length - 1)];
+  const stopTarget = args.targetCount + args.earlyStopBuffer;
+  const window = applyDomainCap(args.candidates, stopTarget, args.maxPerDomain, false);
+
+  if (window.length < stopTarget) {
+    return false;
+  }
+
+  if (distinctDomains(window) < policy.minDistinctDomains) {
+    return false;
+  }
+
+  if (maxDomainCount(window) > args.maxPerDomain) {
+    return false;
+  }
+
+  if (highlightCoverage(window) < policy.minHighlightCoverage) {
+    return false;
+  }
+
+  if (averageScore(window) < policy.minAvgScore) {
+    return false;
+  }
+
+  return true;
+}
+
 function buildAttemptQuery(topic: DiscoveryTopic, attempt: number): string {
   if (attempt === 0) {
     return topic.query;
@@ -138,6 +263,8 @@ export async function runDiscovery(
   const maxRetries = input.maxRetries ?? DEFAULT_DISCOVERY_MAX_RETRIES;
   const maxTopics = input.maxTopics ?? DEFAULT_MAX_TOPICS;
   const basePerTopicResults = input.perTopicResults ?? DEFAULT_PER_TOPIC_RESULTS;
+  const earlyStopBuffer = input.earlyStopBuffer ?? DEFAULT_EARLY_STOP_BUFFER;
+  const maxPerDomain = input.maxPerDomain ?? DEFAULT_MAX_PER_DOMAIN;
   const exaSearch = deps.exaSearch ?? searchExa;
 
   const topics = deriveTopicsFromMemory({
@@ -155,13 +282,13 @@ export async function runDiscovery(
   }
 
   const warnings: string[] = [];
-  let deduped: DiscoveryCandidate[] = [];
+  const aggregateCandidates: DiscoveryCandidate[] = [];
   let attemptsUsed = 0;
+  let earlyStopped = false;
 
   for (let attempt = 0; attempt < maxRetries; attempt += 1) {
     attemptsUsed = attempt + 1;
     const perTopicResults = basePerTopicResults + attempt * 2;
-    const allCandidates: DiscoveryCandidate[] = [];
 
     for (const topic of topics) {
       const query = buildAttemptQuery(topic, attempt);
@@ -177,7 +304,7 @@ export async function runDiscovery(
           });
 
           if (normalized) {
-            allCandidates.push(normalized);
+            aggregateCandidates.push(normalized);
           }
         });
       } catch (error) {
@@ -185,21 +312,44 @@ export async function runDiscovery(
           `EXA_TOPIC_FAILURE:${topic.topic}:${error instanceof Error ? error.message : "UNKNOWN_ERROR"}`
         );
       }
+
+      const deduped = dedupeCandidates(aggregateCandidates);
+      const nonSuppressed = filterNonSuppressed(deduped);
+
+      if (
+        shouldEarlyStop({
+          candidates: nonSuppressed,
+          attempt,
+          targetCount,
+          earlyStopBuffer,
+          maxPerDomain
+        })
+      ) {
+        warnings.push(`EARLY_STOP_TRIGGERED_ATTEMPT_${attempt + 1}`);
+        earlyStopped = true;
+        break;
+      }
     }
 
-    deduped = dedupeCandidates(allCandidates).slice(0, targetCount);
-
-    if (deduped.length >= targetCount) {
+    if (earlyStopped) {
       break;
     }
   }
 
-  if (deduped.length < targetCount) {
+  const deduped = dedupeCandidates(aggregateCandidates);
+  const nonSuppressed = filterNonSuppressed(deduped);
+  const capped = applyDomainCap(nonSuppressed, targetCount, maxPerDomain, true);
+
+  if (capped.length < targetCount) {
     warnings.push("INSUFFICIENT_UNIQUE_CANDIDATES");
   }
 
+  if (nonSuppressed.length < targetCount) {
+    warnings.push("NON_SUPPRESSED_POOL_BELOW_TARGET");
+  }
+
   return {
-    candidates: deduped,
+    candidates: capped,
     topics,
     attempts: attemptsUsed,
     warnings

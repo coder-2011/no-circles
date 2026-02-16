@@ -5,7 +5,14 @@ const exaApiKey = process.env.EXA_API_KEY?.trim();
 const exaClient = exaApiKey ? new Exa(exaApiKey) : null;
 
 export const DEFAULT_EXA_TYPE = "auto" as const;
-export const DEFAULT_EXA_HIGHLIGHT_MAX_CHARACTERS = 2000;
+const configuredHighlightMaxCharacters = Number(
+  process.env.EXA_DISCOVERY_HIGHLIGHT_MAX_CHARACTERS?.trim() || "4000"
+);
+
+export const DEFAULT_EXA_HIGHLIGHT_MAX_CHARACTERS =
+  Number.isFinite(configuredHighlightMaxCharacters) && configuredHighlightMaxCharacters > 0
+    ? Math.floor(configuredHighlightMaxCharacters)
+    : 4000;
 
 export const searchExa: ExaSearchFn = async ({ query, numResults }) => {
   if (!exaClient) {

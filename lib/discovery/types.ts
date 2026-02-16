@@ -15,6 +15,7 @@ export type DiscoveryCandidate = {
   highlight: string | null;
   topic: string;
   topicRank: number;
+  softSuppressed: boolean;
   resultRank: number;
   sourceDomain: string | null;
   publishedAt: string | null;
@@ -27,6 +28,8 @@ export type DiscoveryRunInput = {
   maxRetries?: number;
   maxTopics?: number;
   perTopicResults?: number;
+  earlyStopBuffer?: number;
+  maxPerDomain?: number;
 };
 
 export type DiscoveryRunResult = {
