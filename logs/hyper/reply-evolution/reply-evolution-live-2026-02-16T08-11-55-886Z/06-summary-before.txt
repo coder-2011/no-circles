@@ -1,0 +1,52 @@
+[
+  {
+    "title": "Architecting AI-ready infrastructure for the agentic era",
+    "url": "https://thenewstack.io/ai-ready-infrastructure/",
+    "summary": "The shift toward agentic AI systems requires rethinking infrastructure design beyond traditional stateless model endpoints. Production-grade agentic infrastructure must support multiple LLMs, retrieval workflows, vector databases, evaluation layers, and safe execution environments while addressing scalability, latency, security, and cost considerations."
+  },
+  {
+    "title": "System Design Primer",
+    "url": "https://systemdesignschool.io/primer",
+    "summary": "System Design School offers a fundamentals-first approach to system design education, emphasizing core concepts and reusable patterns over memorized solutions. The primer covers essential components, interview frameworks, and mental models for solving system design problems, organized into tracks covering patterns, data scaling, and batch/stream processing."
+  },
+  {
+    "title": "I Tried 20+ Books on Software Architecture — Here Are My Top 7 Recommendations for Senior Developers",
+    "url": "https://dev.to/somadevtoo/i-tried-20-books-on-software-architecture-here-are-my-top-7-recommendations-for-senior-developers-54n2",
+    "summary": "An author reviewed over 20 software architecture books and selected 7 recommendations for senior developers transitioning to architect roles. Top picks include Head First Software Architecture for beginners, Software Architecture: The Hard Parts for trade-off analysis, and Designing Data-Intensive Applications. The author emphasizes that architecture focuses on managing trade-offs rather than perfect solutions."
+  },
+  {
+    "title": "Data Engineering Roadmap",
+    "url": "https://github.com/anshlambagit/Data_Engineer_Roadmap",
+    "summary": "A structured learning path offering 200+ hours of free YouTube content covering data engineering fundamentals, including Python, SQL, data warehousing, and end-to-end projects. The roadmap includes modules on certifications, interview preparation, and real-world scenarios, designed for learners at various skill levels seeking data engineering careers."
+  },
+  {
+    "title": "Data engineering 101: lifecycle, best practices, and emerging trends",
+    "url": "https://redpanda.com/guides/fundamentals-of-data-engineering",
+    "summary": "Data engineering is the process of designing and maintaining systems that convert raw data into actionable insights. It encompasses data ingestion, transformation, and pipeline architecture across multiple stages. Key tools include Apache Hadoop, Spark, Kafka, and Airflow. Data engineering supports analytics, machine learning, and real-time monitoring across modern business operations."
+  },
+  {
+    "title": "Data Engineering for Everyone Course | DataCamp",
+    "url": "https://www.datacamp.com/courses/understanding-data-engineering",
+    "summary": "DataCamp's introductory course teaches data engineering fundamentals through hands-on exercises using a fictional music streaming company case study. Topics include core data engineer responsibilities, differences from data scientists, data collection and cleaning, pipeline development, data storage, and processing techniques. The course is designed for beginners and professionals in data science fields."
+  },
+  {
+    "title": "Data engineering 101: lifecycle, best practices, and emerging trends",
+    "url": "https://www.redpanda.com/guides/fundamentals-of-data-engineering",
+    "summary": "Data engineering converts raw data into actionable insights by gathering, processing, and structuring information from diverse sources. The discipline encompasses data ingestion, transformation, and pipeline management using tools like Apache Spark, Kafka, and Airflow. Best practices emphasize data quality, integrity, and proactive monitoring throughout the data lifecycle."
+  },
+  {
+    "title": "How to Build a Strategy for an Existing Product",
+    "url": "https://building.theatlantic.com/how-to-build-a-strategy-for-an-existing-product-32eef1ea447b",
+    "summary": "Roman Pichler outlines a five-step process for developing effective product strategies: articulate the current strategy, assess its viability, replace it if needed, create an actionable outcome-based roadmap, and regularly review the strategy against market and competitive changes. Clear strategy provides decision-making frameworks and alignment across teams."
+  },
+  {
+    "title": "Product Strategy Explained: The Complete Guide For 2026",
+    "url": "https://monday.com/blog/rnd/product-strategy/",
+    "summary": "Product strategy is a high-level plan defining what problem you solve, who has it, and your unique solution. A seven-step framework includes market research, customer definition, value articulation, objective-setting, initiative design, roadmap creation, and metrics establishment. Effective strategy requires connecting planning to execution through alignment across teams and systematic prioritization."
+  },
+  {
+    "title": "Steps to build an engineering strategy",
+    "url": "https://craftingengstrategy.com/strategy-steps/",
+    "summary": "A structured five-step approach to engineering strategy creation: exploration of industry practices, diagnosis of specific problems, refinement through testing and modeling, policy development for decision-making, and operations for concrete implementation. Each step builds on the previous one, with the framework designed to prevent practitioners from skipping difficult steps."
+  }
+]

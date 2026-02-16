@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { cronGenerateNextSchema } from "@/lib/schemas";
+import { sendUserNewsletter } from "@/lib/pipeline/send-user-newsletter";
 
 const CRON_ROUTE = "POST /api/cron/generate-next";
 const LEASE_TTL_MINUTES = 5;
@@ -67,7 +68,61 @@ export async function POST(request: Request) {
       user_id: selectedUserId
     });
 
-    return NextResponse.json({ ok: true, status: "selected", user_id: selectedUserId });
+    const pipelineResult = await sendUserNewsletter({
+      userId: selectedUserId,
+      runAtUtc
+    });
+
+    if (pipelineResult.status === "sent") {
+      return NextResponse.json({
+        ok: true,
+        status: "sent",
+        user_id: selectedUserId,
+        provider_message_id: pipelineResult.providerMessageId ?? null
+      });
+    }
+
+    if (pipelineResult.status === "insufficient_content") {
+      console.warn("[cron.generate-next] insufficient_content", {
+        route: CRON_ROUTE,
+        run_at_utc: runAtUtc.toISOString(),
+        user_id: selectedUserId,
+        error: pipelineResult.error
+      });
+
+      return NextResponse.json({
+        ok: true,
+        status: "insufficient_content",
+        user_id: selectedUserId
+      });
+    }
+
+    if (pipelineResult.status === "send_failed") {
+      console.error("[cron.generate-next] send_failed", {
+        route: CRON_ROUTE,
+        run_at_utc: runAtUtc.toISOString(),
+        user_id: selectedUserId,
+        error: pipelineResult.error
+      });
+
+      return NextResponse.json({
+        ok: true,
+        status: "send_failed",
+        user_id: selectedUserId
+      });
+    }
+
+    console.error("[cron.generate-next] pipeline_internal_error", {
+      route: CRON_ROUTE,
+      run_at_utc: runAtUtc.toISOString(),
+      user_id: selectedUserId,
+      error: pipelineResult.error
+    });
+
+    return NextResponse.json(
+      { ok: false, error_code: "INTERNAL_ERROR", message: "Failed to process selected user." },
+      { status: 500 }
+    );
   } catch (error) {
     console.error("[cron.generate-next] error", { route: CRON_ROUTE, error });
     return NextResponse.json(

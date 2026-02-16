@@ -1,6 +1,16 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { runDiscovery } from "@/lib/discovery/run-discovery";
 import { generateNewsletterSummaries } from "@/lib/summary/writer";
+
+vi.mock("@/lib/db/client", () => ({
+  db: {
+    select: vi.fn(),
+    transaction: vi.fn()
+  }
+}));
+
+import { sendUserNewsletter } from "@/lib/pipeline/send-user-newsletter";
+import { encodeBloomBitsBase64, mightContainCanonicalUrl, normalizeBloomStateFromUserRow } from "@/lib/bloom/user-url-bloom";
 import { buildRunId, toPrettyJson, writeHyperLog } from "@/tests/hyper/logging";
 
 const originalApiKey = process.env.ANTHROPIC_API_KEY;
@@ -37,99 +47,115 @@ const memory = [
 ].join("\n");
 
 describe("hyper integration: pipeline seam", () => {
-  it("runs discovery -> summary seam and outputs ten final items", async () => {
-    process.env.ANTHROPIC_API_KEY = "test-key";
-    process.env.ANTHROPIC_SUMMARY_MODEL = "claude-haiku-4-5";
+  it("runs through PR9 pipeline seam and applies Bloom suppression across runs", async () => {
+    const mutableUser = {
+      id: "user-hyper-1",
+      email: "hyper@example.com",
+      preferredName: "Hyper",
+      timezone: "UTC",
+      interestMemoryText: memory,
+      sentUrlBloomBits: null as string | null
+    };
 
-    const topicUrls = new Map<string, string>();
-    const exaSearch = vi.fn(async ({ query }: { query: string; numResults: number }) => {
-      const topic = query.split(" prefers ")[0]?.trim() || query;
-      const slug = topic.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-      const url = `https://example.com/${slug}`;
-      topicUrls.set(url, topic);
+    const runDiscoveryFn = vi.fn(async (_input, deps?: { includeCandidate?: (candidate: { canonicalUrl: string }) => boolean }) => {
+      const allCandidates = Array.from({ length: 20 }).map((_, index) => {
+        const suffix = index < 10 ? "a" : "b";
+        const topicNumber = index < 10 ? index + 1 : index - 9;
+        const canonicalUrl = `https://example.com/topic-${topicNumber}-${suffix}`;
+        return {
+          url: canonicalUrl,
+          canonicalUrl,
+          title: `topic ${topicNumber} ${suffix}`,
+          highlight: `highlight ${topicNumber} ${suffix}`,
+          highlights: [`highlight ${topicNumber} ${suffix}`],
+          topic: `topic-${topicNumber}`,
+          topicRank: topicNumber - 1,
+          softSuppressed: false,
+          resultRank: suffix === "a" ? 0 : 1,
+          sourceDomain: "example.com",
+          publishedAt: null,
+          exaScore: 0.9,
+          highlightScore: 0.8,
+          highlightScores: [0.8]
+        };
+      });
 
-      return [
-        {
-          url,
-          title: `${topic} guide`,
-          highlights: [
-            `The article explains concrete implementation tradeoffs for ${topic}.`,
-            `It includes practical architecture and rollout decisions for ${topic}.`
-          ],
-          score: 0.82
-        }
-      ];
-    });
-
-    const fetchMock = vi.fn(async (_url, init) => {
-      const payload = JSON.parse(String(init?.body ?? "{}")) as {
-        messages?: Array<{ content?: string }>;
-      };
-      const prompt = payload.messages?.[0]?.content ?? "";
-      const titleLine = prompt
-        .split("\n")
-        .find((line) => line.startsWith("Original title: "))
-        ?.replace("Original title: ", "")
-        ?.trim();
-
+      const filtered = deps?.includeCandidate ? allCandidates.filter((candidate) => deps.includeCandidate?.(candidate)) : allCandidates;
       return {
-        ok: true,
-        json: async () => ({
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify({
-                title: titleLine || "Refined title",
-                summary:
-                  "This piece explains the main implementation decision, the operating constraints, and the practical tradeoffs teams considered before rollout and adoption across production systems."
-              })
-            }
-          ]
-        })
+        candidates: filtered.slice(0, 10),
+        topics: [],
+        attempts: 1,
+        warnings: [],
+        diversityCard: {
+          itemCount: Math.min(10, filtered.length),
+          targetCount: 10,
+          distinctTopics: Math.min(10, filtered.length),
+          distinctDomains: 1,
+          maxTopicShare: 0.1,
+          maxDomainShare: 1,
+          topicEntropyNormalized: 1,
+          thresholds: {
+            minDistinctTopics: 6,
+            maxTopicShare: 0.3,
+            minDistinctDomains: 6,
+            maxDomainShare: 0.3
+          },
+          passes: true
+        }
       };
     });
 
-    vi.stubGlobal("fetch", fetchMock);
+    const summaryUrlRuns: string[][] = [];
 
-    const discovery = await runDiscovery(
-      {
-        interestMemoryText: memory,
-        targetCount: 10,
-        maxRetries: 1,
-        maxTopics: 10,
-        perTopicResults: 1
-      },
-      { exaSearch }
-    );
+    const runOnce = async (runAtUtc: Date) => {
+      return sendUserNewsletter(
+        { userId: mutableUser.id, runAtUtc },
+        {
+          loadUserFn: async () => ({ ...mutableUser }),
+          runDiscoveryFn,
+          generateSummariesFn: async ({ items }) => {
+            summaryUrlRuns.push(items.map((item) => item.url));
+            return items.map((item) => ({ title: item.title, url: item.url, summary: "summary" }));
+          },
+          sendNewsletterFn: async () => ({ ok: true, providerMessageId: "msg_hyper", attempts: 1, error: null }),
+          reserveIdempotencyFn: async () => ({ outcome: "claimed", status: "processing", providerMessageId: null }),
+          markIdempotencyFailedFn: async () => undefined,
+          persistSendSuccessFn: async ({ bloomState, runAtUtc: persistedRunAtUtc }) => {
+            mutableUser.sentUrlBloomBits = encodeBloomBitsBase64(bloomState);
+            void persistedRunAtUtc;
+          }
+        }
+      );
+    };
 
-    const summaries = await generateNewsletterSummaries({
-      items: discovery.candidates.map((candidate) => ({
-        url: candidate.url,
-        title: candidate.title ?? "Untitled",
-        highlights: candidate.highlights,
-        topic: candidate.topic
-      })),
-      targetWords: 50
-    });
+    const first = await runOnce(new Date("2026-02-16T10:00:00.000Z"));
+    const second = await runOnce(new Date("2026-02-17T10:00:00.000Z"));
+
+    const firstUrls = summaryUrlRuns[0] ?? [];
+    const secondUrls = summaryUrlRuns[1] ?? [];
+    const overlap = firstUrls.filter((url) => secondUrls.includes(url));
+    const bloomStateAfterFirst = normalizeBloomStateFromUserRow(mutableUser);
 
     const runId = buildRunId("pipeline-seam");
     await writeHyperLog({
       group: "pipeline-seam",
       runId,
       fileName: "discovery-output.txt",
-      content: toPrettyJson(discovery)
+      content: toPrettyJson({ first, second, firstUrls, secondUrls, overlap })
     });
     await writeHyperLog({
       group: "pipeline-seam",
       runId,
       fileName: "summary-output.txt",
-      content: toPrettyJson(summaries)
+      content: toPrettyJson({ firstUrls, secondUrls })
     });
 
-    expect(discovery.candidates).toHaveLength(10);
-    expect(summaries).toHaveLength(10);
-    expect(summaries.every((item) => Boolean(item.title && item.summary && item.url))).toBe(true);
-    expect(summaries.every((item, index) => item.url === discovery.candidates[index]?.url)).toBe(true);
+    expect(first.status).toBe("sent");
+    expect(second.status).toBe("sent");
+    expect(firstUrls).toHaveLength(10);
+    expect(secondUrls).toHaveLength(10);
+    expect(overlap).toEqual([]);
+    expect(firstUrls.every((url) => mightContainCanonicalUrl(bloomStateAfterFirst, url))).toBe(true);
   });
 
   it("handles mixed model failures with one retry and preserves full output count", async () => {

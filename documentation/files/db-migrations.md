@@ -26,6 +26,11 @@ Versioned SQL history for database schema state.
 - `db/migrations/0005_quiet_harbor.sql`
   - drops `newsletter_items`
   - finalizes Bloom-filter-first anti-repeat direction by removing row-per-link history table
+- `db/migrations/0006_gentle_summit.sql`
+  - adds per-user Bloom persistence columns on `users`
+  - creates `outbound_send_idempotency` table for per-user/local-date outbound replay safety
+- `db/migrations/0007_calm_guardrail.sql`
+  - adds `users_sent_url_bloom_bits_length_check` constraint to bound persisted Bloom bitset payload size
 
 ## Metadata
 - `db/migrations/meta/_journal.json`: migration journal
@@ -36,3 +41,4 @@ Versioned SQL history for database schema state.
 ## Direction Note
 - Anti-repeat authority is per-user Bloom filter state.
 - `newsletter_items` was removed in `0005_quiet_harbor`.
+- Outbound send idempotency authority is `outbound_send_idempotency.idempotency_key`.
