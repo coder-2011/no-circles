@@ -12,8 +12,13 @@ Versioned SQL history for database schema state.
   - creates `processed_webhooks`
   - adds unique index on `(provider, webhook_id)` for inbound idempotency
   - adds `processed_at` index for 30-day retention pruning
+- `db/migrations/0002_mellow_orchid.sql`
+  - adds `users.preferred_name`
+  - backfills existing users from email local-part
+  - enforces `NOT NULL` after backfill
 
 ## Metadata
 - `db/migrations/meta/_journal.json`: migration journal
 - `db/migrations/meta/0000_snapshot.json`: schema snapshot used by drizzle-kit
 - `db/migrations/meta/0001_snapshot.json`: schema snapshot after inbound idempotency table addition
+- `db/migrations/meta/0002_snapshot.json`: schema snapshot after preferred-name persistence migration

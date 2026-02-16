@@ -17,7 +17,8 @@ const {
       interestMemoryText:
         "PERSONALITY:\n- Curious\n\nACTIVE_INTERESTS:\n- AI\n\nSUPPRESSED_INTERESTS:\n-\n\nRECENT_FEEDBACK:\n-"
     } as { id: string; interestMemoryText: string } | null,
-    reserveSucceeds: true
+    reserveSucceeds: true,
+    reservedWebhookKey: null as string | null
   };
 
   type TransactionContext = {
@@ -43,11 +44,14 @@ const {
   const transaction = vi.fn(async (callback: (tx: TransactionContext) => Promise<"ignored" | "updated">) => {
     const tx: TransactionContext = {
       insert: vi.fn(() => ({
-        values: vi.fn(() => ({
-          onConflictDoNothing: vi.fn(() => ({
-            returning: vi.fn(async () => (state.reserveSucceeds ? [{ id: "event-1" }] : []))
-          }))
-        }))
+        values: vi.fn((values: { provider: string; webhookId: string }) => {
+          state.reservedWebhookKey = values.webhookId;
+          return {
+            onConflictDoNothing: vi.fn(() => ({
+              returning: vi.fn(async () => (state.reserveSucceeds ? [{ id: "event-1" }] : []))
+            }))
+          };
+        })
       })),
       update: vi.fn(() => ({
         set: vi.fn(() => ({
@@ -103,6 +107,7 @@ describe("POST /api/webhooks/resend/inbound", () => {
         "PERSONALITY:\n- Curious\n\nACTIVE_INTERESTS:\n- AI\n\nSUPPRESSED_INTERESTS:\n-\n\nRECENT_FEEDBACK:\n-"
     };
     testState.reserveSucceeds = true;
+    testState.reservedWebhookKey = null;
 
     selectMock.mockClear();
     fromMock.mockClear();
@@ -143,6 +148,7 @@ describe("POST /api/webhooks/resend/inbound", () => {
     const body = await response.json();
     expect(body).toEqual({ ok: true, status: "ignored" });
     expect(mergeReplyIntoMemoryMock).not.toHaveBeenCalled();
+    expect(testState.reservedWebhookKey).toBe("event:msg_123");
   });
 
   it("returns ignored for empty text", async () => {
@@ -163,7 +169,13 @@ describe("POST /api/webhooks/resend/inbound", () => {
     const response = await POST(
       new Request("http://localhost/api/webhooks/resend/inbound", {
         method: "POST",
-        body: JSON.stringify({ data: { from: "Naman <naman@example.com>", text: "less crypto, more economics" } })
+        body: JSON.stringify({
+          data: {
+            email_id: "re_abc123",
+            from: "Naman <naman@example.com>",
+            text: "less crypto, more economics"
+          }
+        })
       })
     );
 
@@ -172,5 +184,57 @@ describe("POST /api/webhooks/resend/inbound", () => {
     expect(body).toEqual({ ok: true, status: "updated", user_id: "user-1" });
     expect(mergeReplyIntoMemoryMock).toHaveBeenCalledTimes(1);
     expect(transactionMock).toHaveBeenCalledTimes(1);
+    expect(testState.reservedWebhookKey).toBe("message:re_abc123");
+  });
+
+  it("ignores replay when provider message id repeats even if svix-id changes", async () => {
+    getSvixHeadersMock
+      .mockReturnValueOnce({
+        svixId: "evt_one",
+        svixTimestamp: "1700000000",
+        svixSignature: "v1,signature"
+      })
+      .mockReturnValueOnce({
+        svixId: "evt_two",
+        svixTimestamp: "1700000001",
+        svixSignature: "v1,signature"
+      });
+
+    testState.reserveSucceeds = true;
+    const first = await POST(
+      new Request("http://localhost/api/webhooks/resend/inbound", {
+        method: "POST",
+        body: JSON.stringify({
+          data: {
+            email_id: "re_same_message_id",
+            from: "Naman <naman@example.com>",
+            text: "more economics"
+          }
+        })
+      })
+    );
+
+    expect(first.status).toBe(200);
+    expect(await first.json()).toEqual({ ok: true, status: "updated", user_id: "user-1" });
+    expect(testState.reservedWebhookKey).toBe("message:re_same_message_id");
+
+    testState.reserveSucceeds = false;
+    const second = await POST(
+      new Request("http://localhost/api/webhooks/resend/inbound", {
+        method: "POST",
+        body: JSON.stringify({
+          data: {
+            email_id: "re_same_message_id",
+            from: "Naman <naman@example.com>",
+            text: "more economics"
+          }
+        })
+      })
+    );
+
+    expect(second.status).toBe(200);
+    expect(await second.json()).toEqual({ ok: true, status: "ignored" });
+    expect(testState.reservedWebhookKey).toBe("message:re_same_message_id");
+    expect(mergeReplyIntoMemoryMock).toHaveBeenCalledTimes(1);
   });
 });

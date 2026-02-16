@@ -148,6 +148,7 @@ describe("POST /api/onboarding", () => {
     expect(insertMock).toHaveBeenCalledTimes(1);
     expect(valuesMock).toHaveBeenCalledWith({
       email: "naman@example.com",
+      preferredName: "Naman",
       timezone: "America/New_York",
       sendTimeLocal: "09:30",
       interestMemoryText:
@@ -155,6 +156,16 @@ describe("POST /api/onboarding", () => {
     });
     expect(valuesMock).toHaveBeenCalledTimes(1);
     expect(onConflictDoUpdateMock).toHaveBeenCalledTimes(1);
+    expect(onConflictDoUpdateMock).toHaveBeenCalledWith({
+      target: "email",
+      set: {
+        preferredName: "Naman",
+        timezone: "America/New_York",
+        sendTimeLocal: "09:30",
+        interestMemoryText:
+          "PERSONALITY:\n- Curious learner\n\nACTIVE_INTERESTS:\n- AI and coding\n\nSUPPRESSED_INTERESTS:\n-\n\nRECENT_FEEDBACK:\n- Initialized from onboarding brain dump"
+      }
+    });
     expect(returningMock).toHaveBeenCalledTimes(1);
   });
 
@@ -181,6 +192,35 @@ describe("POST /api/onboarding", () => {
     expect(body).toEqual({ ok: true, user_id: "user-123" });
     expect(valuesMock).toHaveBeenCalledWith({
       email: "session-email@example.com",
+      preferredName: "Naman",
+      timezone: "America/New_York",
+      sendTimeLocal: "09:30",
+      interestMemoryText:
+        "PERSONALITY:\n- Curious learner\n\nACTIVE_INTERESTS:\n- AI and coding\n\nSUPPRESSED_INTERESTS:\n-\n\nRECENT_FEEDBACK:\n- Initialized from onboarding brain dump"
+    });
+  });
+
+  it("persists trimmed preferred_name", async () => {
+    getAuthenticatedUserEmailMock.mockResolvedValueOnce("naman@example.com");
+    returningMock.mockResolvedValueOnce([{ id: "user-123" }]);
+
+    const request = new Request("http://localhost/api/onboarding", {
+      method: "POST",
+      body: JSON.stringify({
+        preferred_name: "  Naman  ",
+        timezone: "America/New_York",
+        send_time_local: "09:30",
+        brain_dump_text: "AI and coding."
+      }),
+      headers: { "content-type": "application/json" }
+    });
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(200);
+    expect(valuesMock).toHaveBeenCalledWith({
+      email: "naman@example.com",
+      preferredName: "Naman",
       timezone: "America/New_York",
       sendTimeLocal: "09:30",
       interestMemoryText:
@@ -239,6 +279,33 @@ describe("POST /api/onboarding", () => {
       ok: false,
       error_code: "INTERNAL_ERROR",
       message: "Failed to process onboarding memory."
+    });
+    expect(insertMock).not.toHaveBeenCalled();
+  });
+
+  it("returns model auth error when onboarding memory call fails with Anthropic auth failure", async () => {
+    getAuthenticatedUserEmailMock.mockResolvedValueOnce("naman@example.com");
+    formatOnboardingMemoryMock.mockRejectedValueOnce(new Error("ANTHROPIC_AUTH_FAILED"));
+
+    const request = new Request("http://localhost/api/onboarding", {
+      method: "POST",
+      body: JSON.stringify({
+        preferred_name: "Naman",
+        timezone: "America/New_York",
+        send_time_local: "09:30",
+        brain_dump_text: "AI and coding."
+      }),
+      headers: { "content-type": "application/json" }
+    });
+
+    const response = await POST(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(body).toEqual({
+      ok: false,
+      error_code: "MODEL_AUTH_ERROR",
+      message: "Anthropic authentication failed. Check server API key env and restart dev server."
     });
     expect(insertMock).not.toHaveBeenCalled();
   });

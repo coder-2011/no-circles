@@ -13,6 +13,7 @@ Protect onboarding input/route contract.
 - boundary time (`23:59`) accepted
 - empty `brain_dump_text` rejected
 - empty `preferred_name` rejected
+- `preferred_name` is trimmed
 
 ### Route tests
 - invalid payload -> `400 INVALID_PAYLOAD`
@@ -20,6 +21,7 @@ Protect onboarding input/route contract.
 - missing auth session -> `401 UNAUTHORIZED`
 - success path -> returns `{ ok: true, user_id }` and uses upsert chain
 - payload email spoofing ignored; authenticated session email is used
+- `preferred_name` is persisted and updated through onboarding upsert
 - DB error path -> `500 INTERNAL_ERROR`
 - onboarding memory processor failure -> `500 INTERNAL_ERROR`
 - success path persists processor output (canonical memory), not raw `brain_dump_text`

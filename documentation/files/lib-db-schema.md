@@ -7,6 +7,7 @@ Declares Drizzle table definitions and DB constraints for V1 minimal persistence
 ### `users`
 - `id` UUID PK
 - `email` text unique not null
+- `preferred_name` text not null
 - `timezone` text not null
 - `send_time_local` text not null
 - `interest_memory_text` text not null

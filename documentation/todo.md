@@ -6,15 +6,42 @@ Build a personalized daily newsletter system that:
 - curates and sends 10 high-quality links daily
 - avoids repeats per user
 
+## Planning Backlog: UX and Product Value Additions
+These are candidate features for future scoped PRs after core pipeline stability.
+
+1. Newsletter preview before first save
+- Show a mock "today's issue" generated from onboarding text before submit.
+- Goal: increase onboarding confidence and reduce first-send uncertainty.
+
+2. Delivery status panel
+- Show `last_sent_at`, `next_scheduled_send`, and interpreted timezone/send-time.
+- Goal: reduce delivery confusion and improve reliability trust.
+
+3. One-click feedback chips
+- Add quick controls such as `More like this`, `Less like this`, `Too basic`, `Too advanced`.
+- Goal: accelerate preference updates beyond free-text replies.
+
+4. Source quality controls
+- Let users choose inclusion preferences (for example research-heavy vs newsletters/blog-heavy).
+- Goal: improve perceived signal quality and user control.
+
+5. Onboarding starter templates
+- Offer preset starting profiles (for example AI/engineering, history/philosophy).
+- Goal: reduce blank-state friction and improve first-run output quality.
+
+6. Digest intensity setting
+- Allow issue size preferences (for example light/standard/deep).
+- Goal: match cognitive load to user preference and improve retention.
+
 ## Current Status
 - `feature/db-and-onboarding`: merged.
 - `feature/google-auth`: merged.
-- `feature/inbound-reply-memory-update`: implemented on branch (processor-driven onboarding memory + inbound webhook memory updates + idempotency).
+- `feature/inbound-reply-memory-update`: merged (processor-driven onboarding memory + inbound webhook memory updates + idempotency).
 
 ## Temporary -> Permanent Ownership Map
 - Resolved: onboarding memory raw copy-through (`brain_dump_text` -> `interest_memory_text`) is replaced by processor output in PR 3.
   - Permanent owner PR: `feature/inbound-reply-memory-update` (PR 3).
-  - Downstream rule: PRs 4+ must treat memory as opaque input and must not redefine memory format rules.
+  - Downstream rule: PRs 5+ must treat memory as opaque input and must not redefine memory format rules.
 - Temporary: onboarding identity was request-body based in early foundation.
   - Permanent owner PR: `feature/google-auth` (PR 2).
   - Status: resolved in PR 2.
@@ -23,7 +50,7 @@ Build a personalized daily newsletter system that:
 - Each PR owns one contract boundary and one integration seam.
 - If a PR depends on another PR’s contract, consume it; do not redesign it.
 - Put behavior changes in the earliest owning PR, not in downstream PRs.
-- PR 3 contract is implemented on branch; do not re-scope PR 3 behavior into later branches.
+- PR 3 contract is merged; PR 4 is now the owner for upgrading memory quality/merge behavior.
 
 ## PR 1: DB + Onboarding Foundation
 - Branch: `feature/db-and-onboarding`
@@ -60,7 +87,7 @@ Build a personalized daily newsletter system that:
 
 ## PR 3: Inbound Reply Memory Update
 - Branch: `feature/inbound-reply-memory-update`
-- Status: implemented on branch, pending PR/merge
+- Status: merged
 - Primary objective:
   - implement processor-driven memory updates for both onboarding and inbound replies.
 - Frontend scope:
@@ -87,10 +114,41 @@ Build a personalized daily newsletter system that:
   - onboarding no longer stores raw `brain_dump_text` as direct memory copy.
   - reply webhook safely updates `interest_memory_text` exactly once per message.
 
-## PR 4: Cron Due-User Selector
+## PR 4: Real Memory Updater (Model + Merge)
+- Branch: `feature/memory-updater-model`
+- Dependency status:
+  - assumes PR 3 contracts are available (canonical memory format, webhook idempotency, onboarding/reply processor seams).
+- Primary objective:
+  - replace fallback-only memory processing with model-backed, merge-correct memory updates.
+- Frontend scope:
+  - none.
+- Backend scope:
+  - implement model client in memory processors (remove permanent `MODEL_NOT_CONFIGURED` fallback path as default behavior).
+  - add strict structured output validation before persistence.
+  - implement true merge behavior for reply updates (preserve prior memory unless explicitly changed).
+  - keep deterministic fallback for provider failure/invalid output only.
+  - add observability on memory generation failure/fallback usage.
+- Data and contracts:
+  - preserve canonical output format (`PERSONALITY`, `ACTIVE_INTERESTS`, `SUPPRESSED_INTERESTS`, `RECENT_FEEDBACK`).
+  - enforce 800-word cap after merge.
+  - no schema changes required for this PR.
+- Explicit non-goals:
+  - no cron due-user selection changes.
+  - no discovery/extraction/summary/send pipeline changes.
+  - no webhook signature/idempotency redesign.
+- Tests required:
+  - onboarding memory uses model path when available.
+  - reply processing merges with existing memory instead of replacing interest sections wholesale.
+  - invalid model output triggers deterministic fallback and still satisfies contract + cap.
+  - regression tests for canonical headers and max-word enforcement.
+- Done when:
+  - reply updates are cumulative and stable across multiple inbound messages.
+  - fallback becomes exceptional path, not default.
+
+## PR 5: Cron Due-User Selector
 - Branch: `feature/cron-due-user-selector`
 - Dependency status:
-  - assumes PR 3 contracts are available (`interest_memory_text` canonicalization + inbound idempotent updates)
+  - assumes PR 3 + PR 4 contracts are available (`interest_memory_text` canonicalization + model-backed merge stability + inbound idempotent updates)
 - Primary objective:
   - create deterministic, one-user-per-tick scheduler entrypoint.
 - Frontend scope:
@@ -116,7 +174,7 @@ Build a personalized daily newsletter system that:
 - Done when:
   - endpoint behaves deterministically for due/empty/unauthorized cases.
 
-## PR 5: Discovery (Exa)
+## PR 6: Discovery (Exa)
 - Branch: `feature/exa-discovery`
 - Primary objective:
   - generate candidate links aligned to user memory.
@@ -129,7 +187,7 @@ Build a personalized daily newsletter system that:
   - preserve enough metadata for downstream ranking.
 - Data and contracts:
   - consistent candidate object shape for next pipeline stage.
-  - treat scheduler selection as precondition (from PR 4), do not re-implement due-user logic.
+  - treat scheduler selection as precondition (from PR 5), do not re-implement due-user logic.
 - Explicit non-goals:
   - no extraction/fetch fallback logic.
   - no model summarization logic.
@@ -141,7 +199,7 @@ Build a personalized daily newsletter system that:
 - Done when:
   - one user run yields a stable candidate pool ready for extraction.
 
-## PR 6: Content Extraction + Fallback
+## PR 7: Content Extraction + Fallback
 - Branch: `feature/content-extraction`
 - Primary objective:
   - reliably extract article content from candidate URLs.
@@ -153,7 +211,7 @@ Build a personalized daily newsletter system that:
   - normalize extracted output shape.
 - Data and contracts:
   - extraction output should include URL, title (if available), and body text.
-  - consume discovery candidates from PR 5, do not alter topic/discovery ranking rules.
+  - consume discovery candidates from PR 6, do not alter topic/discovery ranking rules.
 - Explicit non-goals:
   - no summary-writing prompts.
   - no email send/persistence behavior.
@@ -164,7 +222,7 @@ Build a personalized daily newsletter system that:
 - Done when:
   - extraction success rate is high enough for daily 10-item assembly.
 
-## PR 7: Summary Generation (Claude)
+## PR 8: Summary Generation (Claude)
 - Branch: `feature/summary-writer`
 - Primary objective:
   - transform extracted content into neutral, grounded newsletter items.
@@ -176,7 +234,7 @@ Build a personalized daily newsletter system that:
   - enforce style rules: neutral, concise, source-grounded.
 - Data and contracts:
   - output shape locked for email renderer.
-  - consume extraction output from PR 6, do not change extraction transport/fallback policy.
+  - consume extraction output from PR 7, do not change extraction transport/fallback policy.
 - Explicit non-goals:
   - no Resend send integration.
   - no newsletter history pruning logic.
@@ -186,7 +244,7 @@ Build a personalized daily newsletter system that:
 - Done when:
   - 10 valid item objects are produced for a full run.
 
-## PR 8: Send + History Persistence
+## PR 9: Send + History Persistence
 - Branch: `feature/send-and-history`
 - Primary objective:
   - deliver generated newsletter and write sent history for anti-repeat guarantees.
@@ -194,12 +252,13 @@ Build a personalized daily newsletter system that:
   - optional: basic “last send status” admin/debug screen (if small).
 - Backend scope:
   - render and send newsletter via Resend.
+  - render greeting/personalization using `users.preferred_name` (fallback required for legacy rows).
   - insert sent items into `newsletter_items`.
   - enforce URL never-repeat via unique constraint handling.
   - prune history to retention target (latest 100 URLs/user).
 - Data and contracts:
   - send result and persistence outcome must be observable in logs.
-  - consume summary item shape from PR 7, do not alter summary contract.
+  - consume summary item shape from PR 8, do not alter summary contract.
 - Tests required:
   - send success path persists history.
   - duplicate URL conflict handled safely.
@@ -207,7 +266,7 @@ Build a personalized daily newsletter system that:
 - Done when:
   - sends complete and history reliably prevents repeats.
 
-## PR 9: End-to-End Happy Path
+## PR 10: End-to-End Happy Path
 - Branch: `feature/e2e-happy-path`
 - Primary objective:
   - lock baseline user journey with automated confidence.
@@ -225,7 +284,7 @@ Build a personalized daily newsletter system that:
 - Done when:
   - core pipeline has stable automated regression coverage.
 
-## PR 10: Ops Hardening
+## PR 11: Ops Hardening
 - Branch: `feature/ops-hardening-v1`
 - Primary objective:
   - make failures diagnosable, safe, and recoverable in production.

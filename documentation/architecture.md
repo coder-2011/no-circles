@@ -52,7 +52,7 @@ This system is a website-first, email-delivered personalized newsletter product.
 1. User signs in with OAuth (Google only in V1).
 2. User completes onboarding form:
    - one large brain-dump textbox (interests, what they are like, where they want to start, what they want to learn)
-   - preferred name (accepted at API boundary; not persisted in current minimal DB schema)
+   - preferred name
    - timezone
    - preferred daily send time
 3. Backend validates input and writes/updates `users`:
@@ -98,10 +98,10 @@ V1 intentionally excludes a manual regenerate endpoint.
   - validates payload
   - resolves authenticated session email for identity
   - creates or updates `users` row
+  - persists `preferred_name` from validated payload
   - routes `brain_dump_text` through onboarding memory processor
   - persists canonical memory text (`PERSONALITY`, `ACTIVE_INTERESTS`, `SUPPRESSED_INTERESTS`, `RECENT_FEEDBACK`)
   - enforces hard cap of `800` words on stored memory
-  - `preferred_name` is currently validated but not persisted in the minimal DB schema
 - **Response**:
   - `{ ok: true, user_id: string }`
 
@@ -135,7 +135,7 @@ V1 intentionally excludes a manual regenerate endpoint.
   - Claude returns updated memory
   - applies deterministic fallback memory formatter when model output is invalid/unavailable
   - saves updated `interest_memory_text`
-  - idempotent on `svix-id` stored in `processed_webhooks(provider, webhook_id)`
+  - idempotent on provider message id when available (fallback `svix-id`) stored in `processed_webhooks(provider, webhook_id)`
 - **Response**:
   - `{ ok: true, status: "updated", user_id: string }`
   - or `{ ok: true, status: "ignored" }` (unknown sender/empty text/already processed)
@@ -191,6 +191,7 @@ Purpose: one record per user with live personalization state.
 Fields:
 - `id` (primary key)
 - `email` (unique)
+- `preferred_name`
 - `timezone`
 - `send_time_local`
 - `interest_memory_text` (single evolving liquid profile)
@@ -246,3 +247,24 @@ Retention policy:
 - Exact email template character/sentence limits (to be defined in the next phase).
 
 This keeps the architecture minimal while preserving multi-user support, dynamic personalization, and anti-repeat behavior.
+
+## Planned UX Enhancements (Post-Core Pipeline)
+These are roadmap candidates after baseline send quality/reliability are stable.
+
+1. Pre-save newsletter preview
+- A lightweight preview generated from onboarding input to validate quality before first save/send.
+
+2. Delivery status surface
+- User-visible status for `last sent`, `next send`, and timezone interpretation.
+
+3. Quick feedback controls
+- Structured feedback chips (for example more/less/basic/advanced) alongside free-text replies.
+
+4. Source preference controls
+- User-level controls for source mix/strictness to tune perceived quality.
+
+5. Onboarding templates
+- Preset interest profiles to reduce cold-start friction.
+
+6. Digest intensity controls
+- User-level issue size preference (light/standard/deep) with scheduler/pipeline support.
