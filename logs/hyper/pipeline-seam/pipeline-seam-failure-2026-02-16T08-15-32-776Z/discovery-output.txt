@@ -1,0 +1,276 @@
+{
+  "candidates": [
+    {
+      "url": "https://example.com/ai-engineering",
+      "canonicalUrl": "https://example.com/ai-engineering",
+      "title": "AI engineering report",
+      "highlight": "A practical report for AI engineering with concrete implementation details.",
+      "highlights": [
+        "A practical report for AI engineering with concrete implementation details.",
+        "It compares reliability, cost, and rollout tradeoffs."
+      ],
+      "topic": "AI engineering",
+      "topicRank": 0,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "example.com",
+      "publishedAt": null,
+      "exaScore": 0.8,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://example.com/distributed-systems",
+      "canonicalUrl": "https://example.com/distributed-systems",
+      "title": "distributed systems report",
+      "highlight": "A practical report for distributed systems with concrete implementation details.",
+      "highlights": [
+        "A practical report for distributed systems with concrete implementation details.",
+        "It compares reliability, cost, and rollout tradeoffs."
+      ],
+      "topic": "distributed systems",
+      "topicRank": 1,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "example.com",
+      "publishedAt": null,
+      "exaScore": 0.8,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://example.com/software-architecture",
+      "canonicalUrl": "https://example.com/software-architecture",
+      "title": "software architecture report",
+      "highlight": "A practical report for software architecture with concrete implementation details.",
+      "highlights": [
+        "A practical report for software architecture with concrete implementation details.",
+        "It compares reliability, cost, and rollout tradeoffs."
+      ],
+      "topic": "software architecture",
+      "topicRank": 2,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "example.com",
+      "publishedAt": null,
+      "exaScore": 0.8,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://example.com/developer-productivity",
+      "canonicalUrl": "https://example.com/developer-productivity",
+      "title": "developer productivity report",
+      "highlight": "A practical report for developer productivity with concrete implementation details.",
+      "highlights": [
+        "A practical report for developer productivity with concrete implementation details.",
+        "It compares reliability, cost, and rollout tradeoffs."
+      ],
+      "topic": "developer productivity",
+      "topicRank": 3,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "example.com",
+      "publishedAt": null,
+      "exaScore": 0.8,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://example.com/data-engineering",
+      "canonicalUrl": "https://example.com/data-engineering",
+      "title": "data engineering report",
+      "highlight": "A practical report for data engineering with concrete implementation details.",
+      "highlights": [
+        "A practical report for data engineering with concrete implementation details.",
+        "It compares reliability, cost, and rollout tradeoffs."
+      ],
+      "topic": "data engineering",
+      "topicRank": 4,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "example.com",
+      "publishedAt": null,
+      "exaScore": 0.8,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://example.com/cloud-cost-optimization",
+      "canonicalUrl": "https://example.com/cloud-cost-optimization",
+      "title": "cloud cost optimization report",
+      "highlight": "A practical report for cloud cost optimization with concrete implementation details.",
+      "highlights": [
+        "A practical report for cloud cost optimization with concrete implementation details.",
+        "It compares reliability, cost, and rollout tradeoffs."
+      ],
+      "topic": "cloud cost optimization",
+      "topicRank": 5,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "example.com",
+      "publishedAt": null,
+      "exaScore": 0.8,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://example.com/observability",
+      "canonicalUrl": "https://example.com/observability",
+      "title": "observability report",
+      "highlight": "A practical report for observability with concrete implementation details.",
+      "highlights": [
+        "A practical report for observability with concrete implementation details.",
+        "It compares reliability, cost, and rollout tradeoffs."
+      ],
+      "topic": "observability",
+      "topicRank": 6,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "example.com",
+      "publishedAt": null,
+      "exaScore": 0.8,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://example.com/testing-strategy",
+      "canonicalUrl": "https://example.com/testing-strategy",
+      "title": "testing strategy report",
+      "highlight": "A practical report for testing strategy with concrete implementation details.",
+      "highlights": [
+        "A practical report for testing strategy with concrete implementation details.",
+        "It compares reliability, cost, and rollout tradeoffs."
+      ],
+      "topic": "testing strategy",
+      "topicRank": 7,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "example.com",
+      "publishedAt": null,
+      "exaScore": 0.8,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://example.com/product-analytics",
+      "canonicalUrl": "https://example.com/product-analytics",
+      "title": "product analytics report",
+      "highlight": "A practical report for product analytics with concrete implementation details.",
+      "highlights": [
+        "A practical report for product analytics with concrete implementation details.",
+        "It compares reliability, cost, and rollout tradeoffs."
+      ],
+      "topic": "product analytics",
+      "topicRank": 8,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "example.com",
+      "publishedAt": null,
+      "exaScore": 0.8,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://example.com/programming-languages",
+      "canonicalUrl": "https://example.com/programming-languages",
+      "title": "programming languages report",
+      "highlight": "A practical report for programming languages with concrete implementation details.",
+      "highlights": [
+        "A practical report for programming languages with concrete implementation details.",
+        "It compares reliability, cost, and rollout tradeoffs."
+      ],
+      "topic": "programming languages",
+      "topicRank": 9,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "example.com",
+      "publishedAt": null,
+      "exaScore": 0.8,
+      "highlightScore": null,
+      "highlightScores": []
+    }
+  ],
+  "topics": [
+    {
+      "topic": "AI engineering",
+      "query": "AI engineering",
+      "topicRank": 0,
+      "softSuppressed": false
+    },
+    {
+      "topic": "distributed systems",
+      "query": "distributed systems",
+      "topicRank": 1,
+      "softSuppressed": false
+    },
+    {
+      "topic": "software architecture",
+      "query": "software architecture",
+      "topicRank": 2,
+      "softSuppressed": false
+    },
+    {
+      "topic": "developer productivity",
+      "query": "developer productivity",
+      "topicRank": 3,
+      "softSuppressed": false
+    },
+    {
+      "topic": "data engineering",
+      "query": "data engineering",
+      "topicRank": 4,
+      "softSuppressed": false
+    },
+    {
+      "topic": "cloud cost optimization",
+      "query": "cloud cost optimization",
+      "topicRank": 5,
+      "softSuppressed": false
+    },
+    {
+      "topic": "observability",
+      "query": "observability",
+      "topicRank": 6,
+      "softSuppressed": false
+    },
+    {
+      "topic": "testing strategy",
+      "query": "testing strategy",
+      "topicRank": 7,
+      "softSuppressed": false
+    },
+    {
+      "topic": "product analytics",
+      "query": "product analytics",
+      "topicRank": 8,
+      "softSuppressed": false
+    },
+    {
+      "topic": "programming languages",
+      "query": "programming languages",
+      "topicRank": 9,
+      "softSuppressed": false
+    }
+  ],
+  "attempts": 1,
+  "warnings": [
+    "DIVERSITY_CARD_FAILED"
+  ],
+  "diversityCard": {
+    "itemCount": 10,
+    "targetCount": 10,
+    "distinctTopics": 10,
+    "distinctDomains": 1,
+    "maxTopicShare": 0.1,
+    "maxDomainShare": 1,
+    "topicEntropyNormalized": 0.9999999999999998,
+    "thresholds": {
+      "minDistinctTopics": 6,
+      "maxTopicShare": 0.3,
+      "minDistinctDomains": 6,
+      "maxDomainShare": 0.3
+    },
+    "passes": false
+  }
+}

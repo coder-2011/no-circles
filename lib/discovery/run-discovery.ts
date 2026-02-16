@@ -94,7 +94,7 @@ function fillFromPool(
 
 export async function runDiscovery(
   input: DiscoveryRunInput,
-  deps: { exaSearch?: ExaSearchFn } = {}
+  deps: { exaSearch?: ExaSearchFn; includeCandidate?: (candidate: DiscoveryCandidate) => boolean } = {}
 ): Promise<DiscoveryRunResult> {
   const targetCount = input.targetCount ?? DEFAULT_DISCOVERY_TARGET_COUNT;
   const maxRetries = input.maxRetries ?? DEFAULT_DISCOVERY_MAX_RETRIES;
@@ -103,6 +103,7 @@ export async function runDiscovery(
   const earlyStopBuffer = input.earlyStopBuffer ?? DEFAULT_EARLY_STOP_BUFFER;
   const maxPerDomain = input.maxPerDomain ?? DEFAULT_MAX_PER_DOMAIN;
   const exaSearch = deps.exaSearch ?? searchExa;
+  const includeCandidate = deps.includeCandidate ?? (() => true);
 
   const topics = deriveTopicsFromMemory({
     interestMemoryText: input.interestMemoryText,
@@ -115,6 +116,7 @@ export async function runDiscovery(
 
   const warnings: string[] = [];
   const aggregateCandidates: DiscoveryCandidate[] = [];
+  let candidateFilterExcludedCount = 0;
   let attemptsUsed = 0;
   let earlyStopped = false;
 
@@ -136,7 +138,11 @@ export async function runDiscovery(
           });
 
           if (normalized) {
-            aggregateCandidates.push(normalized);
+            if (includeCandidate(normalized)) {
+              aggregateCandidates.push(normalized);
+            } else {
+              candidateFilterExcludedCount += 1;
+            }
           }
         });
       } catch (error) {
@@ -239,6 +245,10 @@ export async function runDiscovery(
 
   const finalItems = selected.slice(0, targetCount);
   const diversityCard = buildDiversityCard(finalItems, targetCount);
+
+  if (candidateFilterExcludedCount > 0) {
+    warnings.push(`CANDIDATE_FILTERED_${candidateFilterExcludedCount}`);
+  }
 
   if (!diversityCard.passes && finalItems.length > 0) {
     warnings.push("DIVERSITY_CARD_FAILED");

@@ -64,10 +64,11 @@ This system is a website-first, email-delivered personalized newsletter product.
 ### 2) Daily Newsletter Generation Flow
 1. Supabase `pg_cron` executes `public.claim_next_due_user(now(), 5)` every minute.
 2. Backend reads `users.interest_memory_text`.
-3. System runs the Agent Pipeline Spec to curate and compose a high-quality issue.
-4. Newsletter template is rendered and sent via Resend.
+3. System runs discovery and applies Bloom anti-repeat gating on candidate canonical URLs before final item selection.
+4. System composes final `{ title, summary, url }` item payloads.
+5. Newsletter template is rendered and sent via Resend.
 5. Footer message includes ongoing calibration instruction (no special first-week mode), e.g. reply as much as the user wants to improve curation.
-6. Sent URLs are hashed into per-user Bloom filter state to suppress repeats in future runs.
+6. On successful send, sent canonical URLs are hashed into per-user Bloom state and `users.last_issue_sent_at` is updated.
 
 ### 3) Inbound Reply Update Flow
 1. User replies to newsletter email.
@@ -116,9 +117,12 @@ V1 intentionally excludes a manual regenerate endpoint.
   - function computes due users from `timezone`, `send_time_local`, and `last_issue_sent_at`
   - function excludes users already sent on their current local day
   - function selects one due user deterministically (`last_issue_sent_at` asc nulls first, then `id` asc)
+  - runs single-user send pipeline when a user is selected
   - returns `no_due_user` when queue is empty
 - **Response**:
-  - `{ ok: true, status: "selected", user_id: string }`
+  - `{ ok: true, status: "sent", user_id: string, provider_message_id: string | null }`
+  - `{ ok: true, status: "insufficient_content", user_id: string }`
+  - `{ ok: true, status: "send_failed", user_id: string }`
   - or `{ ok: true, status: "no_due_user" }`
 
 ### 3) Inbound Reply Webhook
@@ -205,17 +209,29 @@ Behavior:
 ### Anti-repeat Bloom State (Per User)
 Purpose: compact probabilistic repeat suppression without per-item history rows.
 
-Stored with each user (field names TBD by implementation PR):
-- bloom bitset payload
-- hash-function count
-- capacity/config version metadata
-- optional rolling-epoch marker for reset/rotation
+Stored on each `users` row:
+- `sent_url_bloom_bits` (base64 bitset)
 
 Behavior:
 - Before finalizing send candidates, check URL fingerprint membership in user Bloom filter.
 - After successful send, set bits for all sent URL fingerprints.
+- Bloom parameters are global runtime constants (not per-user DB columns).
 - False positives are possible (new link may be filtered), false negatives are not expected after successful writes.
 - Rotation/reset policy is required to bound false-positive rate growth over time.
+
+### Table: `outbound_send_idempotency`
+Purpose: outbound duplicate-send guard for per-user per-local-date issue sends.
+
+Fields:
+- `id` (primary key)
+- `idempotency_key` (unique)
+- `user_id` (foreign key -> `users.id`)
+- `local_issue_date`
+- `status` (`processing` | `sent` | `failed`)
+- `provider_message_id` (nullable)
+- `failure_reason` (nullable)
+- `created_at`
+- `updated_at`
 
 ### Table: `processed_webhooks`
 Purpose: inbound webhook replay guard for one-time memory updates.

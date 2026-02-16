@@ -16,6 +16,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `subsystems/inbound-reply-memory-update.md`: PR3 memory processing + inbound webhook idempotency contract
 - `subsystems/scheduler-and-cron.md`: Supabase scheduler ownership and cron trigger contract
 - `subsystems/summary-generation.md`: PR8 item-level summary generation contract
+- `subsystems/send-and-bloom-delivery.md`: PR9 delivery runtime with Bloom + outbound idempotency
 
 ## Suggested Reading Order
 
@@ -35,6 +36,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `subsystems/exa-discovery.md`
 - `subsystems/scheduler-and-cron.md`
 - `subsystems/summary-generation.md`
+- `subsystems/send-and-bloom-delivery.md`
 
 ## Current File Docs
 
@@ -61,6 +63,8 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/db-migration-0003-misty-calm.md`
 - `files/db-migration-0004-steady-spark.md`
 - `files/db-migration-0005-quiet-harbor.md`
+- `files/db-migration-0006-gentle-summit.md`
+- `files/db-migration-0007-calm-guardrail.md`
 - `files/db-migration-meta-0001-snapshot.md`
 - `files/db-migration-meta-0002-snapshot.md`
 - `files/db-migration-meta-journal.md`
@@ -83,11 +87,16 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/lib-webhooks-inbound-idempotency.md`
 - `files/lib-ai-memory-prompts.md`
 - `files/lib-ai-summary-prompts.md`
+- `files/lib-bloom-user-url-bloom.md`
 - `files/lib-discovery-types.md`
 - `files/lib-discovery-topic-derivation.md`
 - `files/lib-discovery-exa-client.md`
 - `files/lib-discovery-run-discovery.md`
 - `files/lib-summary-writer.md`
+- `files/lib-email-render-newsletter.md`
+- `files/lib-email-send-newsletter.md`
+- `files/lib-send-idempotency.md`
+- `files/lib-pipeline-send-user-newsletter.md`
 - `files/scripts-prune-inbound-idempotency.md`
 - `files/scripts-setup-supabase-cron.md`
 - `files/next-env.md`
@@ -96,6 +105,11 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/tests-discovery-manual-eval-integration.md`
 - `files/tests-discovery-live-exa-integration.md`
 - `files/tests-summary-writer.md`
+- `files/tests-bloom-user-url-bloom.md`
+- `files/tests-email-render-newsletter.md`
+- `files/tests-email-send-newsletter.md`
+- `files/tests-send-idempotency.md`
+- `files/tests-send-user-newsletter.md`
 - `files/tests-hyper-logging.md`
 - `files/tests-hyper-pipeline-seam-integration.md`
 - `files/tests-hyper-full-system-live-integration.md`

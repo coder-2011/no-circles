@@ -1,0 +1,21 @@
+{
+  "first": {
+    "status": "insufficient_content",
+    "userId": "user-hyper-1",
+    "runAtUtc": "2026-02-16T10:00:00.000Z",
+    "itemCount": 0,
+    "idempotencyKey": "newsletter:v1:user-hyper-1:2026-02-16",
+    "error": "INSUFFICIENT_QUALITY_CANDIDATES:0/10"
+  },
+  "second": {
+    "status": "insufficient_content",
+    "userId": "user-hyper-1",
+    "runAtUtc": "2026-02-17T10:00:00.000Z",
+    "itemCount": 0,
+    "idempotencyKey": "newsletter:v1:user-hyper-1:2026-02-17",
+    "error": "INSUFFICIENT_QUALITY_CANDIDATES:0/10"
+  },
+  "firstUrls": [],
+  "secondUrls": [],
+  "overlap": []
+}
