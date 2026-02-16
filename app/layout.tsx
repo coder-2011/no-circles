@@ -28,15 +28,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className={`${editorialFont.variable} ${uiFont.variable}`} suppressHydrationWarning>
         <Link
           aria-label="Go to home"
-          className="fixed left-4 top-4 z-50 inline-block rounded-xl border border-[#C5B993] bg-[#F3ECD8] p-1 leading-none shadow-sm"
+          className="fixed left-3 top-3 z-50 inline-block leading-none"
           href="/#top"
         >
           <Image
             alt="Serendipitous Encounters logo"
-            className="block h-8 w-8 rounded-lg"
-            height={32}
-            src="/image.svg"
-            width={32}
+            className="block h-16 w-16 rounded-lg object-contain scale-125"
+            height={64}
+            src="/logo-green.svg"
+            width={64}
           />
         </Link>
         {children}
