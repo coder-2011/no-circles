@@ -29,6 +29,8 @@ const MIN_DISTINCT_DOMAINS = 5;
 const MIN_DISTINCT_TOPICS = 6;
 const MIN_HIGHLIGHT_COVERAGE = 0.9;
 const MAX_LOW_SIGNAL_RATIO = 0.25;
+const LIVE_TEST_FLAG = process.env.RUN_LIVE_EXA_TESTS === "1";
+const HAS_EXA_KEY = Boolean(process.env.EXA_API_KEY);
 
 const KNOWN_LOW_SIGNAL_DOMAINS = new Set([
   "goodreads.com",
@@ -61,13 +63,9 @@ function isLikelyLowSignalSource(url: string, sourceDomain: string | null): bool
 }
 
 describe("discovery live Exa integration quality eval", () => {
-  it(
+  it.skipIf(!LIVE_TEST_FLAG || !HAS_EXA_KEY)(
     "runs full PR6 discovery path against Exa and enforces quality gates",
     async () => {
-      if (!process.env.EXA_API_KEY) {
-        throw new Error("EXA_API_KEY is required for live discovery quality eval.");
-      }
-
       const result = await runDiscovery({
         interestMemoryText: memory,
         targetCount: 10,
@@ -123,4 +121,5 @@ describe("discovery live Exa integration quality eval", () => {
     },
     120000
   );
+
 });
