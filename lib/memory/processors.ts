@@ -110,6 +110,23 @@ function cleanLine(line: string): string {
   return line.replace(/^[-*\d.)\s]+/, "").trim();
 }
 
+function splitCompoundTopicLine(line: string): string[] {
+  const cleaned = cleanLine(line);
+  if (!cleaned || cleaned === "-") {
+    return [];
+  }
+
+  const normalized = cleaned.replace(/\s{2,}/g, " ").trim();
+  const dashSegments = normalized.split(/\s-\s/).map((segment) => segment.trim()).filter(Boolean);
+  const primarySegments = dashSegments.length > 1 ? dashSegments : [normalized];
+  const finalSegments = primarySegments
+    .flatMap((segment) => segment.split(/\s*,\s*/))
+    .map((segment) => segment.trim())
+    .filter(Boolean);
+
+  return finalSegments.length > 0 ? finalSegments : [normalized];
+}
+
 function uniqueLines(lines: Iterable<string>): string[] {
   const seen = new Map<string, string>();
 
@@ -152,6 +169,40 @@ function parseBulletLines(section: string): string[] {
   );
 }
 
+function parseTopicLines(section: string): string[] {
+  return uniqueLines(
+    section
+      .split("\n")
+      .flatMap((line) => splitCompoundTopicLine(line))
+      .filter((line) => Boolean(line) && line !== "-")
+  );
+}
+
+function expandTopicValues(values: Iterable<string>): string[] {
+  return uniqueLines([...values].flatMap((value) => splitCompoundTopicLine(value)));
+}
+
+function normalizeCanonicalMemoryTopics(memory: string): string {
+  const sections = parseSections(memory);
+  if (!sections) {
+    return memory;
+  }
+
+  const active = buildOrderedMap(parseTopicLines(sections.ACTIVE_INTERESTS));
+  const suppressed = buildOrderedMap(parseTopicLines(sections.SUPPRESSED_INTERESTS));
+
+  for (const key of active.keys()) {
+    suppressed.delete(key);
+  }
+
+  return buildFallbackMemory({
+    PERSONALITY: sections.PERSONALITY,
+    ACTIVE_INTERESTS: toBullets([...active.values()]),
+    SUPPRESSED_INTERESTS: toBullets([...suppressed.values()]),
+    RECENT_FEEDBACK: sections.RECENT_FEEDBACK
+  });
+}
+
 function buildOrderedMap(values: Iterable<string>): Map<string, string> {
   const map = new Map<string, string>();
   for (const value of values) {
@@ -192,8 +243,8 @@ function addMany(target: Map<string, string>, values: Iterable<string>) {
 function buildMemoryFromReplyOps(currentMemory: string, inboundReplyText: string, ops: MemoryUpdateOps): string {
   const sections = parseSections(currentMemory);
   const existingPersonality = sections ? parseBulletLines(sections.PERSONALITY) : [];
-  const existingActive = sections ? parseBulletLines(sections.ACTIVE_INTERESTS) : [];
-  const existingSuppressed = sections ? parseBulletLines(sections.SUPPRESSED_INTERESTS) : [];
+  const existingActive = sections ? parseTopicLines(sections.ACTIVE_INTERESTS) : [];
+  const existingSuppressed = sections ? parseTopicLines(sections.SUPPRESSED_INTERESTS) : [];
   const existingFeedback = sections ? parseBulletLines(sections.RECENT_FEEDBACK) : [];
 
   const personality = buildOrderedMap(existingPersonality);
@@ -204,14 +255,23 @@ function buildMemoryFromReplyOps(currentMemory: string, inboundReplyText: string
   removeMany(personality, ops.personality_remove);
   addMany(personality, ops.personality_add);
 
-  removeMany(active, ops.remove_active);
-  removeMany(suppressed, ops.remove_suppressed);
+  const addActive = expandTopicValues(ops.add_active);
+  const addSuppressed = expandTopicValues(ops.add_suppressed);
+  const removeActive = expandTopicValues(ops.remove_active);
+  const removeSuppressed = expandTopicValues(ops.remove_suppressed);
 
-  removeMany(active, ops.add_suppressed);
-  addMany(suppressed, ops.add_suppressed);
+  removeMany(active, removeActive);
+  removeMany(suppressed, removeSuppressed);
 
-  removeMany(suppressed, ops.add_active);
-  addMany(active, ops.add_active);
+  removeMany(active, addSuppressed);
+  addMany(suppressed, addSuppressed);
+
+  removeMany(suppressed, addActive);
+  addMany(active, addActive);
+
+  for (const key of active.keys()) {
+    suppressed.delete(key);
+  }
 
   const feedbackLines = ops.recent_feedback_add.length > 0 ? ops.recent_feedback_add : [inboundReplyText];
   addMany(feedback, feedbackLines);
@@ -378,7 +438,8 @@ async function generateReplyMemoryWithFallback(
 export async function formatOnboardingMemory(brainDumpText: string): Promise<string> {
   const fallbackMemory = buildFallbackOnboardingMemory(brainDumpText);
   const prompt = buildOnboardingMemoryPrompt(brainDumpText);
-  return generateOnboardingMemoryRequired(prompt, fallbackMemory);
+  const generated = await generateOnboardingMemoryRequired(prompt, fallbackMemory);
+  return normalizeCanonicalMemoryTopics(generated);
 }
 
 export async function mergeReplyIntoMemory(
@@ -387,5 +448,6 @@ export async function mergeReplyIntoMemory(
 ): Promise<string> {
   const fallbackMemory = buildFallbackReplyMemory(currentInterestMemoryText, inboundReplyText);
   const prompt = buildReplyMemoryPrompt(currentInterestMemoryText, inboundReplyText);
-  return generateReplyMemoryWithFallback(currentInterestMemoryText, inboundReplyText, prompt, fallbackMemory);
+  const merged = await generateReplyMemoryWithFallback(currentInterestMemoryText, inboundReplyText, prompt, fallbackMemory);
+  return normalizeCanonicalMemoryTopics(merged);
 }

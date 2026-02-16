@@ -30,6 +30,7 @@ Default word range when only target is provided:
 2. Parse model text as JSON (`title`, `summary`).
 3. Validate with `summaryWriterOutputSchema`.
 4. Clamp/pad summary into configured word range.
+   - For overlong summaries, trims at sentence boundary when possible (while still satisfying minimum words).
 5. Keep URL fixed from source item regardless of model output.
 6. Retry invalid/unavailable model output once.
 7. If still invalid, use deterministic highlight-based fallback summary.

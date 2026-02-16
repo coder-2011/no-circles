@@ -374,4 +374,52 @@ describe("structured reply memory updates", () => {
     expect(logLines.some((line) => line.includes("\"event\":\"reply_model_error\""))).toBe(true);
     expect(logLines.some((line) => line.includes("\"event\":\"reply_fallback_used\""))).toBe(true);
   });
+
+  it("normalizes merged topic lines and removes active/suppressed overlap", async () => {
+    process.env.ANTHROPIC_API_KEY = "test-key";
+
+    const mergedOps = {
+      add_active: ["AI engineering - distributed systems - software architecture"],
+      add_suppressed: ["software architecture - technical product strategy"],
+      remove_active: [],
+      remove_suppressed: [],
+      personality_add: [],
+      personality_remove: [],
+      recent_feedback_add: ["Shift focus to systems work"]
+    };
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: true,
+        json: async () => ({
+          content: [{ type: "text", text: JSON.stringify(mergedOps) }]
+        })
+      }))
+    );
+
+    const baseMemory = [
+      "PERSONALITY:",
+      "- Curious engineer",
+      "",
+      "ACTIVE_INTERESTS:",
+      "- data engineering",
+      "",
+      "SUPPRESSED_INTERESTS:",
+      "-",
+      "",
+      "RECENT_FEEDBACK:",
+      "-"
+    ].join("\n");
+
+    const updated = await mergeReplyIntoMemory(baseMemory, "More systems, pause product strategy.");
+    const sections = parseSections(updated);
+
+    expect(sections).not.toBeNull();
+    expect(sections?.ACTIVE_INTERESTS.toLowerCase()).toContain("ai engineering");
+    expect(sections?.ACTIVE_INTERESTS.toLowerCase()).toContain("distributed systems");
+    expect(sections?.ACTIVE_INTERESTS.toLowerCase()).toContain("software architecture");
+    expect(sections?.SUPPRESSED_INTERESTS.toLowerCase()).toContain("technical product strategy");
+    expect(sections?.SUPPRESSED_INTERESTS.toLowerCase()).not.toContain("software architecture");
+  });
 });
