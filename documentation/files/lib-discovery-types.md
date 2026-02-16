@@ -15,7 +15,9 @@ Declares shared contracts and defaults for discovery pipeline stage (PR6).
 
 ## Contract Notes
 - `DiscoveryCandidate.softSuppressed` carries topic suppression context into final filtering.
-- `DiscoveryCandidate.highlightScore` preserves Exa highlight-level scoring for per-topic winner selection.
+- `DiscoveryCandidate.highlights` preserves all highlight snippets returned for a source.
+- `DiscoveryCandidate.highlightScores` preserves the full highlight score set returned for a source.
+- `DiscoveryCandidate.highlightScore` is an aggregate top-2 mean of `highlightScores` used for per-topic winner selection.
 - `DiscoveryRunInput` includes tuning knobs for:
   - early-stop buffer (`earlyStopBuffer`)
   - per-domain diversity cap (`maxPerDomain`)

@@ -15,8 +15,9 @@ Implementation split:
 ## Core Behavior
 1. Derive topics from memory.
 2. Query Exa per topic and normalize results.
-   - `exaScore` uses `result.score` when available; falls back to first `highlightScores` value when `score` is absent.
-   - `highlightScore` stores first `highlightScores` value for topic-local ranking.
+   - `exaScore` uses `result.score` when available; falls back to aggregate highlight score when `score` is absent.
+   - preserves full `highlights[]` and full `highlightScores[]` on each candidate.
+   - `highlightScore` stores aggregate (mean) highlight score for topic-local ranking.
 3. Dedupe globally via canonical URLs.
 4. Exclude soft-suppressed topics from the primary quality pool.
 5. Apply quality filters before winner selection:
@@ -29,11 +30,11 @@ Implementation split:
 8. Backfill to target count (default `10`) in staged order:
    - remaining non-suppressed quality pool
    - relaxed non-suppressed pool (keeps required title/highlight)
-   - suppressed-topic fallback pools when required to reach target count
 9. Build `diversityCard` on final output with hard thresholds for topic/domain spread.
 10. Enforce target-count contract:
-   - throws `NO_ACTIVE_TOPICS` when no active topic can be derived
-   - throws `INSUFFICIENT_CANDIDATES_FOR_TARGET_COUNT:<actual>/<target>` if staged backfill still cannot satisfy target count.
+   - derives topic seeds from `PERSONALITY` and `RECENT_FEEDBACK` when `ACTIVE_INTERESTS` is empty
+   - throws `NO_ACTIVE_TOPICS` only when no active or seed topics can be derived
+   - throws `INSUFFICIENT_QUALITY_CANDIDATES:<actual>/<target>` if non-suppressed staged backfill cannot satisfy target count.
 
 ## Early-Stop Policy
 Attempt-tier gates (strict -> relaxed):
@@ -51,7 +52,7 @@ Default `earlyStopBuffer` is `2` and default per-domain cap is `3`.
 
 ## Error Codes
 - `NO_ACTIVE_TOPICS`
-- `INSUFFICIENT_CANDIDATES_FOR_TARGET_COUNT:<actual>/<target>`
+- `INSUFFICIENT_QUALITY_CANDIDATES:<actual>/<target>`
 
 ## Warning Codes
 - `EXA_TOPIC_FAILURE:<topic>:<reason>`
@@ -64,6 +65,4 @@ Default `earlyStopBuffer` is `2` and default per-domain cap is `3`.
 - `NON_SUPPRESSED_POOL_BELOW_TARGET`
 - `BACKFILLED_FROM_QUALITY_POOL_<n>`
 - `RELAXED_QUALITY_BACKFILL_<n>`
-- `RELAXED_SUPPRESSION_BACKFILL_<n>`
-- `RELAXED_SUPPRESSION_QUALITY_BACKFILL_<n>`
 - `DIVERSITY_CARD_FAILED`
