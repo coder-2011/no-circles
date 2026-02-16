@@ -14,7 +14,7 @@ type GenerateMemoryArgs = {
   systemPrompt: string;
 };
 
-const DEFAULT_MEMORY_MODEL = "claude-3-5-sonnet-20240620";
+const DEFAULT_MEMORY_MODEL = "claude-opus-4-6";
 const ANTHROPIC_MESSAGES_API_URL = "https://api.anthropic.com/v1/messages";
 const MEMORY_MODEL_RETRIES = 2;
 const MAX_RECENT_FEEDBACK_LINES = 8;
@@ -62,8 +62,8 @@ function extractTextContent(value: unknown): string {
 }
 
 async function callMemoryModel(args: GenerateMemoryArgs): Promise<string> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  const modelName = process.env.ANTHROPIC_MEMORY_MODEL ?? DEFAULT_MEMORY_MODEL;
+  const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
+  const modelName = process.env.ANTHROPIC_MEMORY_MODEL?.trim() || DEFAULT_MEMORY_MODEL;
 
   if (!apiKey) {
     throw new Error("MISSING_ANTHROPIC_API_KEY");
@@ -305,6 +305,15 @@ async function generateWithFallback(prompt: string, fallbackMemory: string): Pro
   return fallbackMemory;
 }
 
+async function generateOnboardingMemoryRequired(prompt: string, fallbackMemory: string): Promise<string> {
+  const generated = await generateWithFallback(prompt, fallbackMemory);
+  if (generated === fallbackMemory) {
+    throw new Error("ONBOARDING_MODEL_REQUIRED");
+  }
+
+  return generated;
+}
+
 async function generateReplyMemoryWithFallback(
   currentMemory: string,
   inboundReplyText: string,
@@ -354,7 +363,7 @@ async function generateReplyMemoryWithFallback(
 export async function formatOnboardingMemory(brainDumpText: string): Promise<string> {
   const fallbackMemory = buildFallbackOnboardingMemory(brainDumpText);
   const prompt = buildOnboardingMemoryPrompt(brainDumpText);
-  return generateWithFallback(prompt, fallbackMemory);
+  return generateOnboardingMemoryRequired(prompt, fallbackMemory);
 }
 
 export async function mergeReplyIntoMemory(

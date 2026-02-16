@@ -35,4 +35,4 @@ Builds onboarding/reply memory updates through a shared processing flow.
 - Ensures memory structure remains stable for downstream topic derivation.
 - Model provider: Anthropic Messages API.
 - Required env: `ANTHROPIC_API_KEY`.
-- Optional env override: `ANTHROPIC_MEMORY_MODEL` (default: `claude-3-5-sonnet-20240620`).
+- Optional env override: `ANTHROPIC_MEMORY_MODEL` (default: `claude-opus-4-6`).
