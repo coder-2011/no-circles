@@ -10,23 +10,6 @@ export const users = pgTable("users", {
   lastIssueSentAt: timestamp("last_issue_sent_at", { withTimezone: true })
 });
 
-export const newsletterItems = pgTable(
-  "newsletter_items",
-  {
-    id: uuid("id").defaultRandom().primaryKey(),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    url: text("url").notNull(),
-    title: text("title").notNull(),
-    sentAt: timestamp("sent_at", { withTimezone: true }).defaultNow().notNull(),
-  },
-  (table) => ({
-    userSentAtIdx: index("newsletter_items_user_id_sent_at_idx").on(table.userId, table.sentAt),
-    userUrlUnique: uniqueIndex("newsletter_items_user_id_url_unique").on(table.userId, table.url)
-  })
-);
-
 export const processedWebhooks = pgTable(
   "processed_webhooks",
   {
