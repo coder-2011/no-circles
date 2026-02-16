@@ -22,6 +22,9 @@ Implements candidate discovery stage only.
 Input: `interest_memory_text` and run knobs.
 Output: deterministic target-count list (default `10`) built from per-topic winners plus staged non-suppressed backfill (topic-balanced first pass), along with topics used, attempts used, warnings, and diversity card metrics.
 
+Integration hook:
+- discovery orchestration accepts an optional candidate include predicate for downstream policies (for example PR9 Bloom anti-repeat gating) before final selection.
+
 ## Policy Highlights
 - Suppressed interests are soft-ranked in topic derivation and excluded from both primary and fallback selection.
 - Query construction is topic-focused (minimal context noise) to improve retrieval precision.

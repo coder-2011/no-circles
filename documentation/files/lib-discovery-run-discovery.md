@@ -12,14 +12,18 @@ Implementation split:
 - `interestMemoryText` (required)
 - optional knobs: `targetCount`, `maxRetries`, `maxTopics`, `perTopicResults`, `earlyStopBuffer`, `maxPerDomain`
 
+Optional dependency hook:
+- `includeCandidate(candidate) -> boolean` for downstream candidate-gating policies (for example Bloom anti-repeat checks).
+
 ## Core Behavior
 1. Derive topics from memory.
 2. Query Exa per topic and normalize results.
    - `exaScore` uses `result.score` when available; falls back to aggregate highlight score when `score` is absent.
    - preserves full `highlights[]` and full `highlightScores[]` on each candidate.
    - `highlightScore` stores aggregate (mean) highlight score for topic-local ranking.
-3. Dedupe globally via canonical URLs.
-4. Exclude soft-suppressed topics from the primary quality pool.
+3. Apply optional candidate include hook to normalized candidates.
+4. Dedupe globally via canonical URLs.
+5. Exclude soft-suppressed topics from the primary quality pool.
 5. Apply quality filters before winner selection:
    - require both `title` and `highlight`
    - drop known low-signal source patterns/domains
@@ -67,4 +71,5 @@ Default `perTopicResults` is `7` (attempts 2+ increase by `+2` each).
 - `BACKFILLED_FROM_QUALITY_POOL_<n>`
 - `RELAXED_TOPIC_BALANCE_BACKFILL_<n>`
 - `RELAXED_QUALITY_BACKFILL_<n>`
+- `CANDIDATE_FILTERED_<n>`
 - `DIVERSITY_CARD_FAILED`

@@ -443,4 +443,44 @@ describe("runDiscovery", () => {
     expect(result.candidates[0]?.highlights).toEqual(["h1", "h2", "h3"]);
     expect(result.candidates[0]?.highlightScores).toEqual([0.4, 0.95, 0.9]);
   });
+
+  it("supports candidate include filter for downstream anti-repeat gating", async () => {
+    const memory = [
+      "PERSONALITY:",
+      "- practical",
+      "",
+      "ACTIVE_INTERESTS:",
+      "- distributed systems",
+      "",
+      "SUPPRESSED_INTERESTS:",
+      "-",
+      "",
+      "RECENT_FEEDBACK:",
+      "- less hype"
+    ].join("\n");
+
+    const blockedCanonical = "https://example.com/blocked";
+    const exaSearch = vi.fn(async () => [
+      { url: blockedCanonical, title: "blocked", highlights: ["x"], score: 0.95 },
+      { url: "https://example.com/allowed", title: "allowed", highlights: ["y"], score: 0.9 }
+    ]);
+
+    const result = await runDiscovery(
+      {
+        interestMemoryText: memory,
+        targetCount: 1,
+        maxRetries: 1,
+        maxTopics: 1,
+        perTopicResults: 2
+      },
+      {
+        exaSearch,
+        includeCandidate: (candidate) => candidate.canonicalUrl !== blockedCanonical
+      }
+    );
+
+    expect(result.candidates).toHaveLength(1);
+    expect(result.candidates[0]?.canonicalUrl).toBe("https://example.com/allowed");
+    expect(result.warnings).toContain("CANDIDATE_FILTERED_1");
+  });
 });
