@@ -88,14 +88,14 @@ export default function HomePage() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#F3ECD8] px-6 py-20 text-[#2D3426]" id="top">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_15%,rgba(61,111,73,0.14),transparent_40%),radial-gradient(circle_at_82%_8%,rgba(198,182,137,0.24),transparent_36%),radial-gradient(circle_at_70%_86%,rgba(93,131,89,0.12),transparent_40%)]" />
+    <main className="relative min-h-screen overflow-hidden bg-slate-950 px-6 py-20 text-slate-100" id="top">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_15%,rgba(251,191,36,0.22),transparent_38%),radial-gradient(circle_at_82%_8%,rgba(56,189,248,0.2),transparent_30%),radial-gradient(circle_at_70%_86%,rgba(251,146,60,0.22),transparent_36%)]" />
       <div className="relative mx-auto w-full max-w-5xl space-y-8">
-        <section className="rounded-3xl border border-[#C9BD9A] bg-[#F8F3E4] p-8 shadow-sm">
-          <h1 className="text-4xl font-semibold leading-tight text-[#2B3125] md:text-5xl">Serendipitous Encounters</h1>
+        <section className="rounded-3xl border border-white/15 bg-white/5 p-8 backdrop-blur">
+          <h1 className="text-4xl font-semibold leading-tight text-white md:text-5xl">Serendipitous Encounters</h1>
           <div className="mt-4 flex flex-wrap gap-3">
             <button
-              className="rounded-lg border border-[#3D6F49] bg-[#3D6F49] px-4 py-2 text-sm font-medium text-[#F3ECD8] transition hover:bg-[#315E3E] disabled:opacity-60"
+              className="rounded-lg border border-amber-300/60 bg-amber-300/10 px-4 py-2 text-sm font-medium text-amber-100 transition hover:bg-amber-300/20 disabled:opacity-60"
               disabled={authState === "loading"}
               onClick={signInWithGoogle}
               type="button"
@@ -104,7 +104,7 @@ export default function HomePage() {
             </button>
             {authState === "signed_in" ? (
               <button
-                className="rounded-lg border border-[#A49671] bg-[#EFE7D0] px-4 py-2 text-sm font-medium text-[#374230] transition hover:bg-[#E5DCC3]"
+                className="rounded-lg border border-slate-300/60 bg-slate-300/10 px-4 py-2 text-sm font-medium text-slate-100 transition hover:bg-slate-300/20"
                 onClick={signOut}
                 type="button"
               >
@@ -112,15 +112,15 @@ export default function HomePage() {
               </button>
             ) : null}
           </div>
-          <p className="mt-3 text-sm text-[#526149]">
+          <p className="mt-3 text-sm text-slate-300">
             {authState === "signed_in" && email ? `Signed in as ${email}` : "Sign in to save onboarding securely."}
           </p>
-          {authError ? <p className="mt-2 text-sm text-rose-700">{authError}</p> : null}
+          {authError ? <p className="mt-2 text-sm text-rose-300">{authError}</p> : null}
         </section>
 
-        <section className="rounded-3xl border border-[#C9BD9A] bg-[#FBF7EB] p-7 text-[#2D3426] shadow-sm">
-          <p className="text-xs uppercase tracking-[0.2em] text-[#6B775D]">Annotated Example Newsletter</p>
-          <div className="mt-4 space-y-4 text-sm leading-6 text-[#4A5641]">
+        <section className="rounded-3xl border border-white/20 bg-white p-7 text-slate-900 shadow-2xl shadow-black/30">
+          <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Annotated Example Newsletter</p>
+          <div className="mt-4 space-y-4 text-sm leading-6 text-slate-700">
             <p>
               [Header annotation] Daily issue for <span className="font-medium">Sample Reader</span> • 10 curated items
               • neutral summaries
