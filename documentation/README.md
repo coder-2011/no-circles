@@ -30,6 +30,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 
 - `subsystems/db-and-onboarding.md`
 - `subsystems/inbound-reply-memory-update.md`
+- `subsystems/exa-discovery.md`
 
 ## Current File Docs
 
@@ -70,8 +71,14 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/lib-webhooks-resend-signature.md`
 - `files/lib-webhooks-inbound-idempotency.md`
 - `files/lib-ai-memory-prompts.md`
+- `files/lib-discovery-types.md`
+- `files/lib-discovery-topic-derivation.md`
+- `files/lib-discovery-exa-client.md`
+- `files/lib-discovery-run-discovery.md`
 - `files/scripts-prune-inbound-idempotency.md`
 - `files/next-env.md`
+- `files/tests-discovery-topic-derivation.md`
+- `files/tests-discovery-run.md`
 
 ## Conventions
 
