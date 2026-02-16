@@ -11,6 +11,7 @@ Declares Drizzle table definitions and DB constraints for V1 minimal persistence
 - `timezone` text not null
 - `send_time_local` text not null
 - `interest_memory_text` text not null
+- `last_issue_sent_at` timestamptz nullable (delivery-state authority for scheduler)
 
 ### `newsletter_items`
 - `id` UUID PK
