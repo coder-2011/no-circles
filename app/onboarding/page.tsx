@@ -168,8 +168,8 @@ export default function OnboardingPage() {
       setMessage("Onboarding saved. You are configured for daily delivery.");
       setShowCelebration(true);
       window.setTimeout(() => {
-        router.replace("/");
-      }, 900);
+        setShowCelebration(false);
+      }, 1400);
       return;
     }
 
@@ -277,10 +277,10 @@ export default function OnboardingPage() {
               <div className="relative">
                 <button
                   className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:opacity-50"
-                  disabled={submitState === "saving"}
+                  disabled={submitState === "saving" || submitState === "saved"}
                   type="submit"
                 >
-                  {submitState === "saving" ? "Saving..." : "Save preferences"}
+                  {submitState === "saving" ? "Saving..." : submitState === "saved" ? "Saved" : "Save preferences"}
                 </button>
                 {showCelebration ? (
                   <div className="pointer-events-none absolute -right-3 -top-3">
@@ -307,6 +307,11 @@ export default function OnboardingPage() {
                 Sign out
               </button>
             </div>
+            {submitState === "saved" ? (
+              <p className="text-xs font-medium text-emerald-700">
+                Complete: preferences submitted. You can stay on this page or edit and resubmit later.
+              </p>
+            ) : null}
           </form>
         ) : null}
 

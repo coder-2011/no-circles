@@ -14,11 +14,11 @@ type GenerateMemoryArgs = {
   systemPrompt: string;
 };
 
-const DEFAULT_MEMORY_MODEL = "claude-opus-4-6";
 const ANTHROPIC_MESSAGES_API_URL = "https://api.anthropic.com/v1/messages";
 const MEMORY_MODEL_RETRIES = 2;
 const MAX_RECENT_FEEDBACK_LINES = 8;
 const SUPPRESSED_INTEREST_REGEX = /\b(less|avoid|mute|stop|not interested|don't want|no more)\b/i;
+const ANTHROPIC_AUTH_ERROR = "ANTHROPIC_AUTH_FAILED";
 
 function logMemoryEvent(level: "info" | "warn", event: string, details: Record<string, unknown>) {
   const payload = JSON.stringify({ subsystem: "memory_processors", event, ...details });
@@ -63,10 +63,13 @@ function extractTextContent(value: unknown): string {
 
 async function callMemoryModel(args: GenerateMemoryArgs): Promise<string> {
   const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
-  const modelName = process.env.ANTHROPIC_MEMORY_MODEL?.trim() || DEFAULT_MEMORY_MODEL;
+  const modelName = process.env.ANTHROPIC_MEMORY_MODEL?.trim();
 
   if (!apiKey) {
     throw new Error("MISSING_ANTHROPIC_API_KEY");
+  }
+  if (!modelName) {
+    throw new Error("MISSING_ANTHROPIC_MEMORY_MODEL");
   }
 
   const response = await fetch(ANTHROPIC_MESSAGES_API_URL, {
@@ -85,6 +88,10 @@ async function callMemoryModel(args: GenerateMemoryArgs): Promise<string> {
   });
 
   if (!response.ok) {
+    if (response.status === 401 || response.status === 403) {
+      throw new Error(ANTHROPIC_AUTH_ERROR);
+    }
+
     throw new Error(`ANTHROPIC_HTTP_${response.status}`);
   }
 
@@ -296,6 +303,10 @@ async function generateWithFallback(prompt: string, fallbackMemory: string): Pro
         attempt: attempt + 1,
         reason: error instanceof Error ? error.message : "UNKNOWN_ERROR"
       });
+
+      if (error instanceof Error && error.message === ANTHROPIC_AUTH_ERROR) {
+        throw error;
+      }
     }
   }
 
@@ -351,6 +362,10 @@ async function generateReplyMemoryWithFallback(
         attempt: attempt + 1,
         reason: error instanceof Error ? error.message : "UNKNOWN_ERROR"
       });
+
+      if (error instanceof Error && error.message === ANTHROPIC_AUTH_ERROR) {
+        break;
+      }
     }
   }
 

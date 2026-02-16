@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   MEMORY_WORD_CAP,
   countWords,
@@ -99,6 +99,10 @@ describe("fallback memory processors", () => {
 });
 
 describe("structured reply memory updates", () => {
+  beforeEach(() => {
+    process.env.ANTHROPIC_MEMORY_MODEL = "claude-opus-4-6";
+  });
+
   it("applies validated model ops deterministically", async () => {
     process.env.ANTHROPIC_API_KEY = "test-key";
     process.env.ANTHROPIC_MEMORY_MODEL = "claude-opus-4-6";
@@ -460,6 +464,34 @@ describe("structured reply memory updates", () => {
 });
 
 describe("onboarding model requirement", () => {
+  beforeEach(() => {
+    process.env.ANTHROPIC_MEMORY_MODEL = "claude-opus-4-6";
+  });
+
+  it("throws when memory model env is missing", async () => {
+    process.env.ANTHROPIC_API_KEY = "test-key";
+    process.env.ANTHROPIC_MEMORY_MODEL = "";
+
+    await expect(formatOnboardingMemory("Robotics, mechanistic interpretability.")).rejects.toThrow(
+      "ONBOARDING_MODEL_REQUIRED"
+    );
+  });
+
+  it("throws explicit auth error for model 401", async () => {
+    process.env.ANTHROPIC_API_KEY = "test-key";
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: false,
+        status: 401,
+        json: async () => ({})
+      }))
+    );
+
+    await expect(formatOnboardingMemory("I care about robotics.")).rejects.toThrow("ANTHROPIC_AUTH_FAILED");
+  });
+
   it("throws when onboarding model output is unavailable and fallback would be used", async () => {
     process.env.ANTHROPIC_API_KEY = "test-key";
 

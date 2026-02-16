@@ -43,7 +43,18 @@ export async function POST(request: Request) {
 
   try {
     interestMemoryText = await formatOnboardingMemory(brain_dump_text);
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && error.message === "ANTHROPIC_AUTH_FAILED") {
+      return NextResponse.json(
+        {
+          ok: false,
+          error_code: "MODEL_AUTH_ERROR",
+          message: "Anthropic authentication failed. Check server API key env and restart dev server."
+        },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json(
       { ok: false, error_code: "INTERNAL_ERROR", message: "Failed to process onboarding memory." },
       { status: 500 }

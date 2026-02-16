@@ -242,4 +242,31 @@ describe("POST /api/onboarding", () => {
     });
     expect(insertMock).not.toHaveBeenCalled();
   });
+
+  it("returns model auth error when onboarding memory call fails with Anthropic auth failure", async () => {
+    getAuthenticatedUserEmailMock.mockResolvedValueOnce("naman@example.com");
+    formatOnboardingMemoryMock.mockRejectedValueOnce(new Error("ANTHROPIC_AUTH_FAILED"));
+
+    const request = new Request("http://localhost/api/onboarding", {
+      method: "POST",
+      body: JSON.stringify({
+        preferred_name: "Naman",
+        timezone: "America/New_York",
+        send_time_local: "09:30",
+        brain_dump_text: "AI and coding."
+      }),
+      headers: { "content-type": "application/json" }
+    });
+
+    const response = await POST(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(body).toEqual({
+      ok: false,
+      error_code: "MODEL_AUTH_ERROR",
+      message: "Anthropic authentication failed. Check server API key env and restart dev server."
+    });
+    expect(insertMock).not.toHaveBeenCalled();
+  });
 });
