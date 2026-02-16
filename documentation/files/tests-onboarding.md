@@ -27,5 +27,5 @@ Protect onboarding input/route contract.
 - success path persists processor output (canonical memory), not raw `brain_dump_text`
 
 ### Additional PR3 tests
-- `tests/memory-processors.test.ts`: canonical header validation, word-cap enforcement, fallback generation
+- `tests/memory-processors-core.test.ts`: canonical header validation, word-cap enforcement, onboarding/reply fallback generation
 - `tests/inbound-webhook-route.test.ts`: signature rejection, replay ignore, blank reply ignore, valid one-time update
