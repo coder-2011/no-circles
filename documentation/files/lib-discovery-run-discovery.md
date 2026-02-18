@@ -14,10 +14,14 @@ Implementation split:
 
 Optional dependency hook:
 - `includeCandidate(candidate) -> boolean` for downstream candidate-gating policies (for example Bloom anti-repeat checks).
+- `queryPlanner({ interestMemoryText, topics }) -> Map<topic, query>` to override base topic queries before Exa calls.
 
 ## Core Behavior
 1. Derive topics from memory.
-2. Query Exa per topic and normalize results.
+2. Optionally run query planner to produce topic-level query overrides.
+   - planner uses OpenRouter (`OPENROUTER_API_KEY`) when enabled
+   - planner failures are warning-only and fall back to deterministic topic queries
+3. Query Exa per topic and normalize results.
    - `exaScore` uses `result.score` when available; falls back to aggregate highlight score when `score` is absent.
    - preserves full `highlights[]` and full `highlightScores[]` on each candidate.
    - `highlightScore` stores aggregate (mean) highlight score for topic-local ranking.
@@ -73,3 +77,5 @@ Default `perTopicResults` is `7` (attempts 2+ increase by `+2` each).
 - `RELAXED_QUALITY_BACKFILL_<n>`
 - `CANDIDATE_FILTERED_<n>`
 - `DIVERSITY_CARD_FAILED`
+- `QUERY_PLANNER_ACTIVE_<n>`
+- `QUERY_PLANNER_FALLBACK:<reason>`

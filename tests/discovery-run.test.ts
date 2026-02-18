@@ -483,4 +483,24 @@ describe("runDiscovery", () => {
     expect(result.candidates[0]?.canonicalUrl).toBe("https://example.com/allowed");
     expect(result.warnings).toContain("CANDIDATE_FILTERED_1");
   });
+
+  it("uses query planner topic overrides when provided", async () => {
+    const exaSearch = vi.fn(async () => [{ url: "https://example.com/one", title: "one", highlights: ["x"], score: 0.9 }]);
+    const queryPlanner = vi.fn(async () => new Map([["AI engineering", "AI engineering production case study"]]));
+
+    await runDiscovery(
+      {
+        interestMemoryText: memory,
+        targetCount: 1,
+        maxRetries: 1,
+        maxTopics: 1,
+        perTopicResults: 1
+      },
+      { exaSearch, queryPlanner }
+    );
+
+    expect(queryPlanner).toHaveBeenCalledTimes(1);
+    expect(exaSearch).toHaveBeenCalledTimes(1);
+    expect(exaSearch.mock.calls[0]?.[0]?.query).toBe("AI engineering production case study");
+  });
 });
