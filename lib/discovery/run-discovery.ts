@@ -1,9 +1,11 @@
 import { deriveTopicsFromMemory } from "@/lib/discovery/topic-derivation";
 import { searchExa } from "@/lib/discovery/exa-client";
+import { planQueriesForTopics, shouldUseQueryPlanner } from "@/lib/discovery/query-planner";
 import {
   DEFAULT_DISCOVERY_MAX_RETRIES,
   DEFAULT_DISCOVERY_TARGET_COUNT,
   type DiscoveryCandidate,
+  type DiscoveryTopic,
   type DiscoveryRunInput,
   type DiscoveryRunResult,
   type ExaSearchFn
@@ -94,7 +96,11 @@ function fillFromPool(
 
 export async function runDiscovery(
   input: DiscoveryRunInput,
-  deps: { exaSearch?: ExaSearchFn; includeCandidate?: (candidate: DiscoveryCandidate) => boolean } = {}
+  deps: {
+    exaSearch?: ExaSearchFn;
+    includeCandidate?: (candidate: DiscoveryCandidate) => boolean;
+    queryPlanner?: (args: { interestMemoryText: string; topics: DiscoveryTopic[] }) => Promise<Map<string, string>>;
+  } = {}
 ): Promise<DiscoveryRunResult> {
   const targetCount = input.targetCount ?? DEFAULT_DISCOVERY_TARGET_COUNT;
   const maxRetries = input.maxRetries ?? DEFAULT_DISCOVERY_MAX_RETRIES;
@@ -115,6 +121,24 @@ export async function runDiscovery(
   }
 
   const warnings: string[] = [];
+  const queryPlanner =
+    deps.queryPlanner ?? (shouldUseQueryPlanner() ? ({ interestMemoryText, topics }) => planQueriesForTopics({ interestMemoryText, topics }) : null);
+  const plannedQueriesByTopic = new Map<string, string>();
+
+  if (queryPlanner) {
+    try {
+      const planned = await queryPlanner({ interestMemoryText: input.interestMemoryText, topics });
+      for (const [topic, query] of planned) {
+        plannedQueriesByTopic.set(topic, query);
+      }
+      if (plannedQueriesByTopic.size > 0) {
+        warnings.push(`QUERY_PLANNER_ACTIVE_${plannedQueriesByTopic.size}`);
+      }
+    } catch (error) {
+      warnings.push(`QUERY_PLANNER_FALLBACK:${error instanceof Error ? error.message : "UNKNOWN_ERROR"}`);
+    }
+  }
+
   const aggregateCandidates: DiscoveryCandidate[] = [];
   let candidateFilterExcludedCount = 0;
   let attemptsUsed = 0;
@@ -125,7 +149,14 @@ export async function runDiscovery(
     const perTopicResults = basePerTopicResults + attempt * 2;
 
     for (const topic of topics) {
-      const query = buildAttemptQuery(topic, attempt);
+      const plannedQuery = plannedQueriesByTopic.get(topic.topic);
+      const query = buildAttemptQuery(
+        {
+          ...topic,
+          query: plannedQuery && plannedQuery.trim().length > 0 ? plannedQuery : topic.query
+        },
+        attempt
+      );
 
       try {
         const results = await exaSearch({ query, numResults: perTopicResults });
