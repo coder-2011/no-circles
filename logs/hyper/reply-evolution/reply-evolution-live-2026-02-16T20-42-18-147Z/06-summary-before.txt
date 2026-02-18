@@ -1,0 +1,52 @@
+[
+  {
+    "title": "Artificial Intelligence Tutorial | AI Tutorial - GeeksforGeeks",
+    "url": "https://www.geeksforgeeks.org/artificial-intelligence/artificial-intelligence/",
+    "summary": "GeeksforGeeks provides an AI tutorial covering artificial intelligence as the simulation of human intelligence in machines. Content includes AI types, problem-solving algorithms, generative AI, machine learning, natural language processing, computer vision, and practical applications across domains like manufacturing. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "System Design Primer",
+    "url": "https://systemdesignschool.io/primer",
+    "summary": "System Design School offers a fundamentals-first approach to system design education, emphasizing core concepts and reusable patterns over memorized solutions. The primer covers essential components, interview frameworks, and mental models for solving system design problems, organized into tracks covering patterns, data scaling, and batch/stream processing."
+  },
+  {
+    "title": "I Tried 20+ Books on Software Architecture — Here Are My Top 7 Recommendations for Senior Developers",
+    "url": "https://dev.to/somadevtoo/i-tried-20-books-on-software-architecture-here-are-my-top-7-recommendations-for-senior-developers-54n2",
+    "summary": "An author reviewed over 20 software architecture books and selected 7 recommendations for senior developers. Featured titles include Head First Software Architecture, Software Architecture: The Hard Parts, Fundamentals of Software Architecture, and Software Engineering at Google. The books cover architectural patterns, system design trade-offs, and lessons from companies like Google and Amazon."
+  },
+  {
+    "title": "Data Engineering for Everyone Course - DataCamp",
+    "url": "https://www.datacamp.com/courses/understanding-data-engineering",
+    "summary": "DataCamp's introductory course teaches data engineering fundamentals through hands-on exercises using a fictional music streaming company case study. Topics include core data engineer responsibilities, differences from data scientists, data collection and cleaning, pipeline development, data storage, and processing techniques. The course is designed for beginners and professionals in data science fields."
+  },
+  {
+    "title": "The Data Engineer's Codex: From First Principles to the Modern Lakehouse",
+    "url": "https://dev.to/datatechbridge/the-data-engineers-codex-from-first-principles-to-the-modern-lakehouse-24h4",
+    "summary": "A comprehensive guide organizing data engineering fundamentals into 14 core areas: distributed systems physics, storage layers, architecture, lakehouse patterns, processing, optimization, ingestion, orchestration, quality, performance, security, cost management, and streaming. The codex emphasizes mastering underlying principles—CAP constraints, partitioning strategies, and trade-offs—rather than tool-specific knowledge."
+  },
+  {
+    "title": "What is Data Engineering? Everything You Need to Know in 2025",
+    "url": "https://hackr.io/blog/what-is-data-engineering",
+    "summary": "Data engineering manages ETL processes, pipelines, and data infrastructure to process, store, and deliver vast amounts of data. Data engineers build pipelines that transport and transform data from multiple sources into centralized repositories. The field complements data science by providing the infrastructure that enables analysts and scientists to work with clean, organized data."
+  },
+  {
+    "title": "Data engineering 101: lifecycle, best practices, and emerging trends",
+    "url": "https://redpanda.com/guides/fundamentals-of-data-engineering",
+    "summary": "Data engineering is the process of designing and maintaining systems that convert raw data into actionable insights. It encompasses data ingestion, transformation, and pipeline architecture across multiple stages. Key tools include Apache Hadoop, Spark, Kafka, and Airflow. Data engineering supports analytics, machine learning, and real-time monitoring across modern business operations."
+  },
+  {
+    "title": "How to Build a Strategy for an Existing Product",
+    "url": "https://building.theatlantic.com/how-to-build-a-strategy-for-an-existing-product-32eef1ea447b",
+    "summary": "Roman Pichler outlines a five-step process for developing effective product strategies: articulate current strategy, assess forward viability, replace if needed, create outcome-based roadmaps, and conduct quarterly strategy reviews. Clear strategies provide decision-making frameworks and alignment across teams, while unclear strategies lead to confusion about feature priorities."
+  },
+  {
+    "title": "The Ultimate Product Roadmap Guide – A Practical Deep Dive",
+    "url": "https://outcomeoveroutput.com/ultimate-product-roadmap-guide/",
+    "summary": "A product roadmap communicates strategic direction and aligns teams around shared vision. It should focus on outcomes and metrics rather than features, be co-created collaboratively, and distinguish itself from vision, strategy, plan, and backlog. Regular reviews ensure roadmaps remain relevant and actionable."
+  },
+  {
+    "title": "The Strategy Stack: Connecting Business, Product, and Technology Strategy",
+    "url": "https://www.romanpichler.com/blog/the-strategy-stack/",
+    "summary": "The Strategy Stack is a five-layer framework designed to align four key strategy types: business, portfolio, product, and technology strategy. The framework establishes hierarchical relationships where business strategy guides portfolio strategy, which directs product strategy, ultimately flowing into roadmaps and backlogs. This structure helps organizations clarify responsibilities and translate strategic decisions into tactical execution."
+  }
+]
