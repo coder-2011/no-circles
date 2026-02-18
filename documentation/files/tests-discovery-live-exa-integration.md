@@ -1,13 +1,13 @@
 # File: `tests/discovery-live-exa.integration.test.ts`
 
 ## Purpose
-Runs an opt-in live Exa quality evaluation against the real discovery pipeline.
+Runs an opt-in live discovery quality evaluation against the real Tavily-backed pipeline.
 
 ## Execution Contract
 - Test is skipped by default.
-- To run it, set both:
-  - `RUN_LIVE_EXA_TESTS=1`
-  - `EXA_API_KEY` (valid key)
+- To run it, set:
+  - `RUN_LIVE_TAVILY_TESTS=1` (or legacy `RUN_LIVE_EXA_TESTS=1`)
+  - `TAVILY_API_KEY` (valid key)
 
 ## What It Validates
 - discovery returns a minimum candidate count from live provider output
