@@ -4,7 +4,7 @@
 Evaluates how reply-driven memory updates change the next discovery + summary output.
 
 ## Live Dependencies
-- `EXA_API_KEY`
+- `TAVILY_API_KEY`
 - `ANTHROPIC_API_KEY`
 - `ANTHROPIC_MEMORY_MODEL`
 - `ANTHROPIC_SUMMARY_MODEL` (optional; defaults to `ANTHROPIC_MEMORY_MODEL`)

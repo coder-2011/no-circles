@@ -5,14 +5,14 @@ Validates the PR9 send pipeline with real discovery + real summary generation wh
 
 ## Live Dependencies
 - `DATABASE_URL`
-- `EXA_API_KEY`
+- `TAVILY_API_KEY`
 - `ANTHROPIC_API_KEY`
 - `ANTHROPIC_MEMORY_MODEL` or `ANTHROPIC_SUMMARY_MODEL`
 If required env vars are missing, test fails with `LIVE_ENV_MISSING:*`.
 
 ## Mocking Policy
 - `resend` provider is mocked to avoid external email delivery side effects.
-- Anthropic and Exa are live (no mocks).
+- Anthropic and Tavily-backed discovery are live (no mocks).
 
 ## Flow
 1. Insert temporary user row in `public.users` with canonical memory text.

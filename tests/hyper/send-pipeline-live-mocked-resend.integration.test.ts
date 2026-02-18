@@ -61,7 +61,7 @@ function withPgTlsCompat(urlString: string): string {
 function missingLiveEnv(): string[] {
   const missing: string[] = [];
   if (!process.env.DATABASE_URL) missing.push("DATABASE_URL");
-  if (!process.env.EXA_API_KEY) missing.push("EXA_API_KEY");
+  if (!process.env.TAVILY_API_KEY) missing.push("TAVILY_API_KEY");
   if (!process.env.ANTHROPIC_API_KEY) missing.push("ANTHROPIC_API_KEY");
   if (!process.env.ANTHROPIC_MEMORY_MODEL && !process.env.ANTHROPIC_SUMMARY_MODEL) {
     missing.push("ANTHROPIC_MEMORY_MODEL|ANTHROPIC_SUMMARY_MODEL");
