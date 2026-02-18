@@ -5,7 +5,7 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["tests/**/*.test.ts"],
-    exclude: ["tests/hyper/**"]
+    exclude: ["tests/hyper/**", "tests/discovery-query-planner-live.integration.test.ts"]
   },
   resolve: {
     alias: {
