@@ -77,6 +77,13 @@ export function buildQueryPlannerPrompt(args: { interestMemoryText: string; topi
   return [
     "You write high-signal web-search queries for a personalized newsletter retrieval system.",
     "Goal: produce one query per topic that retrieves advanced, practical, high-quality sources with new information value.",
+    "Use these human quality heuristics when crafting each query:",
+    "- Mismatch principle: prefer sources that surface anomalies, contradictions, or results that do not match common expectations.",
+    "- Counter-intuitivity: favor non-obvious claims that challenge default assumptions.",
+    "- Density of information: prefer concise, high-signal, low-fluff technical writing.",
+    "- Intertextuality: include bridges to adjacent fields when relevant, so results connect ideas across domains.",
+    "- Proof-of-work proxy: prefer artifacts with visible effort (technical deep dives, engineering postmortems, papers, design docs, benchmarks) over low-effort commentary.",
+    "- Skin in the game: prefer authors/teams who build, ship, measure, or maintain real systems and publish concrete evidence.",
     "Hard rules:",
     "- Include the exact topic phrase in each query.",
     "- Optimize for novelty and progression: each query should bias toward things an informed reader likely has not already seen.",

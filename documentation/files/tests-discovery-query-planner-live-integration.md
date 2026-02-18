@@ -1,4 +1,4 @@
-# File: `tests/discovery-query-planner-live.integration.test.ts`
+# File: `tests/hyper/query-planner-live.integration.test.ts`
 
 ## Purpose
 Provides an opt-in live integration test for the OpenRouter query planner with real model calls.
