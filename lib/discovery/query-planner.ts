@@ -4,6 +4,7 @@ const OPENROUTER_CHAT_COMPLETIONS_URL = "https://openrouter.ai/api/v1/chat/compl
 const DEFAULT_QUERY_PLANNER_MODEL = "qwen/qwen3-14b";
 const MAX_TOPIC_COUNT = 12;
 const MAX_QUERY_LENGTH = 220;
+const REQUIRED_NEGATIVE_TERMS = ["-tutorial", "-beginner", "-beginners", "-introduction", "-basics", "-101"] as const;
 
 type QueryPlanResponse = {
   plans: Array<{
@@ -51,18 +52,45 @@ function extractChoiceText(json: unknown): string {
   return content;
 }
 
-function buildPrompt(args: { interestMemoryText: string; topics: DiscoveryTopic[] }): string {
+function enforceQueryGuardrails(topic: string, query: string): string {
+  const normalizedTopic = normalizeLine(topic);
+  let normalizedQuery = normalizeQuery(query);
+
+  const hasTopic = normalizedQuery.toLowerCase().includes(normalizedTopic.toLowerCase());
+  if (!hasTopic && normalizedTopic) {
+    normalizedQuery = normalizeQuery(`${normalizedTopic} ${normalizedQuery}`);
+  }
+
+  const lower = normalizedQuery.toLowerCase();
+  const missingNegativeTerms = REQUIRED_NEGATIVE_TERMS.filter((term) => !lower.includes(term));
+  if (missingNegativeTerms.length === 0) {
+    return normalizedQuery;
+  }
+
+  return normalizeQuery(`${normalizedQuery} ${missingNegativeTerms.join(" ")}`);
+}
+
+export function buildQueryPlannerPrompt(args: { interestMemoryText: string; topics: DiscoveryTopic[] }): string {
   const topicList = args.topics.slice(0, MAX_TOPIC_COUNT).map((topic) => `- ${topic.topic}`).join("\n");
   const memorySnippet = args.interestMemoryText.slice(0, 1800);
 
   return [
     "You write high-signal web-search queries for a personalized newsletter retrieval system.",
-    "Goal: produce one query per topic that retrieves advanced, practical, high-quality sources.",
+    "Goal: produce one query per topic that retrieves advanced, practical, high-quality sources with new information value.",
     "Hard rules:",
     "- Include the exact topic phrase in each query.",
+    "- Optimize for novelty and progression: each query should bias toward things an informed reader likely has not already seen.",
+    "- Include at least one specificity anchor for niche depth (for example protocol/standard names, failure modes, architecture patterns, evaluation methods, or named techniques).",
+    "- Prefer concrete evidence-heavy artifacts: incident reports, engineering blogs with metrics, benchmark studies, migration writeups, design docs, and research analysis.",
     "- Prefer deep signals: postmortem, case study, architecture tradeoffs, benchmark, reliability lessons, technical essay, research analysis.",
+    "- Encourage domain-specific vocabulary and precise qualifiers; avoid generic broad phrasing.",
     "- Avoid beginner material and dictionary/index pages.",
-    "- Include these negative terms in every query: -tutorial -beginner -beginners -introduction -basics -101.",
+    "- Include these negative terms in every query exactly once each: -tutorial -beginner -beginners -introduction -basics -101.",
+    "- Use user memory to infer whether depth should be beginner/intermediate/advanced for each topic.",
+    "- If memory prefers practical depth, prioritize implementation details, production constraints, and failure/recovery lessons over conceptual explainers.",
+    "- Optional cross-interest extension is allowed: if two interests naturally connect, include one adjacent concept in the same query; do not force connections when weak.",
+    "- Keep query concise and natural; avoid stuffing many unrelated clauses.",
+    "- Keep at least 70% of query intent anchored to the base topic; extension should be a light expansion, not a pivot.",
     "- Return strict JSON only: {\"plans\":[{\"topic\":\"...\",\"query\":\"...\"}]}.",
     "",
     "Topics:",
@@ -97,7 +125,7 @@ function parsePlans(text: string): QueryPlanResponse {
       }
 
       const normalizedTopic = normalizeLine(topic);
-      const normalizedQuery = normalizeQuery(query);
+      const normalizedQuery = enforceQueryGuardrails(normalizedTopic, query);
       if (!normalizedTopic || !normalizedQuery) {
         return null;
       }
@@ -132,7 +160,7 @@ export async function planQueriesForTopics(args: {
     throw new Error("MISSING_OPENROUTER_API_KEY");
   }
 
-  const prompt = buildPrompt(args);
+  const prompt = buildQueryPlannerPrompt(args);
   const response = await fetch(OPENROUTER_CHAT_COMPLETIONS_URL, {
     method: "POST",
     headers: {
