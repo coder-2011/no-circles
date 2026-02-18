@@ -1,0 +1,410 @@
+
+ RUN  v4.0.18 /Users/namanchetwani/Projects/SerendipitousEncounters
+
+stderr | tests/memory-processors-core.test.ts > onboarding model requirement > throws when memory model env is missing
+{"subsystem":"memory_processors","event":"onboarding_model_error","attempt":1,"reason":"MISSING_ANTHROPIC_MEMORY_MODEL"}
+
+stderr | tests/memory-processors-core.test.ts > onboarding model requirement > throws when memory model env is missing
+{"subsystem":"memory_processors","event":"onboarding_model_error","attempt":2,"reason":"MISSING_ANTHROPIC_MEMORY_MODEL"}
+{"subsystem":"memory_processors","event":"onboarding_fallback_used","reason":"model_unavailable_or_invalid_output"}
+
+stderr | tests/memory-processors-core.test.ts > onboarding model requirement > throws explicit auth error for model 401
+{"subsystem":"memory_processors","event":"onboarding_model_error","attempt":1,"reason":"ANTHROPIC_AUTH_FAILED"}
+
+stderr | tests/memory-processors-core.test.ts > onboarding model requirement > throws when onboarding model output is unavailable and fallback would be used
+{"subsystem":"memory_processors","event":"onboarding_model_error","attempt":1,"reason":"ANTHROPIC_HTTP_400"}
+
+stderr | tests/memory-processors-core.test.ts > onboarding model requirement > throws when onboarding model output is unavailable and fallback would be used
+{"subsystem":"memory_processors","event":"onboarding_model_error","attempt":2,"reason":"ANTHROPIC_HTTP_400"}
+{"subsystem":"memory_processors","event":"onboarding_fallback_used","reason":"model_unavailable_or_invalid_output"}
+
+ ✓ tests/memory-processors-core.test.ts (7 tests) 78ms
+ ✓ tests/bloom-user-url-bloom.test.ts (7 tests) 168ms
+ ✓ tests/onboarding-schema.test.ts (9 tests) 225ms
+ ✓ tests/onboarding-route.test.ts (9 tests) 150ms
+stdout | tests/memory-processors-reply-merge.test.ts > structured reply memory updates > applies validated model ops deterministically
+{"subsystem":"memory_processors","event":"reply_model_success","attempt":1}
+
+stderr | tests/memory-processors-reply-merge.test.ts > structured reply memory updates > falls back when model returns invalid json
+{"subsystem":"memory_processors","event":"reply_model_error","attempt":1,"reason":"Unexpected token 'o', \"not-json\" is not valid JSON"}
+
+stderr | tests/memory-processors-reply-merge.test.ts > structured reply memory updates > falls back when model returns invalid json
+{"subsystem":"memory_processors","event":"reply_model_error","attempt":2,"reason":"Unexpected token 'o', \"not-json\" is not valid JSON"}
+{"subsystem":"memory_processors","event":"reply_fallback_used","reason":"model_unavailable_or_invalid_output"}
+
+stdout | tests/memory-processors-reply-merge.test.ts > structured reply memory updates > keeps cumulative interests across multiple replies
+{"subsystem":"memory_processors","event":"reply_model_success","attempt":1}
+
+stdout | tests/memory-processors-reply-merge.test.ts > structured reply memory updates > keeps cumulative interests across multiple replies
+{"subsystem":"memory_processors","event":"reply_model_success","attempt":1}
+
+stdout | tests/memory-processors-reply-merge.test.ts > structured reply memory updates > supports suppress then re-enable lifecycle
+{"subsystem":"memory_processors","event":"reply_model_success","attempt":1}
+
+stdout | tests/memory-processors-reply-merge.test.ts > structured reply memory updates > supports suppress then re-enable lifecycle
+{"subsystem":"memory_processors","event":"reply_model_success","attempt":1}
+
+stdout | tests/memory-processors-reply-merge.test.ts > structured reply memory updates > resolves conflicting ops for same topic deterministically (active wins)
+{"subsystem":"memory_processors","event":"reply_model_success","attempt":1}
+
+stdout | tests/memory-processors-reply-merge.test.ts > structured reply memory updates > normalizes merged topic lines and removes active/suppressed overlap
+{"subsystem":"memory_processors","event":"reply_model_success","attempt":1}
+
+ ✓ tests/memory-processors-reply-merge.test.ts (8 tests) 32ms
+stderr | tests/cron-generate-next-route.test.ts > POST /api/cron/generate-next > rejects unauthorized requests
+[cron.generate-next] unauthorized { route: 'POST /api/cron/generate-next' }
+
+stderr | tests/cron-generate-next-route.test.ts > POST /api/cron/generate-next > rejects requests when bearer token is incorrect
+[cron.generate-next] unauthorized { route: 'POST /api/cron/generate-next' }
+
+stderr | tests/cron-generate-next-route.test.ts > POST /api/cron/generate-next > rejects requests when CRON_SECRET is missing
+[cron.generate-next] unauthorized { route: 'POST /api/cron/generate-next' }
+
+stdout | tests/cron-generate-next-route.test.ts > POST /api/cron/generate-next > selects one due user and sends newsletter
+[cron.generate-next] selected {
+  route: 'POST /api/cron/generate-next',
+  run_at_utc: '2026-02-18T03:53:52.824Z',
+  user_id: 'user-123'
+}
+
+stdout | tests/cron-generate-next-route.test.ts > POST /api/cron/generate-next > returns no_due_user when none are due
+[cron.generate-next] no_due_user {
+  route: 'POST /api/cron/generate-next',
+  run_at_utc: '2026-02-18T03:53:52.828Z'
+}
+
+stdout | tests/cron-generate-next-route.test.ts > POST /api/cron/generate-next > returns no_due_user when all candidates were already sent today
+[cron.generate-next] no_due_user {
+  route: 'POST /api/cron/generate-next',
+  run_at_utc: '2026-02-16T18:00:00.000Z'
+}
+
+stdout | tests/cron-generate-next-route.test.ts > POST /api/cron/generate-next > handles timezone boundary runs around local midnight
+[cron.generate-next] no_due_user {
+  route: 'POST /api/cron/generate-next',
+  run_at_utc: '2026-02-16T13:59:00.000Z'
+}
+
+stdout | tests/cron-generate-next-route.test.ts > POST /api/cron/generate-next > handles timezone boundary runs around local midnight
+[cron.generate-next] selected {
+  route: 'POST /api/cron/generate-next',
+  run_at_utc: '2026-02-16T14:01:00.000Z',
+  user_id: 'user-boundary'
+}
+
+stdout | tests/cron-generate-next-route.test.ts > POST /api/cron/generate-next > returns no_due_user when rpc returns null user
+[cron.generate-next] no_due_user {
+  route: 'POST /api/cron/generate-next',
+  run_at_utc: '2026-02-18T03:53:52.834Z'
+}
+
+stdout | tests/cron-generate-next-route.test.ts > POST /api/cron/generate-next > treats malformed json body as empty payload
+[cron.generate-next] no_due_user {
+  route: 'POST /api/cron/generate-next',
+  run_at_utc: '2026-02-18T03:53:52.837Z'
+}
+
+stderr | tests/cron-generate-next-route.test.ts > POST /api/cron/generate-next > returns 500 when selector query fails
+[cron.generate-next] error {
+  route: 'POST /api/cron/generate-next',
+  error: Error: db offline
+      at /Users/namanchetwani/Projects/SerendipitousEncounters/tests/cron-generate-next-route.test.ts:266:39
+      at file:///Users/namanchetwani/Projects/SerendipitousEncounters/node_modules/@vitest/runner/dist/index.js:145:11
+      at file:///Users/namanchetwani/Projects/SerendipitousEncounters/node_modules/@vitest/runner/dist/index.js:915:26
+      at file:///Users/namanchetwani/Projects/SerendipitousEncounters/node_modules/@vitest/runner/dist/index.js:1243:20
+      at new Promise (<anonymous>)
+      at runWithTimeout (file:///Users/namanchetwani/Projects/SerendipitousEncounters/node_modules/@vitest/runner/dist/index.js:1209:10)
+      at file:///Users/namanchetwani/Projects/SerendipitousEncounters/node_modules/@vitest/runner/dist/index.js:1653:37
+      at Traces.$ (file:///Users/namanchetwani/Projects/SerendipitousEncounters/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
+      at trace (file:///Users/namanchetwani/Projects/SerendipitousEncounters/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+      at runTest (file:///Users/namanchetwani/Projects/SerendipitousEncounters/node_modules/@vitest/runner/dist/index.js:1653:12)
+}
+
+stdout | tests/cron-generate-next-route.test.ts > POST /api/cron/generate-next > returns insufficient_content when pipeline reports shortfall
+[cron.generate-next] selected {
+  route: 'POST /api/cron/generate-next',
+  run_at_utc: '2026-02-18T03:53:52.844Z',
+  user_id: 'user-123'
+}
+
+stderr | tests/cron-generate-next-route.test.ts > POST /api/cron/generate-next > returns insufficient_content when pipeline reports shortfall
+[cron.generate-next] insufficient_content {
+  route: 'POST /api/cron/generate-next',
+  run_at_utc: '2026-02-18T03:53:52.844Z',
+  user_id: 'user-123',
+  error: 'INSUFFICIENT_QUALITY_CANDIDATES'
+}
+
+stdout | tests/cron-generate-next-route.test.ts > POST /api/cron/generate-next > returns send_failed when pipeline send fails
+[cron.generate-next] selected {
+  route: 'POST /api/cron/generate-next',
+  run_at_utc: '2026-02-18T03:53:52.845Z',
+  user_id: 'user-123'
+}
+
+stderr | tests/cron-generate-next-route.test.ts > POST /api/cron/generate-next > returns send_failed when pipeline send fails
+[cron.generate-next] send_failed {
+  route: 'POST /api/cron/generate-next',
+  run_at_utc: '2026-02-18T03:53:52.845Z',
+  user_id: 'user-123',
+  error: 'RESEND_ERROR'
+}
+
+stdout | tests/cron-generate-next-route.test.ts > POST /api/cron/generate-next > returns 500 when pipeline returns internal_error
+[cron.generate-next] selected {
+  route: 'POST /api/cron/generate-next',
+  run_at_utc: '2026-02-18T03:53:52.846Z',
+  user_id: 'user-123'
+}
+
+stderr | tests/cron-generate-next-route.test.ts > POST /api/cron/generate-next > returns 500 when pipeline returns internal_error
+[cron.generate-next] pipeline_internal_error {
+  route: 'POST /api/cron/generate-next',
+  run_at_utc: '2026-02-18T03:53:52.846Z',
+  user_id: 'user-123',
+  error: 'USER_NOT_FOUND'
+}
+
+ ✓ tests/cron-generate-next-route.test.ts (14 tests) 46ms
+stdout | tests/summary-writer.test.ts > generateNewsletterSummaries > returns final item fields only and preserves URL from source item
+{"subsystem":"summary_writer","event":"summary_run_complete","item_count":1,"fallback_count":0}
+
+stderr | tests/summary-writer.test.ts > generateNewsletterSummaries > retries once and then falls back to local summary when model is invalid
+{"subsystem":"summary_writer","event":"summary_fallback_used","url":"https://example.com/a","reason":"ANTHROPIC_HTTP_500"}
+
+stdout | tests/summary-writer.test.ts > generateNewsletterSummaries > retries once and then falls back to local summary when model is invalid
+{"subsystem":"summary_writer","event":"summary_run_complete","item_count":1,"fallback_count":1}
+
+stdout | tests/summary-writer.test.ts > generateNewsletterSummaries > honors custom word range when provided
+{"subsystem":"summary_writer","event":"summary_run_complete","item_count":1,"fallback_count":0}
+
+stdout | tests/summary-writer.test.ts > generateNewsletterSummaries > processes one model call per item in order
+{"subsystem":"summary_writer","event":"summary_run_complete","item_count":2,"fallback_count":0}
+
+stdout | tests/summary-writer.test.ts > generateNewsletterSummaries > trims overlong summaries at sentence boundary when possible
+{"subsystem":"summary_writer","event":"summary_run_complete","item_count":1,"fallback_count":0}
+
+ ✓ tests/summary-writer.test.ts (5 tests) 21ms
+ ✓ tests/discovery-query-planner.test.ts (4 tests) 12ms
+ ✓ tests/inbound-webhook-route.test.ts (5 tests) 44ms
+ ✓ tests/cron-selector-db-integration.test.ts (3 tests) 2123ms
+     ✓ selects due users in deterministic order (null last_issue_sent_at first)  530ms
+     ✓ excludes users already sent today in their local timezone  368ms
+     ✓ enforces lease ttl before allowing same user re-selection  515ms
+ ✓ tests/discovery-topic-derivation.test.ts (4 tests) 10ms
+ ✓ tests/email-send-newsletter.test.ts (3 tests) 7ms
+ ↓ tests/discovery-live-exa.integration.test.ts (1 test | 1 skipped)
+ ✓ tests/email-render-newsletter.test.ts (2 tests) 81ms
+stdout | tests/send-user-newsletter.test.ts > sendUserNewsletter > sends exactly 10 items and persists bloom state on success
+{"subsystem":"send_pipeline","event":"discovery_completed","user_id":"user-1","run_at_utc":"2026-02-16T18:00:00.000Z","selected_count":10,"warnings":[]}
+
+stdout | tests/send-user-newsletter.test.ts > sendUserNewsletter > sends exactly 10 items and persists bloom state on success
+{"subsystem":"send_pipeline","event":"sent","user_id":"user-1","run_at_utc":"2026-02-16T18:00:00.000Z","item_count":10,"provider_message_id":"msg_1","bloom_count_estimate":10}
+
+stdout | tests/send-user-newsletter.test.ts > sendUserNewsletter > marks failed and returns send_failed when provider fails twice
+{"subsystem":"send_pipeline","event":"discovery_completed","user_id":"user-1","run_at_utc":"2026-02-16T18:00:00.000Z","selected_count":10,"warnings":[]}
+
+stdout | tests/send-user-newsletter.test.ts > sendUserNewsletter > marks failed and returns send_failed when provider fails twice
+{"subsystem":"send_pipeline","event":"send_failed","user_id":"user-1","run_at_utc":"2026-02-16T18:00:00.000Z","attempts":2,"reason":"provider down"}
+
+stdout | tests/send-user-newsletter.test.ts > sendUserNewsletter > returns sent without duplicate send only when existing idempotency row is already sent
+{"subsystem":"send_pipeline","event":"discovery_completed","user_id":"user-1","run_at_utc":"2026-02-16T18:00:00.000Z","selected_count":10,"warnings":[]}
+
+stdout | tests/send-user-newsletter.test.ts > sendUserNewsletter > returns sent without duplicate send only when existing idempotency row is already sent
+{"subsystem":"send_pipeline","event":"idempotency_conflict","user_id":"user-1","run_at_utc":"2026-02-16T18:00:00.000Z","idempotency_key":"newsletter:v1:user-1:2026-02-16","existing_status":"sent","outcome":"already_sent"}
+
+stdout | tests/send-user-newsletter.test.ts > sendUserNewsletter > returns send_failed when idempotency conflict is still processing
+{"subsystem":"send_pipeline","event":"discovery_completed","user_id":"user-1","run_at_utc":"2026-02-16T18:00:00.000Z","selected_count":10,"warnings":[]}
+
+stdout | tests/send-user-newsletter.test.ts > sendUserNewsletter > returns send_failed when idempotency conflict is still processing
+{"subsystem":"send_pipeline","event":"idempotency_conflict","user_id":"user-1","run_at_utc":"2026-02-16T18:00:00.000Z","idempotency_key":"newsletter:v1:user-1:2026-02-16","existing_status":"processing","outcome":"already_processing"}
+
+stdout | tests/send-user-newsletter.test.ts > sendUserNewsletter > proceeds with send when failed idempotency row is reclaimed
+{"subsystem":"send_pipeline","event":"discovery_completed","user_id":"user-1","run_at_utc":"2026-02-16T18:00:00.000Z","selected_count":10,"warnings":[]}
+
+stdout | tests/send-user-newsletter.test.ts > sendUserNewsletter > proceeds with send when failed idempotency row is reclaimed
+{"subsystem":"send_pipeline","event":"sent","user_id":"user-1","run_at_utc":"2026-02-16T18:00:00.000Z","item_count":10,"provider_message_id":"msg_retry","bloom_count_estimate":10}
+
+ ✓ tests/send-user-newsletter.test.ts (6 tests) 12ms
+ ✓ tests/send-idempotency.test.ts (3 tests) 7ms
+ ❯ tests/discovery-manual-eval.integration.test.ts (1 test | 1 failed) 5012ms
+     × produces a sensible final candidate set for human review 5010ms
+ ❯ tests/discovery-run.test.ts (13 tests | 11 failed) 59047ms
+     × fills to target count after selecting one winner per topic 5014ms
+     ✓ retries up to maxRetries and backfills to target when topic winner pool is insufficient  3990ms
+     × evaluates early-stop policy without breaking one-per-topic selection 5004ms
+     × never uses suppressed-topic fallback and fails when non-suppressed pool cannot hit target 5003ms
+     × backfills with same-topic candidates when strict one-per-topic is insufficient 5003ms
+     × prefers underrepresented topics during backfill before repeating a dominant topic 5004ms
+     × keeps partial results and reports warnings when topic queries fail 5002ms
+     × derives topic seeds from personality/feedback when active interests are missing 5003ms
+     × filters known low-signal domains before selecting topic winners 5003ms
+     × filters index/hub-style pages before selecting winners 5005ms
+     × uses top-2 mean highlight score when Exa score is unavailable 5004ms
+     × supports candidate include filter for downstream anti-repeat gating 5004ms
+     ✓ uses query planner topic overrides when provided 2ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 12 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/discovery-manual-eval.integration.test.ts > discovery manual integration eval > produces a sensible final candidate set for human review
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/discovery-manual-eval.integration.test.ts:146:3
+    144| 
+    145| describe("discovery manual integration eval", () => {
+    146|   it("produces a sensible final candidate set for human review", async…
+       |   ^
+    147|     const exaSearch = buildMockExaSearch();
+    148| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/12]⎯
+
+ FAIL  tests/discovery-run.test.ts > runDiscovery > fills to target count after selecting one winner per topic
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/discovery-run.test.ts:20:3
+     18| 
+     19| describe("runDiscovery", () => {
+     20|   it("fills to target count after selecting one winner per topic", asy…
+       |   ^
+     21|     const exaSearch = vi.fn(async ({ query }: { query: string; numResu…
+     22|       if (query.startsWith("AI engineering")) {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/12]⎯
+
+ FAIL  tests/discovery-run.test.ts > runDiscovery > evaluates early-stop policy without breaking one-per-topic selection
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/discovery-run.test.ts:110:3
+    108|   });
+    109| 
+    110|   it("evaluates early-stop policy without breaking one-per-topic selec…
+       |   ^
+    111|     const exaSearch = vi.fn(async ({ query }: { query: string; numResu…
+    112|       const suffix = query.startsWith("AI engineering") ? "ai" : "dist…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/12]⎯
+
+ FAIL  tests/discovery-run.test.ts > runDiscovery > never uses suppressed-topic fallback and fails when non-suppressed pool cannot hit target
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/discovery-run.test.ts:141:3
+    139|   });
+    140| 
+    141|   it("never uses suppressed-topic fallback and fails when non-suppress…
+       |   ^
+    142|     const suppressedMemory = [
+    143|       "PERSONALITY:",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/12]⎯
+
+ FAIL  tests/discovery-run.test.ts > runDiscovery > backfills with same-topic candidates when strict one-per-topic is insufficient
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/discovery-run.test.ts:182:3
+    180|   });
+    181| 
+    182|   it("backfills with same-topic candidates when strict one-per-topic i…
+       |   ^
+    183|     const exaSearch = vi.fn(async () => [
+    184|       { url: "https://same.com/a", title: "A", highlights: ["x"], scor…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/12]⎯
+
+ FAIL  tests/discovery-run.test.ts > runDiscovery > prefers underrepresented topics during backfill before repeating a dominant topic
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/discovery-run.test.ts:212:3
+    210|   });
+    211| 
+    212|   it("prefers underrepresented topics during backfill before repeating…
+       |   ^
+    213|     const breadthMemory = [
+    214|       "PERSONALITY:",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/12]⎯
+
+ FAIL  tests/discovery-run.test.ts > runDiscovery > keeps partial results and reports warnings when topic queries fail
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/discovery-run.test.ts:272:3
+    270|   });
+    271| 
+    272|   it("keeps partial results and reports warnings when topic queries fa…
+       |   ^
+    273|     const exaSearch = vi.fn(async ({ query }: { query: string; numResu…
+    274|       if (query.startsWith("AI engineering")) {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/12]⎯
+
+ FAIL  tests/discovery-run.test.ts > runDiscovery > derives topic seeds from personality/feedback when active interests are missing
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/discovery-run.test.ts:309:3
+    307|   });
+    308| 
+    309|   it("derives topic seeds from personality/feedback when active intere…
+       |   ^
+    310|     const noActiveMemory = [
+    311|       "PERSONALITY:",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/12]⎯
+
+ FAIL  tests/discovery-run.test.ts > runDiscovery > filters known low-signal domains before selecting topic winners
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/discovery-run.test.ts:344:3
+    342|   });
+    343| 
+    344|   it("filters known low-signal domains before selecting topic winners"…
+       |   ^
+    345|     const exaSearch = vi.fn(async ({ query }: { query: string; numResu…
+    346|       if (query.startsWith("AI engineering")) {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/12]⎯
+
+ FAIL  tests/discovery-run.test.ts > runDiscovery > filters index/hub-style pages before selecting winners
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/discovery-run.test.ts:372:3
+    370|   });
+    371| 
+    372|   it("filters index/hub-style pages before selecting winners", async (…
+       |   ^
+    373|     const exaSearch = vi.fn(async ({ query }: { query: string; numResu…
+    374|       if (query.startsWith("AI engineering")) {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/12]⎯
+
+ FAIL  tests/discovery-run.test.ts > runDiscovery > uses top-2 mean highlight score when Exa score is unavailable
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/discovery-run.test.ts:400:3
+    398|   });
+    399| 
+    400|   it("uses top-2 mean highlight score when Exa score is unavailable", …
+       |   ^
+    401|     const highlightScoreMemory = [
+    402|       "PERSONALITY:",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/12]⎯
+
+ FAIL  tests/discovery-run.test.ts > runDiscovery > supports candidate include filter for downstream anti-repeat gating
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/discovery-run.test.ts:447:3
+    445|   });
+    446| 
+    447|   it("supports candidate include filter for downstream anti-repeat gat…
+       |   ^
+    448|     const memory = [
+    449|       "PERSONALITY:",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/12]⎯
+
+
+ Test Files  2 failed | 15 passed | 1 skipped (18)
+      Tests  12 failed | 91 passed | 1 skipped (104)
+   Start at  19:53:51
+   Duration  60.32s (transform 2.69s, setup 0ms, import 15.49s, tests 67.08s, environment 4ms)
+
