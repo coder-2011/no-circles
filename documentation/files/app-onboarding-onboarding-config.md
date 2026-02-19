@@ -9,6 +9,7 @@ Holds onboarding constants and small pure utilities used by the page controller 
   - curated timezones
   - quick-spark suggestions
   - preferred-name placeholder suggestions
+- email-name inference pattern for `first.last` / `first_last` / `first-last`
 - onboarding state types:
   - `AuthState`
   - `SubmitState`
@@ -17,3 +18,6 @@ Holds onboarding constants and small pure utilities used by the page controller 
   - `truncateToWordLimit`
   - `parseSendTime`
   - `buildSendTime`
+  - `getPreferredNameFromEmail` for lightweight suggested-name inference
+  - `getDetectedTimezone` + `buildTimezoneOptions` for browser timezone defaults
+  - `initialSendTimeFromLocalNow` for no-permission local send-time default

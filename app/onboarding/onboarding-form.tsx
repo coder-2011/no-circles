@@ -1,11 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import {
-  BRAIN_DUMP_WORD_LIMIT,
-  CURATED_TIMEZONES,
-  INTEREST_QUICK_SPARKS
-} from "@/app/onboarding/onboarding-config";
+import { BRAIN_DUMP_WORD_LIMIT, INTEREST_QUICK_SPARKS } from "@/app/onboarding/onboarding-config";
 import type { OnboardingController } from "@/app/onboarding/use-onboarding-controller";
 
 type OnboardingFormProps = {
@@ -57,10 +53,12 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
               <input
                 className="w-full rounded-lg border border-[#C7BA95] bg-[#FFFDF8] px-3 py-2 text-sm focus:border-[#3D6F49] focus:outline-none"
                 onChange={(event) => controller.setPreferredName(event.target.value)}
+                onKeyDown={controller.completePreferredNameOnTab}
                 placeholder={controller.preferredNameSuggestion}
                 required
                 value={controller.preferredName}
               />
+              <span className="mt-1 block text-xs text-[#6B775D]">Press Tab to accept the suggested name.</span>
             </label>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -72,7 +70,7 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
                   required
                   value={controller.timezone}
                 >
-                  {CURATED_TIMEZONES.map((zone) => (
+                  {controller.timezoneOptions.map((zone) => (
                     <option key={zone} value={zone}>
                       {zone}
                     </option>
@@ -128,12 +126,62 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
                   if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
                     event.preventDefault();
                     event.currentTarget.form?.requestSubmit();
+                    return;
                   }
+
+                  if (controller.brainDumpWordCount < BRAIN_DUMP_WORD_LIMIT) {
+                    return;
+                  }
+
+                  const allowedKeys = new Set([
+                    "Backspace",
+                    "Delete",
+                    "ArrowLeft",
+                    "ArrowRight",
+                    "ArrowUp",
+                    "ArrowDown",
+                    "Home",
+                    "End",
+                    "Tab",
+                    "Escape"
+                  ]);
+
+                  if (event.metaKey || event.ctrlKey || event.altKey || allowedKeys.has(event.key)) {
+                    return;
+                  }
+
+                  event.preventDefault();
                 }}
                 placeholder="Add what you want more of, less of, and what kind of ideas you want to stumble into."
                 required
                 value={controller.brainDumpText}
               />
+              <div className="mt-3 flex items-start justify-between gap-3">
+                <div className="pb-2">
+                  <button
+                    className="rounded-md border border-[#B8AA84] bg-[#FFF8E8] px-3 py-1.5 text-xs font-medium text-[#3F4E38] transition hover:bg-[#F2E7CC] disabled:opacity-50"
+                    disabled={controller.dictationState === "warming" || controller.dictationState === "stopping"}
+                    onClick={() => {
+                      if (controller.dictationState === "recording") {
+                        void controller.stopDictation();
+                        return;
+                      }
+
+                      void controller.startDictation();
+                    }}
+                    type="button"
+                  >
+                    {controller.dictationState === "recording" ? "Stop dictation" : "Dictate"}
+                  </button>
+                </div>
+                <span
+                  className={`rounded bg-[#FFF8E8] px-2 py-1 text-xs ${
+                    controller.brainDumpWordCount >= BRAIN_DUMP_WORD_LIMIT ? "text-rose-700" : "text-[#6B775D]"
+                  }`}
+                >
+                  {controller.brainDumpWordCount}/{BRAIN_DUMP_WORD_LIMIT} words
+                </span>
+              </div>
               <div className="mt-2 flex flex-wrap gap-2.5">
                 {INTEREST_QUICK_SPARKS.map((spark) => (
                   <button
@@ -147,30 +195,10 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
                 ))}
               </div>
               <span className="mt-1 block text-xs text-[#6B775D]">
-                {controller.brainDumpWordCount}/{BRAIN_DUMP_WORD_LIMIT} words
+                {controller.dictationState === "warming" && "Preparing microphone..."}
+                {controller.dictationState === "recording" && "Listening..."}
+                {controller.dictationState === "stopping" && "Finishing transcript..."}
               </span>
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <button
-                  className="rounded-md border border-[#B8AA84] bg-[#FFF8E8] px-3 py-1.5 text-xs font-medium text-[#3F4E38] transition hover:bg-[#F2E7CC] disabled:opacity-50"
-                  disabled={controller.dictationState === "warming" || controller.dictationState === "stopping"}
-                  onClick={() => {
-                    if (controller.dictationState === "recording") {
-                      void controller.stopDictation();
-                      return;
-                    }
-
-                    void controller.startDictation();
-                  }}
-                  type="button"
-                >
-                  {controller.dictationState === "recording" ? "Stop dictation" : "Dictate"}
-                </button>
-                <span className="text-xs text-[#6B775D]">
-                  {controller.dictationState === "warming" && "Preparing microphone..."}
-                  {controller.dictationState === "recording" && "Listening..."}
-                  {controller.dictationState === "stopping" && "Finishing transcript..."}
-                </span>
-              </div>
               {controller.dictationError ? (
                 <span className="mt-2 block text-xs text-rose-700">{controller.dictationError}</span>
               ) : null}

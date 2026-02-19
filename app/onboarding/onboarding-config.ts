@@ -1,7 +1,7 @@
 export type AuthState = "loading" | "signed_in" | "signed_out" | "error";
 export type SubmitState = "idle" | "saving" | "saved" | "error";
 
-export const BRAIN_DUMP_WORD_LIMIT = 500;
+export const BRAIN_DUMP_WORD_LIMIT = 1000;
 export const BRAIN_DUMP_DRAFT_KEY = "onboarding_brain_dump_draft_v1";
 
 export const CURATED_TIMEZONES = [
@@ -37,6 +37,68 @@ export const PREFERRED_NAME_SUGGESTIONS = [
   "Hannah Arendt",
   "Carl Sagan"
 ] as const;
+
+const EMAIL_LOCAL_PART_FIRST_LAST_PATTERN = /^([a-zA-Z]{2,})[._-]([a-zA-Z]{2,})$/;
+
+export function toDisplayNameToken(token: string): string {
+  if (!token) {
+    return "";
+  }
+
+  return token[0].toUpperCase() + token.slice(1).toLowerCase();
+}
+
+export function getPreferredNameFromEmail(email: string | null): string | null {
+  if (!email) {
+    return null;
+  }
+
+  const atIndex = email.indexOf("@");
+  if (atIndex <= 0) {
+    return null;
+  }
+
+  const localPart = email.slice(0, atIndex).trim();
+  const match = EMAIL_LOCAL_PART_FIRST_LAST_PATTERN.exec(localPart);
+  if (!match) {
+    return null;
+  }
+
+  const firstName = toDisplayNameToken(match[1] ?? "");
+  const lastName = toDisplayNameToken(match[2] ?? "");
+  if (!firstName || !lastName) {
+    return null;
+  }
+
+  return `${firstName} ${lastName}`;
+}
+
+export function getDetectedTimezone(): string {
+  const detected = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  return detected?.trim() || "America/New_York";
+}
+
+export function buildTimezoneOptions(selectedTimezone: string): string[] {
+  if (!selectedTimezone) {
+    return [...CURATED_TIMEZONES];
+  }
+
+  if (CURATED_TIMEZONES.includes(selectedTimezone as (typeof CURATED_TIMEZONES)[number])) {
+    return [...CURATED_TIMEZONES];
+  }
+
+  return [selectedTimezone, ...CURATED_TIMEZONES];
+}
+
+export function initialSendTimeFromLocalNow(now: Date = new Date()): string {
+  const localHour = now.getHours();
+  if (localHour < 6) {
+    return "08:00";
+  }
+
+  const nextHour = (localHour + 1) % 24;
+  return `${String(nextHour).padStart(2, "0")}:00`;
+}
 
 export function countWords(text: string): number {
   const trimmed = text.trim();
