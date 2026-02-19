@@ -149,6 +149,31 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
               <span className="mt-1 block text-xs text-[#6B775D]">
                 {controller.brainDumpWordCount}/{BRAIN_DUMP_WORD_LIMIT} words
               </span>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <button
+                  className="rounded-md border border-[#B8AA84] bg-[#FFF8E8] px-3 py-1.5 text-xs font-medium text-[#3F4E38] transition hover:bg-[#F2E7CC] disabled:opacity-50"
+                  disabled={controller.dictationState === "warming" || controller.dictationState === "stopping"}
+                  onClick={() => {
+                    if (controller.dictationState === "recording") {
+                      void controller.stopDictation();
+                      return;
+                    }
+
+                    void controller.startDictation();
+                  }}
+                  type="button"
+                >
+                  {controller.dictationState === "recording" ? "Stop dictation" : "Dictate"}
+                </button>
+                <span className="text-xs text-[#6B775D]">
+                  {controller.dictationState === "warming" && "Preparing microphone..."}
+                  {controller.dictationState === "recording" && "Listening..."}
+                  {controller.dictationState === "stopping" && "Finishing transcript..."}
+                </span>
+              </div>
+              {controller.dictationError ? (
+                <span className="mt-2 block text-xs text-rose-700">{controller.dictationError}</span>
+              ) : null}
             </label>
 
             <div className="flex flex-wrap gap-3">

@@ -14,6 +14,7 @@ Encapsulates onboarding page state, side effects, and action handlers as a reusa
   - sign-out
   - submit
   - quick-spark append
+  - Wispr dictation start/stop for brain-dump voice input
 
 ## Notes
 - `send_time_local` is derived from hour/minute/meridiem state via `buildSendTime`, avoiding redundant state syncing.
