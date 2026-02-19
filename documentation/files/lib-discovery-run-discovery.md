@@ -1,7 +1,7 @@
 # File: `lib/discovery/run-discovery.ts`
 
 ## Purpose
-Runs one PR6 discovery pass for a user: derive topics, query Exa, and orchestrate selection/gating to return final candidates.
+Runs one PR6 discovery pass for a user: derive topics, query Tavily-backed discovery, and orchestrate selection/gating to return final candidates.
 
 Implementation split:
 - `lib/discovery/run-discovery.ts`: orchestration entrypoint.
@@ -14,11 +14,21 @@ Implementation split:
 
 Optional dependency hook:
 - `includeCandidate(candidate) -> boolean` for downstream candidate-gating policies (for example Bloom anti-repeat checks).
+- `queryPlanner({ interestMemoryText, topics }) -> Map<topic, query>` to override base topic queries before discovery calls.
+
+Output adds `queryPlannerTrace` for diagnostics/artifacts:
+- `attempted`: planner path was evaluated for this run
+- `active`: planner returned at least one topic override
+- `plannedQueriesByTopic`: applied overrides by canonical topic key
+- `fallbackError`: planner error text when fallback was used
 
 ## Core Behavior
 1. Derive topics from memory.
-2. Query Exa per topic and normalize results.
-   - `exaScore` uses `result.score` when available; falls back to aggregate highlight score when `score` is absent.
+2. Optionally run query planner to produce topic-level query overrides.
+   - planner uses OpenRouter (`OPENROUTER_API_KEY`) when enabled
+   - planner failures are warning-only and fall back to deterministic topic queries
+3. Query discovery provider per topic and normalize results.
+   - `sourceScore` uses `result.score` when available; falls back to aggregate highlight score when `score` is absent.
    - preserves full `highlights[]` and full `highlightScores[]` on each candidate.
    - `highlightScore` stores aggregate (mean) highlight score for topic-local ranking.
 3. Apply optional candidate include hook to normalized candidates.
@@ -27,7 +37,7 @@ Optional dependency hook:
 5. Apply quality filters before winner selection:
    - require both `title` and `highlight`
    - drop known low-signal source patterns/domains
-   - drop scored candidates below minimum `exaScore` threshold.
+   - drop scored candidates below minimum `sourceScore` threshold.
 6. Enforce per-domain cap (`maxPerDomain`) on quality-filtered pool.
 7. Perform strict one-winner-per-topic selection using weighted topic-local score:
    - `0.65 * exaNorm + 0.35 * highlightNorm` (weights renormalized when one signal is missing).
@@ -60,7 +70,7 @@ Default `perTopicResults` is `7` (attempts 2+ increase by `+2` each).
 - `INSUFFICIENT_QUALITY_CANDIDATES:<actual>/<target>`
 
 ## Warning Codes
-- `EXA_TOPIC_FAILURE:<topic>:<reason>`
+- `DISCOVERY_TOPIC_FAILURE:<topic>:<reason>`
 - `EARLY_STOP_TRIGGERED_ATTEMPT_<n>`
 - `LOW_SIGNAL_FILTERED_<n>`
 - `LOW_SCORE_FILTERED_<n>`
@@ -73,3 +83,5 @@ Default `perTopicResults` is `7` (attempts 2+ increase by `+2` each).
 - `RELAXED_QUALITY_BACKFILL_<n>`
 - `CANDIDATE_FILTERED_<n>`
 - `DIVERSITY_CARD_FAILED`
+- `QUERY_PLANNER_ACTIVE_<n>`
+- `QUERY_PLANNER_FALLBACK:<reason>`

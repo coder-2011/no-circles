@@ -1,12 +1,15 @@
 import { deriveTopicsFromMemory } from "@/lib/discovery/topic-derivation";
-import { searchExa } from "@/lib/discovery/exa-client";
+import { searchDiscovery } from "@/lib/discovery/tavily-client";
+import { planQueriesForTopics, shouldUseQueryPlanner } from "@/lib/discovery/query-planner";
+import { logInfo } from "@/lib/observability/log";
 import {
   DEFAULT_DISCOVERY_MAX_RETRIES,
   DEFAULT_DISCOVERY_TARGET_COUNT,
   type DiscoveryCandidate,
+  type DiscoveryTopic,
   type DiscoveryRunInput,
   type DiscoveryRunResult,
-  type ExaSearchFn
+  type DiscoverySearchFn
 } from "@/lib/discovery/types";
 import {
   applyDomainCap,
@@ -30,7 +33,7 @@ const DISCOVERY_DEBUG = process.env.DISCOVERY_DEBUG === "1";
 
 function logDiscoveryDebug(event: string, details: Record<string, unknown>) {
   if (!DISCOVERY_DEBUG) return;
-  console.info(JSON.stringify({ subsystem: "discovery", event, ...details }));
+  logInfo("discovery", event, details);
 }
 
 function hasRequiredItemFields(candidate: DiscoveryCandidate): boolean {
@@ -94,7 +97,11 @@ function fillFromPool(
 
 export async function runDiscovery(
   input: DiscoveryRunInput,
-  deps: { exaSearch?: ExaSearchFn; includeCandidate?: (candidate: DiscoveryCandidate) => boolean } = {}
+  deps: {
+    exaSearch?: DiscoverySearchFn;
+    includeCandidate?: (candidate: DiscoveryCandidate) => boolean;
+    queryPlanner?: (args: { interestMemoryText: string; topics: DiscoveryTopic[] }) => Promise<Map<string, string>>;
+  } = {}
 ): Promise<DiscoveryRunResult> {
   const targetCount = input.targetCount ?? DEFAULT_DISCOVERY_TARGET_COUNT;
   const maxRetries = input.maxRetries ?? DEFAULT_DISCOVERY_MAX_RETRIES;
@@ -102,7 +109,7 @@ export async function runDiscovery(
   const basePerTopicResults = input.perTopicResults ?? DEFAULT_PER_TOPIC_RESULTS;
   const earlyStopBuffer = input.earlyStopBuffer ?? DEFAULT_EARLY_STOP_BUFFER;
   const maxPerDomain = input.maxPerDomain ?? DEFAULT_MAX_PER_DOMAIN;
-  const exaSearch = deps.exaSearch ?? searchExa;
+  const exaSearch = deps.exaSearch ?? searchDiscovery;
   const includeCandidate = deps.includeCandidate ?? (() => true);
 
   const topics = deriveTopicsFromMemory({
@@ -115,6 +122,26 @@ export async function runDiscovery(
   }
 
   const warnings: string[] = [];
+  const queryPlanner =
+    deps.queryPlanner ?? (shouldUseQueryPlanner() ? ({ interestMemoryText, topics }) => planQueriesForTopics({ interestMemoryText, topics }) : null);
+  const plannedQueriesByTopic = new Map<string, string>();
+  let queryPlannerFallbackError: string | null = null;
+
+  if (queryPlanner) {
+    try {
+      const planned = await queryPlanner({ interestMemoryText: input.interestMemoryText, topics });
+      for (const [topic, query] of planned) {
+        plannedQueriesByTopic.set(topic, query);
+      }
+      if (plannedQueriesByTopic.size > 0) {
+        warnings.push(`QUERY_PLANNER_ACTIVE_${plannedQueriesByTopic.size}`);
+      }
+    } catch (error) {
+      queryPlannerFallbackError = error instanceof Error ? error.message : "UNKNOWN_ERROR";
+      warnings.push(`QUERY_PLANNER_FALLBACK:${queryPlannerFallbackError}`);
+    }
+  }
+
   const aggregateCandidates: DiscoveryCandidate[] = [];
   let candidateFilterExcludedCount = 0;
   let attemptsUsed = 0;
@@ -125,7 +152,14 @@ export async function runDiscovery(
     const perTopicResults = basePerTopicResults + attempt * 2;
 
     for (const topic of topics) {
-      const query = buildAttemptQuery(topic, attempt);
+      const plannedQuery = plannedQueriesByTopic.get(topic.topic);
+      const query = buildAttemptQuery(
+        {
+          ...topic,
+          query: plannedQuery && plannedQuery.trim().length > 0 ? plannedQuery : topic.query
+        },
+        attempt
+      );
 
       try {
         const results = await exaSearch({ query, numResults: perTopicResults });
@@ -146,7 +180,7 @@ export async function runDiscovery(
           }
         });
       } catch (error) {
-        warnings.push(`EXA_TOPIC_FAILURE:${topic.topic}:${error instanceof Error ? error.message : "UNKNOWN_ERROR"}`);
+        warnings.push(`DISCOVERY_TOPIC_FAILURE:${topic.topic}:${error instanceof Error ? error.message : "UNKNOWN_ERROR"}`);
       }
 
       const deduped = dedupeCandidates(aggregateCandidates);
@@ -259,6 +293,12 @@ export async function runDiscovery(
     topics,
     attempts: attemptsUsed,
     warnings,
-    diversityCard
+    diversityCard,
+    queryPlannerTrace: {
+      attempted: Boolean(queryPlanner),
+      active: plannedQueriesByTopic.size > 0,
+      plannedQueriesByTopic: Object.fromEntries(plannedQueriesByTopic),
+      fallbackError: queryPlannerFallbackError
+    }
   };
 }

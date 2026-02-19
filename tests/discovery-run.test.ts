@@ -296,7 +296,7 @@ describe("runDiscovery", () => {
     expect(result.candidates).toHaveLength(2);
     expect(result.candidates[0].canonicalUrl).toBe("https://example.com/good");
     expect(result.candidates[1].canonicalUrl).toBe("https://example.com/good-2");
-    expect(result.warnings.some((warning) => warning.startsWith("EXA_TOPIC_FAILURE:AI engineering"))).toBe(true);
+    expect(result.warnings.some((warning) => warning.startsWith("DISCOVERY_TOPIC_FAILURE:AI engineering"))).toBe(true);
     expect(
       result.warnings.some(
         (warning) =>
@@ -397,7 +397,7 @@ describe("runDiscovery", () => {
     expect(result.warnings.some((warning) => warning.startsWith("LOW_SIGNAL_FILTERED_"))).toBe(true);
   });
 
-  it("uses top-2 mean highlight score when Exa score is unavailable", async () => {
+  it("uses top-2 mean highlight score when provider score is unavailable", async () => {
     const highlightScoreMemory = [
       "PERSONALITY:",
       "- practical",
@@ -482,5 +482,25 @@ describe("runDiscovery", () => {
     expect(result.candidates).toHaveLength(1);
     expect(result.candidates[0]?.canonicalUrl).toBe("https://example.com/allowed");
     expect(result.warnings).toContain("CANDIDATE_FILTERED_1");
+  });
+
+  it("uses query planner topic overrides when provided", async () => {
+    const exaSearch = vi.fn(async () => [{ url: "https://example.com/one", title: "one", highlights: ["x"], score: 0.9 }]);
+    const queryPlanner = vi.fn(async () => new Map([["AI engineering", "AI engineering production case study"]]));
+
+    await runDiscovery(
+      {
+        interestMemoryText: memory,
+        targetCount: 1,
+        maxRetries: 1,
+        maxTopics: 1,
+        perTopicResults: 1
+      },
+      { exaSearch, queryPlanner }
+    );
+
+    expect(queryPlanner).toHaveBeenCalledTimes(1);
+    expect(exaSearch).toHaveBeenCalledTimes(1);
+    expect(exaSearch.mock.calls[0]?.[0]?.query).toBe("AI engineering production case study");
   });
 });

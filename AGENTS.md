@@ -17,7 +17,7 @@ Build a website-first, personalized daily newsletter system that curates 10 high
 - Tailwind CSS + shadcn/ui
 - Supabase Postgres + Drizzle ORM + drizzle-kit
 - Claude Sonnet 4.5 (writer + reply parsing)
-- Exa (discovery)
+- Tavily (discovery)
 - Resend (outbound + inbound)
 - Vercel + Vercel Cron (every minute)
 - zod, date-fns/date-fns-tz, Vitest, Playwright
@@ -148,6 +148,7 @@ Build a website-first, personalized daily newsletter system that curates 10 high
   - `just lint`
   - `just test`
   - `just e2e`
+  - `just hyper-reply-evolution-live`
   - `just main-loc`
   - `just loc`
 

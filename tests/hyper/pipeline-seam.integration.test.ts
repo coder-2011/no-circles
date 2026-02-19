@@ -74,7 +74,7 @@ describe("hyper integration: pipeline seam", () => {
           resultRank: suffix === "a" ? 0 : 1,
           sourceDomain: "example.com",
           publishedAt: null,
-          exaScore: 0.9,
+          sourceScore: 0.9,
           highlightScore: 0.8,
           highlightScores: [0.8]
         };

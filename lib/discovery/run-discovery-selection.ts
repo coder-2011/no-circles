@@ -1,8 +1,8 @@
-import type { DiscoveryCandidate, DiscoveryDiversityCard, DiscoveryTopic, ExaSearchResult } from "@/lib/discovery/types";
+import type { DiscoveryCandidate, DiscoveryDiversityCard, DiscoveryTopic, DiscoverySearchResult } from "@/lib/discovery/types";
 
-const MIN_ACCEPTABLE_EXA_SCORE = 0.05;
+const MIN_ACCEPTABLE_DISCOVERY_SCORE = 0.05;
 const MIN_TOPIC_SELECTION_SCORE = 0.32;
-const EXA_WEIGHT = 0.65;
+const DISCOVERY_SCORE_WEIGHT = 0.65;
 const HIGHLIGHT_WEIGHT = 0.35;
 const TOP_K_HIGHLIGHT_SCORES = 2;
 
@@ -82,8 +82,8 @@ function keepPreferred(existing: DiscoveryCandidate, incoming: DiscoveryCandidat
     return incoming.resultRank < existing.resultRank ? incoming : existing;
   }
 
-  if (incoming.exaScore !== null && existing.exaScore !== null && incoming.exaScore !== existing.exaScore) {
-    return incoming.exaScore > existing.exaScore ? incoming : existing;
+  if (incoming.sourceScore !== null && existing.sourceScore !== null && incoming.sourceScore !== existing.sourceScore) {
+    return incoming.sourceScore > existing.sourceScore ? incoming : existing;
   }
 
   return existing;
@@ -103,8 +103,8 @@ function computeTopicSelectionScore(args: {
   let weightSum = 0;
 
   if (args.exaNorm !== null) {
-    weightedSum += args.exaNorm * EXA_WEIGHT;
-    weightSum += EXA_WEIGHT;
+    weightedSum += args.exaNorm * DISCOVERY_SCORE_WEIGHT;
+    weightSum += DISCOVERY_SCORE_WEIGHT;
   }
 
   if (args.highlightNorm !== null) {
@@ -117,7 +117,7 @@ function computeTopicSelectionScore(args: {
 }
 
 function averageScore(candidates: DiscoveryCandidate[]): number {
-  const scores = candidates.map((candidate) => candidate.exaScore).filter((score): score is number => score !== null);
+  const scores = candidates.map((candidate) => candidate.sourceScore).filter((score): score is number => score !== null);
   if (scores.length === 0) return 0;
   return scores.reduce((sum, score) => sum + score, 0) / scores.length;
 }
@@ -193,7 +193,7 @@ function classifyQualityDropReason(
     return "low_signal";
   }
 
-  if (candidate.exaScore !== null && candidate.exaScore < MIN_ACCEPTABLE_EXA_SCORE) {
+  if (candidate.sourceScore !== null && candidate.sourceScore < MIN_ACCEPTABLE_DISCOVERY_SCORE) {
     return "low_score";
   }
 
@@ -255,7 +255,7 @@ export function summarizeQualityFilterDiagnostics(candidates: DiscoveryCandidate
 
 export function normalizeCandidate(args: {
   topic: DiscoveryTopic;
-  result: ExaSearchResult;
+  result: DiscoverySearchResult;
   resultRank: number;
 }): DiscoveryCandidate | null {
   const canonicalUrl = canonicalizeUrl(args.result.url);
@@ -280,7 +280,7 @@ export function normalizeCandidate(args: {
     resultRank: args.resultRank,
     sourceDomain: getDomain(canonicalUrl),
     publishedAt: args.result.publishedDate ?? null,
-    exaScore:
+    sourceScore:
       typeof args.result.score === "number"
         ? args.result.score
         : representativeScore !== null
@@ -431,7 +431,7 @@ export function selectOnePerTopic(candidates: DiscoveryCandidate[], targetCount:
     if (topicCandidates.length === 0) continue;
 
     const exaScores = topicCandidates
-      .map((candidate) => candidate.exaScore)
+      .map((candidate) => candidate.sourceScore)
       .filter((score): score is number => score !== null);
     const highlightScores = topicCandidates
       .map((candidate) => candidate.highlightScore)
@@ -443,7 +443,7 @@ export function selectOnePerTopic(candidates: DiscoveryCandidate[], targetCount:
 
     const scored = topicCandidates
       .map((candidate) => {
-        const exaNorm = normalizeScore(candidate.exaScore, exaMin, exaMax);
+        const exaNorm = normalizeScore(candidate.sourceScore, exaMin, exaMax);
         const highlightNorm = normalizeScore(candidate.highlightScore, highlightMin, highlightMax);
         const topicSelectionScore = computeTopicSelectionScore({ exaNorm, highlightNorm });
         return { candidate, topicSelectionScore };

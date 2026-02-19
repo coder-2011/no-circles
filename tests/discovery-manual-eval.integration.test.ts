@@ -160,7 +160,7 @@ describe("discovery manual integration eval", () => {
     console.log("\\nMANUAL_EVAL_CANDIDATES_START");
     for (const [index, candidate] of result.candidates.entries()) {
       console.log(
-        `${index + 1}. [${candidate.topic}] ${candidate.title} | ${candidate.sourceDomain} | score=${candidate.exaScore} | ${candidate.url}`
+        `${index + 1}. [${candidate.topic}] ${candidate.title} | ${candidate.sourceDomain} | score=${candidate.sourceScore} | ${candidate.url}`
       );
       console.log(`   highlight: ${candidate.highlight}`);
     }
@@ -176,7 +176,7 @@ describe("discovery manual integration eval", () => {
     expect(distinctDomains.size).toBeGreaterThanOrEqual(8);
 
     const avgScore =
-      result.candidates.reduce((sum, candidate) => sum + (candidate.exaScore ?? 0), 0) / result.candidates.length;
+      result.candidates.reduce((sum, candidate) => sum + (candidate.sourceScore ?? 0), 0) / result.candidates.length;
     expect(avgScore).toBeGreaterThanOrEqual(0.64);
 
     expect(result.candidates.every((candidate) => (candidate.highlight ?? "").length >= 40)).toBe(true);

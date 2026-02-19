@@ -16,7 +16,7 @@ Planning and architecture are defined. Implementation is in progress.
 - Next.js + TypeScript
 - Tailwind CSS + shadcn/ui
 - Supabase Postgres + Drizzle ORM + drizzle-kit
-- Exa (discovery)
+- Tavily (discovery)
 - Claude Sonnet 4.5 (summary writing + reply parsing)
 - Resend (outbound + inbound)
 - Vercel + Vercel Cron (every minute)

@@ -1,0 +1,65 @@
+
+ RUN  v4.0.18 /Users/namanchetwani/Projects/SerendipitousEncounters
+
+stdout | tests/discovery-query-planner-live.integration.test.ts > query planner live integration > prints real prompt and planned queries from live model
+
+QUERY_PLANNER_PROMPT_START
+You write high-signal web-search queries for a personalized newsletter retrieval system.
+Goal: produce one query per topic that retrieves advanced, practical, high-quality sources.
+Hard rules:
+- Include the exact topic phrase in each query.
+- Prefer deep signals: postmortem, case study, architecture tradeoffs, benchmark, reliability lessons, technical essay, research analysis.
+- Avoid beginner material and dictionary/index pages.
+- Include these negative terms in every query: -tutorial -beginner -beginners -introduction -basics -101.
+- Use user memory to infer whether depth should be beginner/intermediate/advanced for each topic.
+- Optional cross-interest extension is allowed: if two interests naturally connect, include one adjacent concept in the same query; do not force connections when weak.
+- Keep query concise and natural; avoid stuffing many unrelated clauses.
+- Keep at least 70% of query intent anchored to the base topic; extension should be a light expansion, not a pivot.
+- Return strict JSON only: {"plans":[{"topic":"...","query":"..."}]}.
+
+Topics:
+- Philosophy of physics
+- Black holes
+- Distributed systems
+
+User memory context:
+PERSONALITY:
+- intellectually curious, likes deep arguments and practical tradeoffs
+
+ACTIVE_INTERESTS:
+- Philosophy of physics
+- Black holes
+- Distributed systems
+
+SUPPRESSED_INTERESTS:
+- crypto
+
+RECENT_FEEDBACK:
+- less introductory content, more deep analyses and concrete examples
+QUERY_PLANNER_PROMPT_END
+QUERY_PLANNER_OUTPUT_START
+[
+  {
+    "topic": "Philosophy of physics",
+    "query": "\"philosophy of physics\" interpretation quantum mechanics case study OR research analysis -tutorial -beginner -beginners -introduction -basics -101"
+  },
+  {
+    "topic": "Black holes",
+    "query": "\"black holes\" information paradox firewall postmortem OR technical essay -tutorial -beginner -beginners -introduction -basics -101"
+  },
+  {
+    "topic": "Distributed systems",
+    "query": "\"distributed systems\" consensus algorithms architecture tradeoffs OR reliability lessons -tutorial -beginner -beginners -introduction -basics -101"
+  }
+]
+QUERY_PLANNER_OUTPUT_END
+
+
+ ✓ tests/discovery-query-planner-live.integration.test.ts (1 test) 2915ms
+     ✓ prints real prompt and planned queries from live model  2913ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  19:41:16
+   Duration  3.26s (transform 43ms, setup 0ms, import 53ms, tests 2.91s, environment 0ms)
+

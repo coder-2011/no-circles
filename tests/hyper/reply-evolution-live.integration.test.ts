@@ -18,7 +18,7 @@ const REPLY_UPDATE = [
 
 function missingLiveEnv(): string[] {
   const missing: string[] = [];
-  if (!process.env.EXA_API_KEY) missing.push("EXA_API_KEY");
+  if (!process.env.TAVILY_API_KEY) missing.push("TAVILY_API_KEY");
   if (!process.env.ANTHROPIC_API_KEY) missing.push("ANTHROPIC_API_KEY");
   if (!process.env.ANTHROPIC_MEMORY_MODEL) missing.push("ANTHROPIC_MEMORY_MODEL");
   return missing;
@@ -84,13 +84,25 @@ describe("hyper integration: reply evolution live smoke", () => {
       await writeHyperLog({
         group: "reply-evolution",
         runId,
-        fileName: "04-exa-before.txt",
+        fileName: "03a-query-planner-before.txt",
+        content: toPrettyJson(before.discovery.queryPlannerTrace ?? null)
+      });
+      await writeHyperLog({
+        group: "reply-evolution",
+        runId,
+        fileName: "03b-query-planner-after.txt",
+        content: toPrettyJson(after.discovery.queryPlannerTrace ?? null)
+      });
+      await writeHyperLog({
+        group: "reply-evolution",
+        runId,
+        fileName: "04-discovery-before.txt",
         content: toPrettyJson(before.discovery)
       });
       await writeHyperLog({
         group: "reply-evolution",
         runId,
-        fileName: "05-exa-after.txt",
+        fileName: "05-discovery-after.txt",
         content: toPrettyJson(after.discovery)
       });
       await writeHyperLog({

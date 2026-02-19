@@ -20,7 +20,7 @@ export type DiscoveryCandidate = {
   resultRank: number;
   sourceDomain: string | null;
   publishedAt: string | null;
-  exaScore: number | null;
+  sourceScore: number | null;
   highlightScore: number | null;
   highlightScores: number[];
 };
@@ -58,9 +58,17 @@ export type DiscoveryRunResult = {
   attempts: number;
   warnings: string[];
   diversityCard: DiscoveryDiversityCard;
+  queryPlannerTrace?: DiscoveryQueryPlannerTrace;
 };
 
-export type ExaSearchResult = {
+export type DiscoveryQueryPlannerTrace = {
+  attempted: boolean;
+  active: boolean;
+  plannedQueriesByTopic: Record<string, string>;
+  fallbackError: string | null;
+};
+
+export type DiscoverySearchResult = {
   url: string;
   title: string | null;
   publishedDate?: string;
@@ -69,7 +77,7 @@ export type ExaSearchResult = {
   highlightScores?: number[];
 };
 
-export type ExaSearchFn = (args: {
+export type DiscoverySearchFn = (args: {
   query: string;
   numResults: number;
-}) => Promise<ExaSearchResult[]>;
+}) => Promise<DiscoverySearchResult[]>;

@@ -7,6 +7,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `subsystems/`: subsystem-level implementation notes and contracts
 - `files/`: file-by-file reference docs for core app modules, routes, and jobs
 - `appendix/`: glossary, setup playbooks, and reference material
+- `ideas.md`: product and system improvement backlog for future iterations
 
 ## Start Here
 
@@ -33,7 +34,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 
 - `subsystems/db-and-onboarding.md`
 - `subsystems/inbound-reply-memory-update.md`
-- `subsystems/exa-discovery.md`
+- `subsystems/tavily-discovery.md`
 - `subsystems/scheduler-and-cron.md`
 - `subsystems/summary-generation.md`
 - `subsystems/send-and-bloom-delivery.md`
@@ -46,6 +47,9 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/app-globals-css.md`
 - `files/app-layout.md`
 - `files/app-onboarding-page.md`
+- `files/app-onboarding-onboarding-config.md`
+- `files/app-onboarding-use-onboarding-controller.md`
+- `files/app-onboarding-onboarding-form.md`
 - `files/app-page.md`
 - `files/components-json.md`
 - `files/lib-db-client.md`
@@ -54,6 +58,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/lib-auth-browser-client.md`
 - `files/lib-schemas.md`
 - `files/lib-utils.md`
+- `files/lib-observability-log.md`
 - `files/next-config.md`
 - `files/drizzle-config.md`
 - `files/vitest-hyper-config.md`
@@ -90,7 +95,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/lib-bloom-user-url-bloom.md`
 - `files/lib-discovery-types.md`
 - `files/lib-discovery-topic-derivation.md`
-- `files/lib-discovery-exa-client.md`
+- `files/lib-discovery-tavily-client.md`
 - `files/lib-discovery-run-discovery.md`
 - `files/lib-summary-writer.md`
 - `files/lib-email-render-newsletter.md`
@@ -102,8 +107,9 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/next-env.md`
 - `files/tests-discovery-topic-derivation.md`
 - `files/tests-discovery-run.md`
+- `files/tests-discovery-query-planner.md`
 - `files/tests-discovery-manual-eval-integration.md`
-- `files/tests-discovery-live-exa-integration.md`
+- `files/tests-discovery-live-tavily-integration.md`
 - `files/tests-summary-writer.md`
 - `files/tests-bloom-user-url-bloom.md`
 - `files/tests-email-render-newsletter.md`
