@@ -24,7 +24,7 @@ This system is a website-first, email-delivered personalized newsletter product.
 
 ### AI and Discovery
 - **Claude Sonnet 4.5**: Summary writer and reply intent parsing.
-- **Exa AI**: Primary discovery API for candidate links.
+- **Tavily AI**: Primary discovery API for candidate links.
 
 ### Email and Scheduling
 - **Resend**: Outbound newsletter delivery and inbound reply webhooks.
@@ -43,7 +43,7 @@ This system is a website-first, email-delivered personalized newsletter product.
 
 ## System Pattern
 - Single monolith architecture (web + API + cron endpoints).
-- Pipeline: `Exa discovery -> fetch/extract (Playwright fallback) -> Claude writer -> assemble newsletter -> send via Resend`.
+- Pipeline: `Tavily discovery -> fetch/extract (Playwright fallback) -> Claude writer -> assemble newsletter -> send via Resend`.
 - User personalization is dynamic and text-based, not rigid topic-table driven.
 
 ## System Flows
@@ -155,7 +155,7 @@ This section defines how the curation agent works to replicate a human-like cura
 2. Derive candidate interests/subtopics from that memory.
 3. Target output is 10 items covering 10 topics per newsletter.
 4. For each interest/topic:
-   - run Exa discovery to gather candidate sources
+   - run Tavily discovery to gather candidate sources
    - use Claude to filter candidates down to top 3
    - use Claude to pick 1 best link from those 3
 5. Backend fetches/extracts article content for each selected link:

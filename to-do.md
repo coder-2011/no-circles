@@ -50,11 +50,11 @@ Why:
 - Done when:
   - endpoint reliably picks one due user at a time
 
-## 5) Discovery (Exa)
-- Branch: `feature/exa-discovery`
+## 5) Discovery (Tavily)
+- Branch: `feature/tavily-discovery`
 - Tasks:
   - derive topics from `interest_memory_text`
-  - fetch candidates via Exa per topic
+  - fetch candidates via Tavily per topic
   - dedupe URLs before selection
 - Done when:
   - candidate pool is generated for one user run

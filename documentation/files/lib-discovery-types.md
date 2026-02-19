@@ -10,8 +10,8 @@ Declares shared contracts and defaults for discovery pipeline stage (PR6).
 - `DiscoveryCandidate`
 - `DiscoveryRunInput`
 - `DiscoveryRunResult`
-- `ExaSearchResult`
-- `ExaSearchFn`
+- `DiscoverySearchResult`
+- `DiscoverySearchFn`
 
 ## Contract Notes
 - `DiscoveryCandidate.softSuppressed` carries topic suppression context into final filtering.

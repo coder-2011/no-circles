@@ -32,7 +32,7 @@ Centralized env validation means one shared module defines required variables an
 - `app/api/cron/generate-next/route.ts`
 - `app/api/webhooks/resend/inbound/route.ts`
 - `lib/db/client.ts`
-- `lib/discovery/exa-client.ts`
+- `lib/discovery/tavily-client.ts`
 - `lib/memory/processors.ts`
 - `lib/summary/writer.ts`
 - `lib/email/send-newsletter.ts`

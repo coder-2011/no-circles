@@ -1,4 +1,4 @@
-# Subsystem: Exa Discovery (PR6)
+# Subsystem: Tavily Discovery (PR6)
 
 ## Scope
 Implements candidate discovery stage only.
@@ -29,5 +29,5 @@ Integration hook:
 - Suppressed interests are soft-ranked in topic derivation and excluded from both primary and fallback selection.
 - Query construction is topic-focused; optional OpenRouter query-planner can override base topic queries with depth-focused phrasing before provider calls.
 - Discovery attempts use calibrated relaxed thresholds to improve first-attempt pass rate while preserving diversity checks.
-- Final selection starts strict one-per-topic with weighted topic-local scoring (`exa` weighted higher than highlight score), then backfills to target count with topic-balance preference before relaxed fallback.
+- Final selection starts strict one-per-topic with weighted topic-local scoring (provider score weighted higher than highlight score), then backfills to target count with topic-balance preference before relaxed fallback.
 - Diversity and source-signal diagnostics are emitted in warnings and `diversityCard`.

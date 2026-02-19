@@ -59,7 +59,13 @@ describe("hyper integration: full system live smoke", () => {
       await writeHyperLog({
         group: "full-system",
         runId,
-        fileName: "exa-discovery-output.txt",
+        fileName: "query-planner-trace.txt",
+        content: toPrettyJson(discovery.queryPlannerTrace ?? null)
+      });
+      await writeHyperLog({
+        group: "full-system",
+        runId,
+        fileName: "discovery-output.txt",
         content: toPrettyJson(discovery)
       });
       await writeHyperLog({

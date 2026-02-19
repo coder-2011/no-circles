@@ -1,7 +1,7 @@
 # File: `lib/discovery/topic-derivation.ts`
 
 ## Purpose
-Derives deterministic Exa query topics from canonical `interest_memory_text`.
+Derives deterministic discovery query topics from canonical `interest_memory_text`.
 
 ## Behavior
 1. Parses canonical memory sections.

@@ -296,7 +296,7 @@ describe("runDiscovery", () => {
     expect(result.candidates).toHaveLength(2);
     expect(result.candidates[0].canonicalUrl).toBe("https://example.com/good");
     expect(result.candidates[1].canonicalUrl).toBe("https://example.com/good-2");
-    expect(result.warnings.some((warning) => warning.startsWith("EXA_TOPIC_FAILURE:AI engineering"))).toBe(true);
+    expect(result.warnings.some((warning) => warning.startsWith("DISCOVERY_TOPIC_FAILURE:AI engineering"))).toBe(true);
     expect(
       result.warnings.some(
         (warning) =>
@@ -397,7 +397,7 @@ describe("runDiscovery", () => {
     expect(result.warnings.some((warning) => warning.startsWith("LOW_SIGNAL_FILTERED_"))).toBe(true);
   });
 
-  it("uses top-2 mean highlight score when Exa score is unavailable", async () => {
+  it("uses top-2 mean highlight score when provider score is unavailable", async () => {
     const highlightScoreMemory = [
       "PERSONALITY:",
       "- practical",
