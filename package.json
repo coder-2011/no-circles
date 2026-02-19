@@ -8,11 +8,13 @@
     "start": "next start",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:hyper": "vitest run --config vitest.hyper.config.ts"
+    "test:hyper": "vitest run --config vitest.hyper.config.ts",
+    "test:query-planner-live": "vitest run --config vitest.hyper.config.ts tests/hyper/query-planner-live.integration.test.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.95.3",
+    "@tavily/core": "^0.7.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",

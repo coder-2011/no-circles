@@ -1,0 +1,17 @@
+PERSONALITY:
+- Prefers concrete implementation guidance over theoretical or opinion-based content - Focused on practical, applied technical knowledge - Interested in systems-level thinking and architectural patterns
+
+ACTIVE_INTERESTS:
+- AI engineering
+- Systems design
+- Data engineering
+- distributed systems
+- databases
+- observability
+
+SUPPRESSED_INTERESTS:
+- software architecture
+- technical product strategy
+
+RECENT_FEEDBACK:
+- Wants actionable technical content with implementation focus - Dislikes broad thought pieces without practical application - Strong preference for distributed systems, databases, and observability topics - Emphasize practical implementation guidance in these areas

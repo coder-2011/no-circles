@@ -18,7 +18,7 @@ const REPLY_UPDATE = [
 
 function missingLiveEnv(): string[] {
   const missing: string[] = [];
-  if (!process.env.EXA_API_KEY) missing.push("EXA_API_KEY");
+  if (!process.env.TAVILY_API_KEY) missing.push("TAVILY_API_KEY");
   if (!process.env.ANTHROPIC_API_KEY) missing.push("ANTHROPIC_API_KEY");
   if (!process.env.ANTHROPIC_MEMORY_MODEL) missing.push("ANTHROPIC_MEMORY_MODEL");
   return missing;

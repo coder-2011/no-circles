@@ -1,18 +1,22 @@
-import Exa from "exa-js";
+import { tavily } from "@tavily/core";
 import type { ExaSearchFn, ExaSearchResult } from "@/lib/discovery/types";
 
-const exaApiKey = process.env.EXA_API_KEY?.trim();
-const exaClient = exaApiKey ? new Exa(exaApiKey) : null;
+const tavilyApiKey = process.env.TAVILY_API_KEY?.trim();
+const tavilyClient = tavilyApiKey ? tavily({ apiKey: tavilyApiKey }) : null;
 
-export const DEFAULT_EXA_TYPE = "auto" as const;
 const configuredHighlightMaxCharacters = Number(
-  process.env.EXA_DISCOVERY_HIGHLIGHT_MAX_CHARACTERS?.trim() || "4000"
+  process.env.TAVILY_DISCOVERY_CONTENT_MAX_CHARACTERS?.trim() ||
+    process.env.EXA_DISCOVERY_HIGHLIGHT_MAX_CHARACTERS?.trim() ||
+    "4000"
 );
 
 export const DEFAULT_EXA_HIGHLIGHT_MAX_CHARACTERS =
   Number.isFinite(configuredHighlightMaxCharacters) && configuredHighlightMaxCharacters > 0
     ? Math.floor(configuredHighlightMaxCharacters)
     : 4000;
+const DEFAULT_TAVILY_SEARCH_DEPTH = (process.env.TAVILY_DISCOVERY_SEARCH_DEPTH?.trim() || "advanced") as
+  | "basic"
+  | "advanced";
 
 const DEFAULT_EXCLUDED_DOMAINS = [
   // Social / UGC feeds
@@ -49,7 +53,7 @@ const DEFAULT_EXCLUDED_DOMAINS = [
 ] as const;
 
 function parseExcludedDomainsEnv(): string[] {
-  const raw = process.env.EXA_DISCOVERY_EXCLUDE_DOMAINS?.trim();
+  const raw = process.env.TAVILY_DISCOVERY_EXCLUDE_DOMAINS?.trim() || process.env.EXA_DISCOVERY_EXCLUDE_DOMAINS?.trim();
   if (!raw) {
     return [...DEFAULT_EXCLUDED_DOMAINS];
   }
@@ -70,28 +74,51 @@ function parseExcludedDomainsEnv(): string[] {
 
 export const EXA_DISCOVERY_EXCLUDED_DOMAINS = parseExcludedDomainsEnv();
 
-export const searchExa: ExaSearchFn = async ({ query, numResults }) => {
-  if (!exaClient) {
-    throw new Error("MISSING_EXA_API_KEY");
+function getDomain(rawUrl: string): string {
+  try {
+    return new URL(rawUrl).hostname.replace(/^www\./, "").toLowerCase();
+  } catch {
+    return "";
+  }
+}
+
+function toHighlights(content: unknown): string[] {
+  if (typeof content !== "string") {
+    return [];
   }
 
-  const response = await exaClient.search(query, {
-    type: DEFAULT_EXA_TYPE,
-    numResults,
-    excludeDomains: EXA_DISCOVERY_EXCLUDED_DOMAINS,
-    contents: {
-      highlights: {
-        maxCharacters: DEFAULT_EXA_HIGHLIGHT_MAX_CHARACTERS
-      }
-    }
+  const normalized = content.replace(/\s+/g, " ").trim();
+  if (!normalized) {
+    return [];
+  }
+
+  return [normalized.slice(0, DEFAULT_EXA_HIGHLIGHT_MAX_CHARACTERS)];
+}
+
+export const searchExa: ExaSearchFn = async ({ query, numResults }) => {
+  if (!tavilyClient) {
+    throw new Error("MISSING_TAVILY_API_KEY");
+  }
+
+  const response = await tavilyClient.search(query, {
+    searchDepth: DEFAULT_TAVILY_SEARCH_DEPTH,
+    maxResults: numResults
   });
 
-  return response.results.map((result) => ({
-    url: result.url,
-    title: result.title,
-    publishedDate: result.publishedDate,
-    score: result.score,
-    highlights: Array.isArray(result.highlights) ? result.highlights : undefined,
-    highlightScores: Array.isArray(result.highlightScores) ? result.highlightScores : undefined
-  })) satisfies ExaSearchResult[];
+  const filtered = (response.results ?? []).filter((result) => {
+    if (!result?.url) return false;
+    const domain = getDomain(result.url);
+    if (!domain) return false;
+    return !EXA_DISCOVERY_EXCLUDED_DOMAINS.some((excluded) => domain === excluded || domain.endsWith(`.${excluded}`));
+  });
+
+  return filtered.map((result) => {
+    const highlights = toHighlights(result.content);
+    return {
+      url: result.url,
+      title: typeof result.title === "string" ? result.title : null,
+      score: typeof result.score === "number" ? result.score : undefined,
+      highlights: highlights.length > 0 ? highlights : undefined
+    } satisfies ExaSearchResult;
+  });
 };
