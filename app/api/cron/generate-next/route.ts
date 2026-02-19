@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { cronGenerateNextSchema } from "@/lib/schemas";
+import { logError, logInfo, logWarn } from "@/lib/observability/log";
 import { sendUserNewsletter } from "@/lib/pipeline/send-user-newsletter";
 
 const CRON_ROUTE = "POST /api/cron/generate-next";
@@ -25,7 +26,7 @@ function isAuthorized(request: Request): boolean {
 
 export async function POST(request: Request) {
   if (!isAuthorized(request)) {
-    console.warn("[cron.generate-next] unauthorized", { route: CRON_ROUTE });
+    logWarn("cron_generate_next", "unauthorized", { route: CRON_ROUTE });
     return NextResponse.json(
       { ok: false, error_code: "UNAUTHORIZED", message: "Unauthorized." },
       { status: 401 }
@@ -55,14 +56,14 @@ export async function POST(request: Request) {
     const selectedUserId = selectionResult.rows[0]?.user_id ?? null;
 
     if (!selectedUserId) {
-      console.info("[cron.generate-next] no_due_user", {
+      logInfo("cron_generate_next", "no_due_user", {
         route: CRON_ROUTE,
         run_at_utc: runAtUtc.toISOString()
       });
       return NextResponse.json({ ok: true, status: "no_due_user" });
     }
 
-    console.info("[cron.generate-next] selected", {
+    logInfo("cron_generate_next", "selected", {
       route: CRON_ROUTE,
       run_at_utc: runAtUtc.toISOString(),
       user_id: selectedUserId
@@ -83,7 +84,7 @@ export async function POST(request: Request) {
     }
 
     if (pipelineResult.status === "insufficient_content") {
-      console.warn("[cron.generate-next] insufficient_content", {
+      logWarn("cron_generate_next", "insufficient_content", {
         route: CRON_ROUTE,
         run_at_utc: runAtUtc.toISOString(),
         user_id: selectedUserId,
@@ -98,7 +99,7 @@ export async function POST(request: Request) {
     }
 
     if (pipelineResult.status === "send_failed") {
-      console.error("[cron.generate-next] send_failed", {
+      logError("cron_generate_next", "send_failed", {
         route: CRON_ROUTE,
         run_at_utc: runAtUtc.toISOString(),
         user_id: selectedUserId,
@@ -112,7 +113,7 @@ export async function POST(request: Request) {
       });
     }
 
-    console.error("[cron.generate-next] pipeline_internal_error", {
+    logError("cron_generate_next", "pipeline_internal_error", {
       route: CRON_ROUTE,
       run_at_utc: runAtUtc.toISOString(),
       user_id: selectedUserId,
@@ -124,7 +125,7 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   } catch (error) {
-    console.error("[cron.generate-next] error", { route: CRON_ROUTE, error });
+    logError("cron_generate_next", "error", { route: CRON_ROUTE, error });
     return NextResponse.json(
       { ok: false, error_code: "INTERNAL_ERROR", message: "Failed to select due user." },
       { status: 500 }
