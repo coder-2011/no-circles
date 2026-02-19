@@ -24,7 +24,9 @@ Writes per-run traces to:
 - `logs/hyper/reply-evolution/<run-id>/01-reply-update.txt`
 - `logs/hyper/reply-evolution/<run-id>/02-memory-before.txt`
 - `logs/hyper/reply-evolution/<run-id>/03-memory-after.txt`
-- `logs/hyper/reply-evolution/<run-id>/04-exa-before.txt`
-- `logs/hyper/reply-evolution/<run-id>/05-exa-after.txt`
+- `logs/hyper/reply-evolution/<run-id>/03a-query-planner-before.txt`
+- `logs/hyper/reply-evolution/<run-id>/03b-query-planner-after.txt`
+- `logs/hyper/reply-evolution/<run-id>/04-discovery-before.txt`
+- `logs/hyper/reply-evolution/<run-id>/05-discovery-after.txt`
 - `logs/hyper/reply-evolution/<run-id>/06-summary-before.txt`
 - `logs/hyper/reply-evolution/<run-id>/07-summary-after.txt`

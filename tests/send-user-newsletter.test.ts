@@ -25,7 +25,7 @@ function makeDiscoveryResult(urls: string[]): DiscoveryRunResult {
       resultRank: 0,
       sourceDomain: "example.com",
       publishedAt: null,
-      exaScore: 0.8,
+      sourceScore: 0.8,
       highlightScore: 0.7,
       highlightScores: [0.7]
     })),

@@ -1,22 +1,17 @@
 import { tavily } from "@tavily/core";
-import type { ExaSearchFn, ExaSearchResult } from "@/lib/discovery/types";
+import type { DiscoverySearchFn, DiscoverySearchResult } from "@/lib/discovery/types";
 
 const tavilyApiKey = process.env.TAVILY_API_KEY?.trim();
 const tavilyClient = tavilyApiKey ? tavily({ apiKey: tavilyApiKey }) : null;
 
-const configuredHighlightMaxCharacters = Number(
-  process.env.TAVILY_DISCOVERY_CONTENT_MAX_CHARACTERS?.trim() ||
-    process.env.EXA_DISCOVERY_HIGHLIGHT_MAX_CHARACTERS?.trim() ||
-    "4000"
-);
-
-export const DEFAULT_EXA_HIGHLIGHT_MAX_CHARACTERS =
-  Number.isFinite(configuredHighlightMaxCharacters) && configuredHighlightMaxCharacters > 0
-    ? Math.floor(configuredHighlightMaxCharacters)
-    : 4000;
 const DEFAULT_TAVILY_SEARCH_DEPTH = (process.env.TAVILY_DISCOVERY_SEARCH_DEPTH?.trim() || "advanced") as
   | "basic"
   | "advanced";
+const configuredContentMaxCharacters = Number(process.env.TAVILY_DISCOVERY_CONTENT_MAX_CHARACTERS?.trim() || "4000");
+const DEFAULT_DISCOVERY_CONTENT_MAX_CHARACTERS =
+  Number.isFinite(configuredContentMaxCharacters) && configuredContentMaxCharacters > 0
+    ? Math.floor(configuredContentMaxCharacters)
+    : 4000;
 
 const DEFAULT_EXCLUDED_DOMAINS = [
   // Social / UGC feeds
@@ -53,7 +48,7 @@ const DEFAULT_EXCLUDED_DOMAINS = [
 ] as const;
 
 function parseExcludedDomainsEnv(): string[] {
-  const raw = process.env.TAVILY_DISCOVERY_EXCLUDE_DOMAINS?.trim() || process.env.EXA_DISCOVERY_EXCLUDE_DOMAINS?.trim();
+  const raw = process.env.TAVILY_DISCOVERY_EXCLUDE_DOMAINS?.trim();
   if (!raw) {
     return [...DEFAULT_EXCLUDED_DOMAINS];
   }
@@ -72,7 +67,7 @@ function parseExcludedDomainsEnv(): string[] {
   return [...deduped];
 }
 
-export const EXA_DISCOVERY_EXCLUDED_DOMAINS = parseExcludedDomainsEnv();
+export const DISCOVERY_EXCLUDED_DOMAINS = parseExcludedDomainsEnv();
 
 function getDomain(rawUrl: string): string {
   try {
@@ -92,10 +87,10 @@ function toHighlights(content: unknown): string[] {
     return [];
   }
 
-  return [normalized.slice(0, DEFAULT_EXA_HIGHLIGHT_MAX_CHARACTERS)];
+  return [normalized.slice(0, DEFAULT_DISCOVERY_CONTENT_MAX_CHARACTERS)];
 }
 
-export const searchExa: ExaSearchFn = async ({ query, numResults }) => {
+export const searchDiscovery: DiscoverySearchFn = async ({ query, numResults }) => {
   if (!tavilyClient) {
     throw new Error("MISSING_TAVILY_API_KEY");
   }
@@ -109,7 +104,7 @@ export const searchExa: ExaSearchFn = async ({ query, numResults }) => {
     if (!result?.url) return false;
     const domain = getDomain(result.url);
     if (!domain) return false;
-    return !EXA_DISCOVERY_EXCLUDED_DOMAINS.some((excluded) => domain === excluded || domain.endsWith(`.${excluded}`));
+    return !DISCOVERY_EXCLUDED_DOMAINS.some((excluded) => domain === excluded || domain.endsWith(`.${excluded}`));
   });
 
   return filtered.map((result) => {
@@ -119,6 +114,6 @@ export const searchExa: ExaSearchFn = async ({ query, numResults }) => {
       title: typeof result.title === "string" ? result.title : null,
       score: typeof result.score === "number" ? result.score : undefined,
       highlights: highlights.length > 0 ? highlights : undefined
-    } satisfies ExaSearchResult;
+    } satisfies DiscoverySearchResult;
   });
 };

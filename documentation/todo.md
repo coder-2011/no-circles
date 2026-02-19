@@ -173,7 +173,7 @@ These are candidate features for future scoped PRs after core pipeline stability
   - consume `interest_memory_text` as opaque input; non-goal: memory processor/format changes.
   - non-goal: changing inbound webhook verification/signature/idempotency behavior from PR 3.
 - Explicit non-goals:
-  - no Exa discovery logic.
+  - no Tavily discovery logic.
   - no content extraction logic.
   - no summary generation logic.
   - no send/history persistence writes.
@@ -186,15 +186,15 @@ These are candidate features for future scoped PRs after core pipeline stability
 - Done when:
   - endpoint behaves deterministically for due/empty/unauthorized cases.
 
-## PR 6: Discovery (Exa)
-- Branch: `feature/exa-discovery`
+## PR 6: Discovery (Tavily)
+- Branch: `feature/tavily-discovery`
 - Primary objective:
   - generate candidate links aligned to user memory.
 - Frontend scope:
   - none.
 - Backend scope:
   - derive topic list from `interest_memory_text`.
-  - call Exa per topic.
+  - call Tavily per topic.
   - dedupe URL candidates.
   - preserve enough metadata for downstream ranking.
 - Data and contracts:
@@ -207,27 +207,27 @@ These are candidate features for future scoped PRs after core pipeline stability
 - Tests required:
   - topic derivation behavior on representative memory text.
   - dedupe logic correctness.
-  - Exa client failure handling.
+  - Tavily client failure handling.
 - Done when:
   - one user run yields a stable candidate pool ready for extraction.
 
-## PR 7: Content Readiness (Exa-First)
+## PR 7: Content Readiness (Tavily-First)
 - Branch: `feature/content-readiness`
 - Primary objective:
-  - convert PR6 discovery candidates into summary-ready content payloads using Exa highlights metadata.
+  - convert PR6 discovery candidates into summary-ready content payloads using Tavily highlights metadata.
 - Frontend scope:
   - none.
 - Backend scope:
   - normalize and validate highlight payloads from discovery candidates.
   - apply content-quality gates (minimum highlight coverage, non-empty text/title requirements).
-  - preserve ranking metadata (`exaScore`, topic rank, source domain) for PR8 scoring.
+  - preserve ranking metadata (`sourceScore`, topic rank, source domain) for PR8 scoring.
 - Data and contracts:
   - output shape should include `url`, `title`, and summary-ready highlight text blocks.
   - consume discovery candidates from PR 6 without changing topic/discovery ranking semantics.
 - Explicit non-goals:
   - no URL fetch/HTML extraction pipeline in this PR.
   - no Playwright/browser-rendered extraction in this PR.
-  - no Exa `/contents` full-text expansion pipeline in this PR.
+  - no Tavily `/contents` full-text expansion pipeline in this PR.
   - no summary-writing prompts.
   - no email send/persistence behavior.
 - Tests required:

@@ -4,7 +4,7 @@
 Runs a high-signal integration-style evaluation of the discovery stage and prints final candidates for manual human/LLM review.
 
 ## What It Validates
-- end-to-end discovery orchestration using realistic Exa-like fixtures
+- end-to-end discovery orchestration using realistic provider-like fixtures
 - final output includes 10 candidates
 - suppressed-topic candidates are excluded from final output
 - candidate set has strong domain diversity and minimum score floor

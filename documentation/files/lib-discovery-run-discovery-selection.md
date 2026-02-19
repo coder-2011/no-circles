@@ -4,7 +4,7 @@
 Holds pure helper logic used by discovery orchestration so `run-discovery.ts` stays focused and under file-size policy.
 
 ## Responsibilities
-- Candidate normalization from Exa results (`url`, `title`, `highlight`, score fields).
+- Candidate normalization from provider results (`url`, `title`, `highlight`, score fields).
 - Canonical URL dedupe and winner preference rules.
 - Soft-suppression filtering and domain-cap selection helpers.
 - Quality filtering:

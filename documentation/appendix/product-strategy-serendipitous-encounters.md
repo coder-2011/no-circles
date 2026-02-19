@@ -63,7 +63,7 @@
 - Add abuse prevention for referral input quality and duplication.
 
 ## Content Quality Roadmap
-- Improve Exa subsystem quality and source management.
+- Improve Tavily subsystem quality and source management.
 - Tune retrieval parameters, ranking thresholds, and filtering policies.
 - Iterate prompts across onboarding memory, reply merge, and summary writing.
 - Strengthen anti-repeat and diversity behavior:

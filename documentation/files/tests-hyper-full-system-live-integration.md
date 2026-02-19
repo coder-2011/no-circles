@@ -21,5 +21,6 @@ If any required env var is missing, test is auto-skipped.
 Writes per-run traces to:
 - `logs/hyper/full-system/<run-id>/input-brain-dump.txt`
 - `logs/hyper/full-system/<run-id>/interest-memory.txt`
-- `logs/hyper/full-system/<run-id>/exa-discovery-output.txt`
+- `logs/hyper/full-system/<run-id>/query-planner-trace.txt`
+- `logs/hyper/full-system/<run-id>/discovery-output.txt`
 - `logs/hyper/full-system/<run-id>/claude-summary-output.txt`
