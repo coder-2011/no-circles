@@ -7,10 +7,13 @@ import { getBrowserSupabaseClient } from "@/lib/auth/browser-client";
 import {
   BRAIN_DUMP_DRAFT_KEY,
   BRAIN_DUMP_WORD_LIMIT,
+  buildTimezoneOptions,
   buildSendTime,
   countWords,
-  CURATED_TIMEZONES,
   type AuthState,
+  getDetectedTimezone,
+  getPreferredNameFromEmail,
+  initialSendTimeFromLocalNow,
   parseSendTime,
   PREFERRED_NAME_SUGGESTIONS,
   type SubmitState,
@@ -18,19 +21,16 @@ import {
 } from "@/app/onboarding/onboarding-config";
 import {
   appendTranscript,
-  buildWisprWarmupUrl,
-  buildWisprWebSocketUrl,
+  buildDeepgramWebSocketUrl,
   downsampleToMono16k,
-  encodePcm16WavBase64,
-  getWisprAccessToken,
-  getWisprClientKey
-} from "@/app/onboarding/wispr-dictation";
+  int16ToArrayBuffer
+} from "@/app/onboarding/deepgram-dictation";
 
 type DictationState = "idle" | "warming" | "recording" | "stopping";
 
-function initialTimezone(): string {
-  const detected = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  return CURATED_TIMEZONES.includes(detected as (typeof CURATED_TIMEZONES)[number]) ? detected : "America/New_York";
+function randomPreferredNameSuggestion(): string {
+  const randomIndex = Math.floor(Math.random() * PREFERRED_NAME_SUGGESTIONS.length);
+  return PREFERRED_NAME_SUGGESTIONS[randomIndex] ?? PREFERRED_NAME_SUGGESTIONS[0];
 }
 
 export type OnboardingController = {
@@ -42,6 +42,7 @@ export type OnboardingController = {
   preferredName: string;
   preferredNameSuggestion: string;
   timezone: string;
+  timezoneOptions: string[];
   sendHour12: string;
   sendMinute: string;
   sendMeridiem: "AM" | "PM";
@@ -56,6 +57,7 @@ export type OnboardingController = {
   setSendMinute: (value: string) => void;
   setSendMeridiem: (value: "AM" | "PM") => void;
   setBrainDumpText: (value: string) => void;
+  completePreferredNameOnTab: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   submitOnboarding: (event: React.FormEvent<HTMLFormElement>) => Promise<void>;
@@ -75,10 +77,12 @@ export function useOnboardingController(): OnboardingController {
   const [dictationState, setDictationState] = useState<DictationState>("idle");
   const [dictationError, setDictationError] = useState<string | null>(null);
   const [preferredName, setPreferredName] = useState("");
-  const [preferredNameSuggestion, setPreferredNameSuggestion] = useState(PREFERRED_NAME_SUGGESTIONS[0]);
-  const [timezone, setTimezone] = useState(initialTimezone);
+  const [fallbackPreferredNameSuggestion] = useState(randomPreferredNameSuggestion);
+  const [preferredNameSuggestion, setPreferredNameSuggestion] = useState(fallbackPreferredNameSuggestion);
+  const [timezone, setTimezone] = useState(getDetectedTimezone);
+  const timezoneOptions = useMemo(() => buildTimezoneOptions(timezone), [timezone]);
 
-  const defaultSendParts = useMemo(() => parseSendTime("08:00"), []);
+  const defaultSendParts = useMemo(() => parseSendTime(initialSendTimeFromLocalNow()), []);
   const [sendHour12, setSendHour12] = useState(defaultSendParts.hour12);
   const [sendMinute, setSendMinute] = useState(defaultSendParts.minute);
   const [sendMeridiem, setSendMeridiem] = useState<"AM" | "PM">(defaultSendParts.meridiem);
@@ -94,7 +98,6 @@ export function useOnboardingController(): OnboardingController {
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const processorRef = useRef<ScriptProcessorNode | null>(null);
-  const packetCountRef = useRef(0);
   const transcriptRef = useRef("");
   const pendingSamplesRef = useRef<number[]>([]);
   const dictationStateRef = useRef<DictationState>("idle");
@@ -115,9 +118,15 @@ export function useOnboardingController(): OnboardingController {
   }
 
   useEffect(() => {
-    const randomIndex = Math.floor(Math.random() * PREFERRED_NAME_SUGGESTIONS.length);
-    setPreferredNameSuggestion(PREFERRED_NAME_SUGGESTIONS[randomIndex]);
-  }, []);
+    const inferredName = getPreferredNameFromEmail(email);
+    if (inferredName) {
+      setPreferredNameSuggestion(inferredName);
+      setPreferredName((current) => (current.trim() ? current : inferredName));
+      return;
+    }
+
+    setPreferredNameSuggestion(fallbackPreferredNameSuggestion);
+  }, [email, fallbackPreferredNameSuggestion]);
 
   useEffect(() => {
     const savedDraft = window.localStorage.getItem(BRAIN_DUMP_DRAFT_KEY);
@@ -286,29 +295,51 @@ export function useOnboardingController(): OnboardingController {
     });
   }
 
+  function completePreferredNameOnTab(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key !== "Tab") {
+      return;
+    }
+
+    const suggestion = preferredNameSuggestion.trim();
+    if (!suggestion) {
+      return;
+    }
+
+    const typed = preferredName.trim();
+    if (!typed) {
+      setPreferredName(suggestion);
+      return;
+    }
+
+    const typedLower = typed.toLowerCase();
+    const suggestionLower = suggestion.toLowerCase();
+    if (!suggestionLower.startsWith(typedLower) || typedLower === suggestionLower) {
+      return;
+    }
+
+    event.preventDefault();
+    setPreferredName(suggestion);
+  }
+
   async function startDictation() {
     if (dictationStateRef.current !== "idle") {
       return;
     }
 
-    const clientKey = getWisprClientKey();
-    if (!clientKey) {
-      setDictationError("Dictation is not configured (missing NEXT_PUBLIC_WISPR_CLIENT_KEY).");
-      return;
-    }
-
     setDictationError(null);
     setDictationState("warming");
-    const accessToken = getWisprAccessToken() ?? clientKey;
+    const tokenResponse = await fetch("/api/deepgram/token", { method: "GET" }).catch(() => null);
+    const tokenBody = (await tokenResponse?.json().catch(() => null)) as
+      | { ok: true; access_token: string }
+      | { ok: false; message?: string }
+      | null;
 
-    try {
-      await fetch(buildWisprWarmupUrl(), {
-        method: "GET",
-        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined
-      });
-    } catch {
-      // Warmup is best-effort; we still continue with websocket startup.
+    if (!tokenResponse?.ok || !tokenBody || !("ok" in tokenBody) || tokenBody.ok !== true || !tokenBody.access_token) {
+      setDictationState("idle");
+      setDictationError("Dictation is not configured (missing DEEPGRAM_API_KEY or auth session).");
+      return;
     }
+    const accessToken = tokenBody.access_token;
 
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => null);
     if (!stream) {
@@ -317,73 +348,74 @@ export function useOnboardingController(): OnboardingController {
       return;
     }
 
-    const ws = new WebSocket(buildWisprWebSocketUrl(clientKey));
+    const ws = new WebSocket(buildDeepgramWebSocketUrl(accessToken));
     const audioContext = new AudioContext();
     const audioSource = audioContext.createMediaStreamSource(stream);
-    const processor = audioContext.createScriptProcessor(4096, 1, 1);
+    const processor = audioContext.createScriptProcessor(16384, 1, 1);
 
     mediaStreamRef.current = stream;
     audioContextRef.current = audioContext;
     audioSourceRef.current = audioSource;
     processorRef.current = processor;
     wsRef.current = ws;
-    packetCountRef.current = 0;
     transcriptRef.current = "";
     pendingSamplesRef.current = [];
 
-    const authenticated = await new Promise<boolean>((resolve) => {
+    const opened = await new Promise<boolean>((resolve) => {
       const timeout = window.setTimeout(() => resolve(false), 5000);
-
       ws.onopen = () => {
-        ws.send(
-          JSON.stringify({
-            type: "auth",
-            access_token: accessToken,
-            language: ["en"],
-            context: {
-              app: { name: "Serendipitous Encounters", type: "email" }
-            }
-          })
-        );
+        window.clearTimeout(timeout);
+        resolve(true);
       };
-
-      ws.onmessage = (event) => {
-        let payload: { status?: string; final?: boolean; body?: { text?: string } } | undefined;
-        try {
-          payload = JSON.parse(String(event.data)) as { status?: string; final?: boolean; body?: { text?: string } };
-        } catch {
-          return;
-        }
-        if (!payload) {
-          return;
-        }
-
-        if (payload.status === "auth") {
-          window.clearTimeout(timeout);
-          resolve(true);
-          return;
-        }
-
-        if (payload.status === "text" && payload.body?.text) {
-          transcriptRef.current = payload.body.text;
-        }
-      };
-
       ws.onerror = () => {
         window.clearTimeout(timeout);
         resolve(false);
       };
-
       ws.onclose = () => {
         window.clearTimeout(timeout);
       };
     });
 
-    if (!authenticated) {
+    if (!opened) {
       await stopDictation();
-      setDictationError("Could not start dictation session.");
+      setDictationError("Could not connect to dictation server.");
       return;
     }
+
+    ws.onmessage = (event) => {
+      let payload:
+        | {
+            type?: string;
+            is_final?: boolean;
+            channel?: { alternatives?: Array<{ transcript?: string }> };
+            error?: string;
+          }
+        | undefined;
+      try {
+        payload = JSON.parse(String(event.data)) as {
+          type?: string;
+          is_final?: boolean;
+          channel?: { alternatives?: Array<{ transcript?: string }> };
+          error?: string;
+        };
+      } catch {
+        return;
+      }
+
+      if (!payload) {
+        return;
+      }
+
+      const transcript = payload.channel?.alternatives?.[0]?.transcript?.trim();
+      if (payload.type === "Results" && transcript) {
+        transcriptRef.current = transcript;
+        return;
+      }
+
+      if (payload.type === "Error" || payload.error) {
+        setDictationError("Deepgram dictation returned an error. Please retry.");
+      }
+    };
 
     audioSource.connect(processor);
     processor.connect(audioContext.destination);
@@ -399,7 +431,7 @@ export function useOnboardingController(): OnboardingController {
         pending.push(channelData[index] ?? 0);
       }
 
-      const chunkSize = Math.floor(audioContext.sampleRate);
+      const chunkSize = Math.floor(audioContext.sampleRate / 2);
       while (pending.length >= chunkSize) {
         const oneSecondInput = pending.splice(0, chunkSize);
         const pcm16 = downsampleToMono16k(Float32Array.from(oneSecondInput), audioContext.sampleRate);
@@ -407,20 +439,7 @@ export function useOnboardingController(): OnboardingController {
           continue;
         }
 
-        ws.send(
-          JSON.stringify({
-            type: "append",
-            position: packetCountRef.current,
-            audio_packets: {
-              packets: [encodePcm16WavBase64(pcm16)],
-              volumes: [1],
-              packet_duration: 1,
-              audio_encoding: "wav",
-              byte_encoding: "base64"
-            }
-          })
-        );
-        packetCountRef.current += 1;
+        ws.send(int16ToArrayBuffer(pcm16));
       }
     };
 
@@ -464,15 +483,10 @@ export function useOnboardingController(): OnboardingController {
     }
 
     if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(
-        JSON.stringify({
-          type: "commit",
-          total_packets: packetCountRef.current
-        })
-      );
-
-      await new Promise((resolve) => window.setTimeout(resolve, 900));
-      ws.close();
+      ws.send(JSON.stringify({ type: "Finalize" }));
+      await new Promise((resolve) => window.setTimeout(resolve, 500));
+      ws.send(JSON.stringify({ type: "CloseStream" }));
+      ws.close(1000, "dictation-finished");
     }
 
     const currentBrainDumpText = brainDumpTextRef.current;
@@ -482,7 +496,6 @@ export function useOnboardingController(): OnboardingController {
     }
 
     pendingSamplesRef.current = [];
-    packetCountRef.current = 0;
     transcriptRef.current = "";
     setDictationState("idle");
   }
@@ -533,6 +546,7 @@ export function useOnboardingController(): OnboardingController {
     preferredName,
     preferredNameSuggestion,
     timezone,
+    timezoneOptions,
     sendHour12,
     sendMinute,
     sendMeridiem,
@@ -547,6 +561,7 @@ export function useOnboardingController(): OnboardingController {
     setSendMinute,
     setSendMeridiem,
     setBrainDumpText,
+    completePreferredNameOnTab,
     signInWithGoogle,
     signOut,
     submitOnboarding,

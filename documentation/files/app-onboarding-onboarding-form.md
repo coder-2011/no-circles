@@ -6,6 +6,8 @@ Renders onboarding UI as a presentational component driven by controller props.
 ## Responsibilities
 - display auth/session state banner and signed-out actions
 - render onboarding form fields and quick-spark buttons
+- wire preferred-name input to Tab completion action from the controller
+- render timezone options from controller so browser-detected timezone can appear even when outside curated list
 - render minimal dictation controls (`Dictate` / `Stop dictation`) for brain-dump voice input
 - render save/sign-out controls and success indicator
 - show submit success/error message panel
