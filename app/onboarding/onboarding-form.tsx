@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BRAIN_DUMP_WORD_LIMIT, INTEREST_QUICK_SPARKS } from "@/app/onboarding/onboarding-config";
+import { BRAIN_DUMP_WORD_LIMIT } from "@/app/onboarding/onboarding-config";
 import type { OnboardingController } from "@/app/onboarding/use-onboarding-controller";
 
 type OnboardingFormProps = {
@@ -9,6 +9,10 @@ type OnboardingFormProps = {
 };
 
 export function OnboardingForm({ controller }: OnboardingFormProps) {
+  const meterBars = controller.dictationLevels.length > 0 ? controller.dictationLevels : Array.from({ length: 12 }, () => 0);
+  const isWarming = controller.dictationState === "warming";
+  const isRecording = controller.dictationState === "recording";
+
   return (
     <main className="min-h-screen bg-[#F3ECD8] px-6 py-12 text-[#2D3426]">
       <div className="mx-auto w-full max-w-3xl rounded-3xl border border-[#C9BD9A] bg-[#FAF5E8] p-8 shadow-sm">
@@ -157,7 +161,7 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
                 value={controller.brainDumpText}
               />
               <div className="mt-3 flex items-start justify-between gap-3">
-                <div className="pb-2">
+                <div className="flex items-end gap-3 pb-2">
                   <button
                     className="rounded-md border border-[#B8AA84] bg-[#FFF8E8] px-3 py-1.5 text-xs font-medium text-[#3F4E38] transition hover:bg-[#F2E7CC] disabled:opacity-50"
                     disabled={controller.dictationState === "warming" || controller.dictationState === "stopping"}
@@ -173,6 +177,44 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
                   >
                     {controller.dictationState === "recording" ? "Stop dictation" : "Dictate"}
                   </button>
+                  <div
+                    aria-hidden="true"
+                    className={`flex h-7 items-end gap-0.5 rounded-md border px-2 py-1 transition ${
+                      isRecording
+                        ? "border-emerald-300 bg-emerald-50"
+                        : isWarming
+                          ? "border-amber-300 bg-amber-50/70"
+                          : "border-[#D7CCAE] bg-[#FFF8E8]"
+                    }`}
+                  >
+                    {meterBars.map((level, index) => {
+                      const effectiveLevel = Math.min(
+                        1,
+                        Math.max(0, isRecording ? level : isWarming ? 0.18 : 0)
+                      );
+                      const height = Math.max(2, Math.round(2 + effectiveLevel * 16));
+                      return (
+                        <span
+                          className={`w-1 rounded-full transition-all duration-75 ${
+                            isRecording ? "bg-emerald-500" : isWarming ? "bg-amber-500" : "bg-[#B8AA84]"
+                          }`}
+                          key={index}
+                          style={
+                            isWarming
+                              ? {
+                                  height: `${height}px`,
+                                  animationName: "dictation-meter-boot",
+                                  animationDuration: "900ms",
+                                  animationTimingFunction: "ease-in-out",
+                                  animationIterationCount: "infinite",
+                                  animationDelay: `${index * 55}ms`
+                                }
+                              : { height: `${height}px` }
+                          }
+                        />
+                      );
+                    })}
+                  </div>
                 </div>
                 <span
                   className={`rounded bg-[#FFF8E8] px-2 py-1 text-xs ${
@@ -183,7 +225,7 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
                 </span>
               </div>
               <div className="mt-2 flex flex-wrap gap-2.5">
-                {INTEREST_QUICK_SPARKS.map((spark) => (
+                {controller.quickSparks.map((spark) => (
                   <button
                     className="rounded-full border border-[#CDBF98] bg-[#F6EFD9] px-3 py-1 text-xs font-medium text-[#4F5D45] transition hover:bg-[#ECE2C8]"
                     key={spark}

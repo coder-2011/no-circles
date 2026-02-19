@@ -3,6 +3,7 @@ import {
   appendTranscript,
   buildFinalDictationTranscript,
   buildDeepgramWebSocketUrl,
+  buildDeepgramWebSocketUrlWithoutToken,
   downsampleToMono16k,
   getDeepgramPacketSize,
   int16ToArrayBuffer,
@@ -34,7 +35,7 @@ describe("deepgram-dictation helpers", () => {
     const url = buildDeepgramWebSocketUrl("token_123");
 
     expect(url).toContain("wss://example.deepgram.test/v1/listen?");
-    expect(url).toContain("access_token=token_123");
+    expect(url).toContain("token=token_123");
     expect(url).toContain("model=nova-3");
     expect(url).toContain("encoding=linear16");
     expect(url).toContain("sample_rate=16000");
@@ -45,6 +46,14 @@ describe("deepgram-dictation helpers", () => {
     process.env.NEXT_PUBLIC_DEEPGRAM_MODEL = "nova-2";
     const url = buildDeepgramWebSocketUrl("token_456");
     expect(url).toContain("model=nova-2");
+  });
+
+  it("builds websocket URL without token for subprotocol auth fallback", () => {
+    process.env.NEXT_PUBLIC_DEEPGRAM_WS_BASE = "wss://example.deepgram.test/v1";
+    const url = buildDeepgramWebSocketUrlWithoutToken();
+    expect(url).toContain("wss://example.deepgram.test/v1/listen?");
+    expect(url).not.toContain("token=");
+    expect(url).toContain("encoding=linear16");
   });
 
   it("appends transcript on a new line", () => {
@@ -112,10 +121,10 @@ describe("deepgram-dictation helpers", () => {
       interimTranscript: state2.interimTranscript,
       result: { transcript: "second sentence", isFinal: true }
     });
-    expect(state3).toEqual({ finalTranscript: "hello world\nsecond sentence", interimTranscript: "" });
+    expect(state3).toEqual({ finalTranscript: "hello world second sentence", interimTranscript: "" });
 
     expect(buildFinalDictationTranscript(state3.finalTranscript, "tail interim")).toBe(
-      "hello world\nsecond sentence\ntail interim"
+      "hello world second sentence tail interim"
     );
   });
 

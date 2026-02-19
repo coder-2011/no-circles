@@ -29,8 +29,17 @@ export async function GET() {
     }).catch(() => null);
 
     if (!grantResponse?.ok) {
+      const errorBody = (await grantResponse?.json().catch(() => null)) as
+        | { err_code?: string; err_msg?: string; error?: string; message?: string }
+        | null;
+      const upstreamError =
+        errorBody?.err_msg ?? errorBody?.message ?? errorBody?.error ?? "Deepgram token endpoint rejected request.";
       return NextResponse.json(
-        { ok: false, error_code: "DEEPGRAM_TOKEN_FAILED", message: "Failed to create Deepgram access token." },
+        {
+          ok: false,
+          error_code: "DEEPGRAM_TOKEN_FAILED",
+          message: `Failed to create Deepgram access token: ${upstreamError}`
+        },
         { status: 502 }
       );
     }

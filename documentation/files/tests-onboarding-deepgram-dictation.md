@@ -5,6 +5,7 @@ Covers pure helper behavior used by onboarding Deepgram dictation runtime.
 
 ## Coverage
 - Deepgram websocket URL construction with token + listen query params.
+- Tokenless websocket URL construction for subprotocol-auth fallback.
 - Model override behavior for websocket URL construction.
 - Transcript append behavior for empty/non-empty inputs.
 - Deepgram websocket message parsing for `Results` and `Error` payloads.
