@@ -1,0 +1,245 @@
+{
+  "candidates": [
+    {
+      "url": "https://think.design/blog/design-trends-2026-that-actually-matter/",
+      "canonicalUrl": "https://think.design/blog/design-trends-2026-that-actually-matter",
+      "title": "7 Design Trends in 2026 That Actually Matter",
+      "highlight": "7 Design Trends in 2026 That Actually Matter",
+      "highlights": [
+        "7 Design Trends in 2026 That Actually Matter"
+      ],
+      "topic": "Systems design",
+      "topicRank": 1,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "think.design",
+      "publishedAt": null,
+      "exaScore": null,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://www.refontelearning.com/blog/data-engineering-in-2026-trends-tools-and-how-to-thrive",
+      "canonicalUrl": "https://www.refontelearning.com/blog/data-engineering-in-2026-trends-tools-and-how-to-thrive",
+      "title": "Data Engineering in 2026: Trends, Tools, and How to Thrive",
+      "highlight": "Data Engineering in 2026: Trends, Tools, and How to Thrive",
+      "highlights": [
+        "Data Engineering in 2026: Trends, Tools, and How to Thrive"
+      ],
+      "topic": "Data engineering",
+      "topicRank": 2,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "refontelearning.com",
+      "publishedAt": null,
+      "exaScore": null,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://omdia.tech.informa.com/om143585/the-evolved-edge-market-landscape-of-distributed-computing-infrastructure-in-2026",
+      "canonicalUrl": "https://omdia.tech.informa.com/om143585/the-evolved-edge-market-landscape-of-distributed-computing-infrastructure-in-2026",
+      "title": "The Evolved Edge: Market Landscape of Distributed Computing Infrastructure in 2026",
+      "highlight": "The Evolved Edge: Market Landscape of Distributed Computing Infrastructure in 2026",
+      "highlights": [
+        "The Evolved Edge: Market Landscape of Distributed Computing Infrastructure in 2026"
+      ],
+      "topic": "distributed systems",
+      "topicRank": 3,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "omdia.tech.informa.com",
+      "publishedAt": null,
+      "exaScore": null,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://www.systemdesignhandbook.com/guides/system-design/",
+      "canonicalUrl": "https://www.systemdesignhandbook.com/guides/system-design",
+      "title": "System Design Handbook Guide",
+      "highlight": "System Design Handbook Guide",
+      "highlights": [
+        "System Design Handbook Guide"
+      ],
+      "topic": "Systems design",
+      "topicRank": 1,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "systemdesignhandbook.com",
+      "publishedAt": null,
+      "exaScore": null,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://uxdesign.cc/the-most-popular-experience-design-trends-of-2026-3ca85c8a3e3d",
+      "canonicalUrl": "https://uxdesign.cc/the-most-popular-experience-design-trends-of-2026-3ca85c8a3e3d",
+      "title": "The most popular experience design trends of 2026 - UX Collective",
+      "highlight": "The most popular experience design trends of 2026 - UX Collective",
+      "highlights": [
+        "The most popular experience design trends of 2026 - UX Collective"
+      ],
+      "topic": "Systems design",
+      "topicRank": 1,
+      "softSuppressed": false,
+      "resultRank": 1,
+      "sourceDomain": "uxdesign.cc",
+      "publishedAt": null,
+      "exaScore": null,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://www.systemdesignhandbook.com/guides/system-design-tutorial/",
+      "canonicalUrl": "https://www.systemdesignhandbook.com/guides/system-design-tutorial",
+      "title": "System Design Tutorial Complete Guide",
+      "highlight": "System Design Tutorial Complete Guide",
+      "highlights": [
+        "System Design Tutorial Complete Guide"
+      ],
+      "topic": "Systems design",
+      "topicRank": 1,
+      "softSuppressed": false,
+      "resultRank": 1,
+      "sourceDomain": "systemdesignhandbook.com",
+      "publishedAt": null,
+      "exaScore": null,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://www.n-ix.com/data-engineering-trends/",
+      "canonicalUrl": "https://www.n-ix.com/data-engineering-trends",
+      "title": "7 data engineering trends for 2026 and beyond - N-iX",
+      "highlight": "7 data engineering trends for 2026 and beyond - N-iX",
+      "highlights": [
+        "7 data engineering trends for 2026 and beyond - N-iX"
+      ],
+      "topic": "Data engineering",
+      "topicRank": 2,
+      "softSuppressed": false,
+      "resultRank": 1,
+      "sourceDomain": "n-ix.com",
+      "publishedAt": null,
+      "exaScore": null,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://www.kdnuggets.com/5-emerging-trends-in-data-engineering-for-2026",
+      "canonicalUrl": "https://www.kdnuggets.com/5-emerging-trends-in-data-engineering-for-2026",
+      "title": "5 Emerging Trends in Data Engineering for 2026 - KDnuggets",
+      "highlight": "5 Emerging Trends in Data Engineering for 2026 - KDnuggets",
+      "highlights": [
+        "5 Emerging Trends in Data Engineering for 2026 - KDnuggets"
+      ],
+      "topic": "Data engineering",
+      "topicRank": 2,
+      "softSuppressed": false,
+      "resultRank": 2,
+      "sourceDomain": "kdnuggets.com",
+      "publishedAt": null,
+      "exaScore": null,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://boomi.com/content/ebook/5-data-engineering-trends/",
+      "canonicalUrl": "https://boomi.com/content/ebook/5-data-engineering-trends",
+      "title": "The Top 5 Data Engineering Trends for 2026 - Boomi",
+      "highlight": "The Top 5 Data Engineering Trends for 2026 - Boomi",
+      "highlights": [
+        "The Top 5 Data Engineering Trends for 2026 - Boomi"
+      ],
+      "topic": "Data engineering",
+      "topicRank": 2,
+      "softSuppressed": false,
+      "resultRank": 3,
+      "sourceDomain": "boomi.com",
+      "publishedAt": null,
+      "exaScore": null,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://sdcourse.substack.com/p/hands-on-distributed-systems-with",
+      "canonicalUrl": "https://sdcourse.substack.com/p/hands-on-distributed-systems-with",
+      "title": "Hands On System Design with \"Distributed Systems Implementation\"",
+      "highlight": "Hands On System Design with \"Distributed Systems Implementation\"",
+      "highlights": [
+        "Hands On System Design with \"Distributed Systems Implementation\""
+      ],
+      "topic": "distributed systems",
+      "topicRank": 3,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "sdcourse.substack.com",
+      "publishedAt": null,
+      "exaScore": null,
+      "highlightScore": null,
+      "highlightScores": []
+    }
+  ],
+  "topics": [
+    {
+      "topic": "AI engineering",
+      "query": "AI engineering",
+      "topicRank": 0,
+      "softSuppressed": false
+    },
+    {
+      "topic": "Systems design",
+      "query": "Systems design",
+      "topicRank": 1,
+      "softSuppressed": false
+    },
+    {
+      "topic": "Data engineering",
+      "query": "Data engineering",
+      "topicRank": 2,
+      "softSuppressed": false
+    },
+    {
+      "topic": "distributed systems",
+      "query": "distributed systems",
+      "topicRank": 3,
+      "softSuppressed": false
+    },
+    {
+      "topic": "databases",
+      "query": "databases",
+      "topicRank": 4,
+      "softSuppressed": false
+    },
+    {
+      "topic": "observability",
+      "query": "observability",
+      "topicRank": 5,
+      "softSuppressed": false
+    }
+  ],
+  "attempts": 3,
+  "warnings": [
+    "LOW_SIGNAL_FILTERED_1",
+    "INSUFFICIENT_TOPIC_WINNERS",
+    "BACKFILLED_FROM_QUALITY_POOL_7",
+    "DIVERSITY_CARD_FAILED"
+  ],
+  "diversityCard": {
+    "itemCount": 10,
+    "targetCount": 10,
+    "distinctTopics": 3,
+    "distinctDomains": 9,
+    "maxTopicShare": 0.4,
+    "maxDomainShare": 0.2,
+    "topicEntropyNormalized": 0.9602297178607614,
+    "thresholds": {
+      "minDistinctTopics": 6,
+      "maxTopicShare": 0.3,
+      "minDistinctDomains": 6,
+      "maxDomainShare": 0.3
+    },
+    "passes": false
+  }
+}

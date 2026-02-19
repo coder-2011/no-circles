@@ -13,7 +13,7 @@ const BRAIN_DUMP = [
 
 function missingLiveEnv(): string[] {
   const missing: string[] = [];
-  if (!process.env.EXA_API_KEY) missing.push("EXA_API_KEY");
+  if (!process.env.PERPLEXITY_API_KEY) missing.push("PERPLEXITY_API_KEY");
   if (!process.env.ANTHROPIC_API_KEY) missing.push("ANTHROPIC_API_KEY");
   if (!process.env.ANTHROPIC_MEMORY_MODEL) missing.push("ANTHROPIC_MEMORY_MODEL");
   return missing;

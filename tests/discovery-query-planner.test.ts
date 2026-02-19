@@ -83,31 +83,7 @@ describe("query-planner", () => {
         choices: [
           {
             message: {
-              content: [
-                "```json",
-                JSON.stringify({
-                  plans: [
-                    {
-                      topic: "  AI engineering  ",
-                      query:
-                        "  AI engineering postmortem reliability benchmark -tutorial -beginner -beginners -introduction -basics -101  "
-                    },
-                    {
-                      topic: "Unknown topic",
-                      query: "this should be ignored"
-                    },
-                    {
-                      topic: "AI engineering",
-                      query: "duplicate for same topic should be ignored"
-                    },
-                    {
-                      topic: "Distributed systems",
-                      query: `${"x".repeat(260)}`
-                    }
-                  ]
-                }),
-                "```"
-              ].join("\n")
+              content: ["1. AI engineering postmortem reliability benchmark", `2. ${"x".repeat(260)}`].join("\n")
             }
           }
         ]
@@ -120,9 +96,11 @@ describe("query-planner", () => {
     });
 
     expect(planned.size).toBe(2);
-    expect(planned.get("AI engineering")).toBe(
-      "AI engineering postmortem reliability benchmark -tutorial -beginner -beginners -introduction -basics -101"
-    );
+    const aiQuery = planned.get("AI engineering") ?? "";
+    expect(aiQuery).toContain("AI engineering");
+    expect(["last 7 days", "last 30 days", "last 90 days", "last 12 months", "since previous year"].some((term) =>
+      aiQuery.includes(term)
+    )).toBe(true);
     expect((planned.get("Distributed systems") ?? "").length).toBeLessThanOrEqual(220);
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -134,10 +112,15 @@ describe("query-planner", () => {
       messages: Array<{ role: string; content: string }>;
     };
     expect(requestBody.model).toBe("qwen/qwen3-14b");
-    expect(requestBody.temperature).toBe(0);
+    expect(requestBody.temperature).toBeGreaterThanOrEqual(0.75);
+    expect(requestBody.temperature).toBeLessThanOrEqual(1.05);
     expect(requestBody.max_tokens).toBe(450);
-    expect(requestBody.messages[0]?.content).toContain("Optional cross-interest extension is allowed");
-    expect(requestBody.messages[0]?.content).toContain("do not force connections when weak");
+    expect(requestBody.messages[0]?.content).toContain("Be wild and surprising, but stay inside the topic's field.");
+    expect(requestBody.messages[0]?.content).toContain("Run creativity lenses:");
+    expect(requestBody.messages[0]?.content).toContain("Run entropy token:");
+    expect(requestBody.messages[0]?.content).toContain(
+      "Output queries only, one per line, same order as Topics. No JSON, bullets, numbering, labels, or commentary."
+    );
   });
 
   it("throws http errors from OpenRouter", async () => {

@@ -21,9 +21,13 @@ import {
 } from "@/app/onboarding/onboarding-config";
 import {
   appendTranscript,
+  buildFinalDictationTranscript,
   buildDeepgramWebSocketUrl,
   downsampleToMono16k,
-  int16ToArrayBuffer
+  getDeepgramPacketSize,
+  int16ToArrayBuffer,
+  parseDeepgramMessage,
+  updateDeepgramTranscriptState
 } from "@/app/onboarding/deepgram-dictation";
 
 type DictationState = "idle" | "warming" | "recording" | "stopping";
@@ -98,7 +102,8 @@ export function useOnboardingController(): OnboardingController {
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const processorRef = useRef<ScriptProcessorNode | null>(null);
-  const transcriptRef = useRef("");
+  const finalTranscriptRef = useRef("");
+  const interimTranscriptRef = useRef("");
   const pendingSamplesRef = useRef<number[]>([]);
   const dictationStateRef = useRef<DictationState>("idle");
   const brainDumpTextRef = useRef("");
@@ -358,7 +363,8 @@ export function useOnboardingController(): OnboardingController {
     audioSourceRef.current = audioSource;
     processorRef.current = processor;
     wsRef.current = ws;
-    transcriptRef.current = "";
+    finalTranscriptRef.current = "";
+    interimTranscriptRef.current = "";
     pendingSamplesRef.current = [];
 
     const opened = await new Promise<boolean>((resolve) => {
@@ -383,38 +389,23 @@ export function useOnboardingController(): OnboardingController {
     }
 
     ws.onmessage = (event) => {
-      let payload:
-        | {
-            type?: string;
-            is_final?: boolean;
-            channel?: { alternatives?: Array<{ transcript?: string }> };
-            error?: string;
-          }
-        | undefined;
-      try {
-        payload = JSON.parse(String(event.data)) as {
-          type?: string;
-          is_final?: boolean;
-          channel?: { alternatives?: Array<{ transcript?: string }> };
-          error?: string;
-        };
-      } catch {
+      const parsed = parseDeepgramMessage(String(event.data));
+      if (parsed.kind === "ignore") {
         return;
       }
 
-      if (!payload) {
-        return;
-      }
-
-      const transcript = payload.channel?.alternatives?.[0]?.transcript?.trim();
-      if (payload.type === "Results" && transcript) {
-        transcriptRef.current = transcript;
-        return;
-      }
-
-      if (payload.type === "Error" || payload.error) {
+      if (parsed.kind === "error") {
         setDictationError("Deepgram dictation returned an error. Please retry.");
+        return;
       }
+
+      const nextTranscriptState = updateDeepgramTranscriptState({
+        finalTranscript: finalTranscriptRef.current,
+        interimTranscript: interimTranscriptRef.current,
+        result: { transcript: parsed.transcript, isFinal: parsed.isFinal }
+      });
+      finalTranscriptRef.current = nextTranscriptState.finalTranscript;
+      interimTranscriptRef.current = nextTranscriptState.interimTranscript;
     };
 
     audioSource.connect(processor);
@@ -431,7 +422,10 @@ export function useOnboardingController(): OnboardingController {
         pending.push(channelData[index] ?? 0);
       }
 
-      const chunkSize = Math.floor(audioContext.sampleRate / 2);
+      const chunkSize = getDeepgramPacketSize(audioContext.sampleRate);
+      if (chunkSize <= 0) {
+        return;
+      }
       while (pending.length >= chunkSize) {
         const oneSecondInput = pending.splice(0, chunkSize);
         const pcm16 = downsampleToMono16k(Float32Array.from(oneSecondInput), audioContext.sampleRate);
@@ -484,19 +478,23 @@ export function useOnboardingController(): OnboardingController {
 
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ type: "Finalize" }));
-      await new Promise((resolve) => window.setTimeout(resolve, 500));
+      await new Promise((resolve) => window.setTimeout(resolve, 900));
       ws.send(JSON.stringify({ type: "CloseStream" }));
       ws.close(1000, "dictation-finished");
     }
 
     const currentBrainDumpText = brainDumpTextRef.current;
-    const nextText = appendTranscript(currentBrainDumpText, transcriptRef.current);
+    const nextText = appendTranscript(
+      currentBrainDumpText,
+      buildFinalDictationTranscript(finalTranscriptRef.current, interimTranscriptRef.current)
+    );
     if (nextText !== currentBrainDumpText) {
       setBrainDumpText(truncateToWordLimit(nextText, BRAIN_DUMP_WORD_LIMIT));
     }
 
     pendingSamplesRef.current = [];
-    transcriptRef.current = "";
+    finalTranscriptRef.current = "";
+    interimTranscriptRef.current = "";
     setDictationState("idle");
   }
 

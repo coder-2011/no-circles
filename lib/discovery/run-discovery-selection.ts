@@ -537,7 +537,6 @@ export function shouldEarlyStop(args: {
 }
 
 export function buildAttemptQuery(topic: DiscoveryTopic, attempt: number): string {
-  if (attempt === 0) return topic.query;
-  if (attempt === 1) return `${topic.query} practical guide OR deep dive`;
-  return `${topic.query} tutorial OR analysis OR explainers`;
+  void attempt;
+  return topic.query;
 }

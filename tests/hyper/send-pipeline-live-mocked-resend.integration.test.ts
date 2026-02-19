@@ -61,7 +61,7 @@ function withPgTlsCompat(urlString: string): string {
 function missingLiveEnv(): string[] {
   const missing: string[] = [];
   if (!process.env.DATABASE_URL) missing.push("DATABASE_URL");
-  if (!process.env.EXA_API_KEY) missing.push("EXA_API_KEY");
+  if (!process.env.PERPLEXITY_API_KEY) missing.push("PERPLEXITY_API_KEY");
   if (!process.env.ANTHROPIC_API_KEY) missing.push("ANTHROPIC_API_KEY");
   if (!process.env.ANTHROPIC_MEMORY_MODEL && !process.env.ANTHROPIC_SUMMARY_MODEL) {
     missing.push("ANTHROPIC_MEMORY_MODEL|ANTHROPIC_SUMMARY_MODEL");
@@ -73,10 +73,7 @@ describe("hyper integration: send pipeline live with mocked resend", () => {
   let pool: Pool;
 
   beforeAll(async () => {
-    const missing = missingLiveEnv();
-    if (missing.length > 0) {
-      throw new Error(`LIVE_ENV_MISSING:${missing.join(",")}`);
-    }
+    if (!process.env.DATABASE_URL) return;
 
     pool = new Pool({ connectionString: withPgTlsCompat(process.env.DATABASE_URL as string) });
     await pool.query("select 1");
@@ -88,7 +85,7 @@ describe("hyper integration: send pipeline live with mocked resend", () => {
     }
   });
 
-  it(
+  it.skipIf(missingLiveEnv().length > 0)(
     "runs live discovery+summary, mocks resend delivery, and persists post-send state",
     async () => {
       process.env.RESEND_API_KEY = process.env.RESEND_API_KEY || "resend_mock_key";

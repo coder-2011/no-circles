@@ -4,7 +4,43 @@ const OPENROUTER_CHAT_COMPLETIONS_URL = "https://openrouter.ai/api/v1/chat/compl
 const DEFAULT_QUERY_PLANNER_MODEL = "qwen/qwen3-14b";
 const MAX_TOPIC_COUNT = 12;
 const MAX_QUERY_LENGTH = 220;
-const REQUIRED_NEGATIVE_TERMS = ["-tutorial", "-beginner", "-beginners", "-introduction", "-basics", "-101"] as const;
+const MIN_PLANNER_TEMPERATURE = 0.75;
+const MAX_PLANNER_TEMPERATURE = 1.05;
+const RECENCY_OPERATORS = [
+  "last 7 days",
+  "last 30 days",
+  "last 90 days",
+  "last 12 months",
+  "since previous year"
+] as const;
+const CREATIVITY_LENSES = [
+  "anomaly hunt",
+  "counter-example excavation",
+  "failed approach autopsy",
+  "operational edge-case stress",
+  "unpopular technique spotlight",
+  "history-repeat pattern match",
+  "under-discussed implementation tradeoff",
+  "negative-result signal"
+] as const;
+const STYLE_DIRECTIVES = [
+  "use one uncommon but domain-valid phrase",
+  "blend one reliability keyword with one research keyword",
+  "bias toward concrete artifact words over abstract framing",
+  "favor crisp verb-led phrasing over noun stacks",
+  "include one production constraint marker",
+  "inject one contradiction connector (for example: despite, fails when, breaks under)"
+] as const;
+const HIGH_SIGNAL_OPERATORS = [
+  "postmortem",
+  "benchmark",
+  "migration",
+  "incident",
+  "tradeoff",
+  "failure mode",
+  "design doc",
+  "evaluation protocol"
+] as const;
 
 type QueryPlanResponse = {
   plans: Array<{
@@ -12,13 +48,13 @@ type QueryPlanResponse = {
     query: string;
   }>;
 };
-
-function parseJsonFromModelText(text: string): unknown {
-  const trimmed = text.trim();
-  const fencedMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
-  const candidate = (fencedMatch?.[1] ?? trimmed).trim();
-  return JSON.parse(candidate);
-}
+type QueryPlannerRunKit = {
+  runEntropyToken: string;
+  runLensList: string;
+  runStyleList: string;
+  runOperatorList: string;
+  recencyByTopicKey: Map<string, string>;
+};
 
 function normalizeLine(value: string): string {
   return value.replace(/\s+/g, " ").trim();
@@ -31,6 +67,16 @@ function normalizeQuery(value: string): string {
 
 function normalizeTopicKey(value: string): string {
   return normalizeLine(value).toLowerCase();
+}
+
+function hashString(value: string): number {
+  let hash = 0;
+  for (let i = 0; i < value.length; i += 1) {
+    hash = (hash << 5) - hash + value.charCodeAt(i);
+    hash |= 0;
+  }
+
+  return Math.abs(hash);
 }
 
 function extractChoiceText(json: unknown): string {
@@ -52,7 +98,57 @@ function extractChoiceText(json: unknown): string {
   return content;
 }
 
-function enforceQueryGuardrails(topic: string, query: string): string {
+function stripFence(text: string): string {
+  const fencedMatch = text.trim().match(/```(?:text|txt|md|markdown)?\s*([\s\S]*?)\s*```/i);
+  return (fencedMatch?.[1] ?? text).trim();
+}
+
+function stripLinePrefix(line: string): string {
+  return line
+    .replace(/^\s*[-*]\s+/, "")
+    .replace(/^\s*\d+[\).\]:-]?\s+/, "")
+    .replace(/^\s*query\s*\d*\s*[:\-]\s*/i, "")
+    .trim();
+}
+
+function sampleList(values: readonly string[], token: string, count: number): string[] {
+  const desiredCount = Math.max(1, Math.min(count, values.length));
+  const start = hashString(token) % values.length;
+  const selected: string[] = [];
+
+  for (let i = 0; i < desiredCount; i += 1) {
+    selected.push(values[(start + i) % values.length] ?? values[0]);
+  }
+
+  return selected;
+}
+
+function parseQueries(text: string): string[] {
+  const stripped = stripFence(text);
+  return stripped
+    .split("\n")
+    .map((line) => stripLinePrefix(line))
+    .filter(Boolean)
+    .map((line) => line.replace(/^["'`]|["'`]$/g, "").trim());
+}
+
+function buildRunKit(topics: DiscoveryTopic[]): QueryPlannerRunKit {
+  const runEntropyToken = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+  const runLensList = sampleList(CREATIVITY_LENSES, `${runEntropyToken}:lens`, 3).join(", ");
+  const runStyleList = sampleList(STYLE_DIRECTIVES, `${runEntropyToken}:style`, 3).join(", ");
+  const runOperatorList = sampleList(HIGH_SIGNAL_OPERATORS, `${runEntropyToken}:op`, 4).join(", ");
+
+  const recencyByTopicKey = new Map<string, string>();
+  const recencyStart = hashString(`${runEntropyToken}:recency`) % RECENCY_OPERATORS.length;
+  topics.slice(0, MAX_TOPIC_COUNT).forEach((topic, index) => {
+    const key = normalizeTopicKey(topic.topic);
+    recencyByTopicKey.set(key, RECENCY_OPERATORS[(recencyStart + index) % RECENCY_OPERATORS.length] ?? RECENCY_OPERATORS[0]);
+  });
+
+  return { runEntropyToken, runLensList, runStyleList, runOperatorList, recencyByTopicKey };
+}
+
+function enforceQueryGuardrails(topic: string, query: string, recencyOperator: string): string {
   const normalizedTopic = normalizeLine(topic);
   let normalizedQuery = normalizeQuery(query);
 
@@ -61,44 +157,48 @@ function enforceQueryGuardrails(topic: string, query: string): string {
     normalizedQuery = normalizeQuery(`${normalizedTopic} ${normalizedQuery}`);
   }
 
-  const lower = normalizedQuery.toLowerCase();
-  const missingNegativeTerms = REQUIRED_NEGATIVE_TERMS.filter((term) => !lower.includes(term));
-  if (missingNegativeTerms.length === 0) {
-    return normalizedQuery;
+  if (recencyOperator) {
+    const lower = normalizedQuery.toLowerCase();
+    const hasRecency = RECENCY_OPERATORS.some((operator) => lower.includes(operator.toLowerCase()));
+    if (!hasRecency) {
+      normalizedQuery = normalizeQuery(`${normalizedQuery} ${recencyOperator}`);
+    }
   }
 
-  return normalizeQuery(`${normalizedQuery} ${missingNegativeTerms.join(" ")}`);
+  return normalizedQuery;
 }
 
-export function buildQueryPlannerPrompt(args: { interestMemoryText: string; topics: DiscoveryTopic[] }): string {
+export function buildQueryPlannerPrompt(args: {
+  interestMemoryText: string;
+  topics: DiscoveryTopic[];
+  runKit?: QueryPlannerRunKit;
+}): string {
+  const runKit = args.runKit ?? buildRunKit(args.topics);
   const topicList = args.topics.slice(0, MAX_TOPIC_COUNT).map((topic) => `- ${topic.topic}`).join("\n");
-  const memorySnippet = args.interestMemoryText.slice(0, 1800);
+  const memorySnippet = args.interestMemoryText.slice(0, 900);
 
   return [
-    "You write high-signal web-search queries for a personalized newsletter retrieval system.",
-    "Goal: produce one query per topic that retrieves advanced, practical, high-quality sources with new information value.",
-    "Use these human quality heuristics when crafting each query:",
-    "- Mismatch principle: prefer sources that surface anomalies, contradictions, or results that do not match common expectations.",
-    "- Counter-intuitivity: favor non-obvious claims that challenge default assumptions.",
-    "- Density of information: prefer concise, high-signal, low-fluff technical writing.",
-    "- Intertextuality: include bridges to adjacent fields when relevant, so results connect ideas across domains.",
-    "- Proof-of-work proxy: prefer artifacts with visible effort (technical deep dives, engineering postmortems, papers, design docs, benchmarks) over low-effort commentary.",
-    "- Skin in the game: prefer authors/teams who build, ship, measure, or maintain real systems and publish concrete evidence.",
-    "Hard rules:",
-    "- Include the exact topic phrase in each query.",
-    "- Optimize for novelty and progression: each query should bias toward things an informed reader likely has not already seen.",
-    "- Include at least one specificity anchor for niche depth (for example protocol/standard names, failure modes, architecture patterns, evaluation methods, or named techniques).",
-    "- Prefer concrete evidence-heavy artifacts: incident reports, engineering blogs with metrics, benchmark studies, migration writeups, design docs, and research analysis.",
-    "- Prefer deep signals: postmortem, case study, architecture tradeoffs, benchmark, reliability lessons, technical essay, research analysis.",
-    "- Encourage domain-specific vocabulary and precise qualifiers; avoid generic broad phrasing.",
-    "- Avoid beginner material and dictionary/index pages.",
-    "- Include these negative terms in every query exactly once each: -tutorial -beginner -beginners -introduction -basics -101.",
-    "- Use user memory to infer whether depth should be beginner/intermediate/advanced for each topic.",
-    "- If memory prefers practical depth, prioritize implementation details, production constraints, and failure/recovery lessons over conceptual explainers.",
-    "- Optional cross-interest extension is allowed: if two interests naturally connect, include one adjacent concept in the same query; do not force connections when weak.",
-    "- Keep query concise and natural; avoid stuffing many unrelated clauses.",
-    "- Keep at least 70% of query intent anchored to the base topic; extension should be a light expansion, not a pivot.",
-    "- Return strict JSON only: {\"plans\":[{\"topic\":\"...\",\"query\":\"...\"}]}.",
+    "Write one web-search query per topic for exploratory newsletter discovery.",
+    "Be wild and surprising, but stay inside the topic's field.",
+    "Requirements:",
+    "- Include the exact topic phrase.",
+    "- Include one recency phrase: last 7 days, last 30 days, last 90 days, last 12 months, or since previous year.",
+    "- Bias toward high-signal evidence (postmortems, benchmarks, incident writeups, migration notes, design docs, technical analysis).",
+    "- Prefer non-obvious, contrarian, or edge-case angles over generic explainers.",
+    "- Keep at least 70% of intent anchored to the topic; adjacent extensions are allowed but must stay relevant.",
+    "- Vary lexical strategy across topics in this run; avoid repeating one template.",
+    "- Use run entropy token and run directives as hidden variation control; never print them.",
+    "- Output queries only, one per line, same order as Topics. No JSON, bullets, numbering, labels, or commentary.",
+    "",
+    `Run entropy token: ${runKit.runEntropyToken}`,
+    "Run creativity lenses:",
+    runKit.runLensList,
+    "",
+    "Run style directives:",
+    runKit.runStyleList,
+    "",
+    "Run operator hints:",
+    runKit.runOperatorList,
     "",
     "Topics:",
     topicList,
@@ -108,40 +208,29 @@ export function buildQueryPlannerPrompt(args: { interestMemoryText: string; topi
   ].join("\n");
 }
 
-function parsePlans(text: string): QueryPlanResponse {
-  const parsed = parseJsonFromModelText(text);
-  if (!parsed || typeof parsed !== "object") {
-    throw new Error("QUERY_PLANNER_INVALID_JSON");
+function parsePlans(args: {
+  text: string;
+  topics: DiscoveryTopic[];
+  recencyByTopicKey: Map<string, string>;
+}): QueryPlanResponse {
+  const queries = parseQueries(args.text);
+  if (queries.length === 0) {
+    throw new Error("QUERY_PLANNER_INVALID_RESPONSE");
   }
 
-  const plans = (parsed as { plans?: unknown }).plans;
-  if (!Array.isArray(plans)) {
-    throw new Error("QUERY_PLANNER_INVALID_JSON");
-  }
+  const planned = args.topics.slice(0, MAX_TOPIC_COUNT).map((topic, index) => {
+    const query = queries[index];
+    if (!query) return null;
 
-  const normalizedPlans = plans
-    .map((plan) => {
-      if (!plan || typeof plan !== "object") {
-        return null;
-      }
+    const recencyOperator = args.recencyByTopicKey.get(normalizeTopicKey(topic.topic)) ?? RECENCY_OPERATORS[0];
+    const normalizedTopic = normalizeLine(topic.topic);
+    const normalizedQuery = enforceQueryGuardrails(normalizedTopic, query, recencyOperator);
+    if (!normalizedTopic || !normalizedQuery) return null;
 
-      const topic = (plan as { topic?: unknown }).topic;
-      const query = (plan as { query?: unknown }).query;
-      if (typeof topic !== "string" || typeof query !== "string") {
-        return null;
-      }
+    return { topic: normalizedTopic, query: normalizedQuery };
+  });
 
-      const normalizedTopic = normalizeLine(topic);
-      const normalizedQuery = enforceQueryGuardrails(normalizedTopic, query);
-      if (!normalizedTopic || !normalizedQuery) {
-        return null;
-      }
-
-      return { topic: normalizedTopic, query: normalizedQuery };
-    })
-    .filter((value): value is { topic: string; query: string } => Boolean(value));
-
-  return { plans: normalizedPlans };
+  return { plans: planned.filter((item): item is { topic: string; query: string } => Boolean(item)) };
 }
 
 function shouldUsePlannerFlag(): boolean {
@@ -167,7 +256,14 @@ export async function planQueriesForTopics(args: {
     throw new Error("MISSING_OPENROUTER_API_KEY");
   }
 
-  const prompt = buildQueryPlannerPrompt(args);
+  const runKit = buildRunKit(args.topics);
+  const prompt = buildQueryPlannerPrompt({
+    interestMemoryText: args.interestMemoryText,
+    topics: args.topics,
+    runKit
+  });
+  const temperatureSeed = hashString(runKit.runEntropyToken) % 1000;
+  const temperature = MIN_PLANNER_TEMPERATURE + (temperatureSeed / 1000) * (MAX_PLANNER_TEMPERATURE - MIN_PLANNER_TEMPERATURE);
   const response = await fetch(OPENROUTER_CHAT_COMPLETIONS_URL, {
     method: "POST",
     headers: {
@@ -176,7 +272,7 @@ export async function planQueriesForTopics(args: {
     },
     body: JSON.stringify({
       model: modelName,
-      temperature: 0,
+      temperature,
       max_tokens: 450,
       messages: [
         {
@@ -193,7 +289,11 @@ export async function planQueriesForTopics(args: {
 
   const json = (await response.json().catch(() => null)) as unknown;
   const text = extractChoiceText(json);
-  const planned = parsePlans(text);
+  const planned = parsePlans({
+    text,
+    topics: args.topics,
+    recencyByTopicKey: runKit.recencyByTopicKey
+  });
 
   const requestedTopics = new Map(args.topics.map((topic) => [normalizeTopicKey(topic.topic), topic.topic]));
   const byTopic = new Map<string, string>();

@@ -1,0 +1,52 @@
+[
+  {
+    "title": "AI Engineering News Feb 12-13 2026",
+    "url": "https://radicaldatascience.wordpress.com/2026/02/10/ai-news-briefs-bulletin-board-for-february-2026/",
+    "summary": "This newsletter covers AI engineering developments from February 12-13, 2026. The specific news items and updates from this period are referenced in the source material, providing current information on AI engineering topics and industry developments during this timeframe. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "System Design Tutorial: The Complete Guide 2026",
+    "url": "https://www.systemdesignhandbook.com/guides/system-design-tutorial/",
+    "summary": "A comprehensive tutorial guide covering system design principles and practices. The resource serves as a complete reference for understanding system design concepts, intended for learners seeking structured instruction in this technical domain. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "The Ultimate List of Best Software Architecture Books (2026)",
+    "url": "https://www.workingsoftware.dev/the-ultimate-list-of-software-architecture-books/",
+    "summary": "A curated collection of recommended software architecture books for 2026. The list provides resources for professionals seeking to deepen their understanding of architectural principles, patterns, and practices in software development. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "Data engineering and DataOps: A beginner's guide (2026) - Flexera",
+    "url": "https://www.flexera.com/blog/finops/data-engineering-and-dataops-beginners-guide-to-building-data-solutions-and-solving-real-world-challenges/",
+    "summary": "This guide introduces foundational concepts in data engineering and DataOps for beginners. It covers building data solutions and addresses practical challenges encountered in real-world implementations, providing essential knowledge for those starting in these fields. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "McKinsey technology trends outlook 2025",
+    "url": "https://www.mckinsey.com/capabilities/tech-and-ai/our-insights/the-top-trends-in-tech",
+    "summary": "McKinsey identifies key technology trends shaping 2025. The outlook examines emerging developments across the tech landscape, providing insights relevant to technical product strategy and organizational planning in the coming year. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "AI Engineering Code Summit Agent Swarms",
+    "url": "https://dentro.de/ai/news/",
+    "summary": "The AI Engineering Code Summit addressed agent swarms, a topic within artificial intelligence engineering. The event focused on developments and discussions relevant to AI practitioners working with multi-agent systems and collaborative AI architectures. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "The Complete Guide to System Design in 2026 - DEV Community",
+    "url": "https://dev.to/fahimulhaq/complete-guide-to-system-design-oc7",
+    "summary": "A comprehensive guide to system design practices and principles relevant to 2026. The resource covers foundational concepts and methodologies for designing scalable, reliable systems, published on the DEV Community platform. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "I Tried 20+ Books on Software Architecture — Here Are My Top 7 Recommendations",
+    "url": "https://dev.to/somadevtoo/i-tried-20-books-on-software-architecture-here-are-my-top-7-recommendations-for-senior-developers-54n2",
+    "summary": "An author reviewed over 20 software architecture books and selected 7 top recommendations. The curated list targets senior developers seeking foundational knowledge and practical guidance in software architecture principles and practices. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "I Tried 20+ Books on Software Architecture — Here Are My Top 7 Recommendations",
+    "url": "https://javarevisited.wordpress.com/2025/11/25/i-tried-20-books-on-software-architecture-here-are-my-top-7-recommendations-for-senior-developers-2/",
+    "summary": "An author reviewed over 20 software architecture books and selected 7 top recommendations. The curated list targets senior developers seeking foundational and advanced knowledge in software architecture principles and practices. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "List of 8 Best System Design Books 2026",
+    "url": "https://devopscube.com/system-design-books/",
+    "summary": "A curated selection of eight system design books recommended for 2026. The list covers resources focused on software architecture principles and practices, providing guidance for professionals seeking to deepen their understanding of designing scalable and robust systems. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  }
+]
