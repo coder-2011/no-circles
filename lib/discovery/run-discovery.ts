@@ -1,6 +1,7 @@
 import { deriveTopicsFromMemory } from "@/lib/discovery/topic-derivation";
 import { searchExa } from "@/lib/discovery/exa-client";
 import { planQueriesForTopics, shouldUseQueryPlanner } from "@/lib/discovery/query-planner";
+import { logInfo } from "@/lib/observability/log";
 import {
   DEFAULT_DISCOVERY_MAX_RETRIES,
   DEFAULT_DISCOVERY_TARGET_COUNT,
@@ -32,7 +33,7 @@ const DISCOVERY_DEBUG = process.env.DISCOVERY_DEBUG === "1";
 
 function logDiscoveryDebug(event: string, details: Record<string, unknown>) {
   if (!DISCOVERY_DEBUG) return;
-  console.info(JSON.stringify({ subsystem: "discovery", event, ...details }));
+  logInfo("discovery", event, details);
 }
 
 function hasRequiredItemFields(candidate: DiscoveryCandidate): boolean {

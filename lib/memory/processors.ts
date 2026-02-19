@@ -7,6 +7,7 @@ import {
   validateMemoryText
 } from "@/lib/memory/contract";
 import { buildOnboardingMemoryPrompt, buildReplyMemoryPrompt } from "@/lib/ai/memory-prompts";
+import { logInfo, logWarn } from "@/lib/observability/log";
 import { memoryUpdateOpsSchema } from "@/lib/schemas";
 import type { z } from "zod";
 
@@ -21,13 +22,12 @@ const SUPPRESSED_INTEREST_REGEX = /\b(less|avoid|mute|stop|not interested|don't 
 const ANTHROPIC_AUTH_ERROR = "ANTHROPIC_AUTH_FAILED";
 
 function logMemoryEvent(level: "info" | "warn", event: string, details: Record<string, unknown>) {
-  const payload = JSON.stringify({ subsystem: "memory_processors", event, ...details });
   if (level === "warn") {
-    console.warn(payload);
+    logWarn("memory_processors", event, details);
     return;
   }
 
-  console.info(payload);
+  logInfo("memory_processors", event, details);
 }
 
 function extractTextContent(value: unknown): string {

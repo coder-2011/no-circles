@@ -148,6 +148,7 @@ Build a website-first, personalized daily newsletter system that curates 10 high
   - `just lint`
   - `just test`
   - `just e2e`
+  - `just hyper-reply-evolution-live`
   - `just main-loc`
   - `just loc`
 
