@@ -1,1 +1,0 @@
-I care about AI engineering, distributed systems, software architecture, and data engineering. I like practical implementation details, migration tradeoffs, and operational lessons. I want less hype and more concrete examples from production environments. I also like product strategy and behavioral economics when they connect to engineering decisions.
