@@ -1,0 +1,52 @@
+[
+  {
+    "title": "Manufact's $6.3M for MCP Infra Tackles Agent Toolchain Fragmentation in Production",
+    "url": "https://www.lazarev.agency/articles/weekly-startup-news-february-13-20-2026",
+    "summary": "Manufact secured $6.3 million in funding for MCP Infrastructure, addressing fragmentation issues in agent toolchains used in production environments. The investment targets standardization and integration challenges within AI agent development workflows. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "Complete Guide to System Design in 2026",
+    "url": "https://dev.to/fahimulhaq/complete-guide-to-system-design-oc7",
+    "summary": "A comprehensive guide addressing system design principles and practices relevant to 2026. The resource covers foundational concepts and methodologies for designing scalable, reliable systems, serving as a reference for engineers working on complex architectural challenges. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "System Design on AWS: Practical Guide with Trade-offs and Failure Modes",
+    "url": "https://devopscube.com/system-design-books/[4]",
+    "summary": "A guide addressing system design on AWS, covering practical approaches alongside trade-offs and failure modes. The resource examines architectural considerations relevant to software design on the AWS platform. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "AI Supercomputing Platforms: High-Leverage Architecture for 2025-2026 Industrial Convergence Constraints",
+    "url": "https://vidyatec.com/blog/industry-tech-trends-for-2026/[4]",
+    "summary": "The document discusses AI supercomputing platforms as a strategic architecture approach for addressing industrial convergence constraints anticipated in 2025-2026, positioning them as high-leverage solutions for technical product strategy during this period. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "Snorkel AI's $3M Grant Targets Production Blind Spots in Benchmarks",
+    "url": "https://radicaldatascience.wordpress.com/2026/02/10/ai-news-briefs-bulletin-board-for-february-2026/",
+    "summary": "Snorkel AI received a $3 million grant focused on addressing production blind spots in benchmarks. The initiative targets gaps between benchmark performance and real-world production environments in AI systems. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "AI Engineering Code Summit: Agent Swarms vs Single Agents in Coding Rollouts",
+    "url": "https://dentro.de/ai/news/",
+    "summary": "The AI Engineering Code Summit examined approaches to coding rollouts, comparing agent swarms against single agent systems. The event focused on evaluating different architectural strategies for AI-driven code generation and implementation methodologies. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "TanStack-ification: Frontend System Modularity & Abstraction Failures",
+    "url": "https://blog.logrocket.com/8-trends-web-dev-2026/",
+    "summary": "The article discusses TanStack-ification as a trend in web development, examining how frontend systems approach modularity and abstraction. It addresses failures in these architectural patterns within modern frontend frameworks and tooling ecosystems. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "AI-Generated Design Systems: Prompt Engineering Rollouts & Accessibility Incidents",
+    "url": "https://uxdesign.cc/the-most-popular-experience-design-trends-of-2026-3ca85c8a3e3d",
+    "summary": "Organizations are rolling out AI-generated design systems using prompt engineering techniques. Implementation has surfaced accessibility incidents, indicating challenges in ensuring inclusive design when automating system generation through AI-driven approaches. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "Fundamentals of Software Architecture: An Engineering Approach",
+    "url": "https://www.workingsoftware.dev/the-ultimate-list-of-software-architecture-books/[1]",
+    "summary": "A software architecture book that applies engineering principles to architectural design. The work addresses foundational concepts and practical approaches for building software systems, appearing on curated lists of essential architecture resources. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "Architecting Scalable Solutions: A Practical Approach to Software Design",
+    "url": "https://leanpub.com/the-software-architecture-book[3]",
+    "summary": "A resource addressing software architecture and scalable solution design. The material presents practical approaches to architecting systems capable of handling growth and increased demands through systematic design principles and methodologies. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  }
+]

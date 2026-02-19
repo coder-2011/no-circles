@@ -1,12 +1,11 @@
 import { deriveTopicsFromMemory } from "@/lib/discovery/topic-derivation";
-import { searchExa } from "@/lib/discovery/exa-client";
-import { planQueriesForTopics, shouldUseQueryPlanner } from "@/lib/discovery/query-planner";
+import { selectBestTopicLink } from "@/lib/discovery/haiku-link-selector";
+import { searchSonar } from "@/lib/discovery/sonar-client";
 import { logInfo } from "@/lib/observability/log";
 import {
   DEFAULT_DISCOVERY_MAX_RETRIES,
   DEFAULT_DISCOVERY_TARGET_COUNT,
   type DiscoveryCandidate,
-  type DiscoveryTopic,
   type DiscoveryRunInput,
   type DiscoveryRunResult,
   type ExaSearchFn
@@ -29,6 +28,7 @@ const DEFAULT_MAX_TOPICS = 10;
 const DEFAULT_EARLY_STOP_BUFFER = 2;
 const DEFAULT_MAX_PER_DOMAIN = 3;
 const DEFAULT_BACKFILL_MAX_TOPIC_SHARE = 0.4;
+const RECENCY_OPERATORS = ["last 7 days", "last 30 days", "last 90 days", "last 12 months", "since previous year"] as const;
 const DISCOVERY_DEBUG = process.env.DISCOVERY_DEBUG === "1";
 
 function logDiscoveryDebug(event: string, details: Record<string, unknown>) {
@@ -38,6 +38,33 @@ function logDiscoveryDebug(event: string, details: Record<string, unknown>) {
 
 function hasRequiredItemFields(candidate: DiscoveryCandidate): boolean {
   return Boolean(candidate.title && candidate.highlight);
+}
+
+function normalizeLine(value: string): string {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function hasRecencyOperator(query: string): boolean {
+  const lower = query.toLowerCase();
+  return RECENCY_OPERATORS.some((operator) => lower.includes(operator));
+}
+
+function appendRecencyOperator(query: string, topicRank: number, attempt: number): string {
+  const normalized = normalizeLine(query);
+  if (!normalized) return normalized;
+  if (hasRecencyOperator(normalized)) return normalized;
+
+  const operator = RECENCY_OPERATORS[(topicRank + attempt) % RECENCY_OPERATORS.length] ?? RECENCY_OPERATORS[0];
+  return `${normalized} ${operator}`;
+}
+
+function reorderBySelectedIndex<T>(items: T[], selectedIndex: number | null): T[] {
+  if (selectedIndex === null || selectedIndex < 0 || selectedIndex >= items.length) {
+    return items;
+  }
+  if (selectedIndex === 0) return items;
+  const selected = items[selectedIndex];
+  return [selected, ...items.slice(0, selectedIndex), ...items.slice(selectedIndex + 1)];
 }
 
 function fillFromPool(
@@ -100,7 +127,11 @@ export async function runDiscovery(
   deps: {
     exaSearch?: ExaSearchFn;
     includeCandidate?: (candidate: DiscoveryCandidate) => boolean;
-    queryPlanner?: (args: { interestMemoryText: string; topics: DiscoveryTopic[] }) => Promise<Map<string, string>>;
+    linkSelector?: (args: {
+      topic: string;
+      interestMemoryText: string;
+      candidates: Array<{ url: string; title: string | null; highlights?: string[] }>;
+    }) => Promise<number | null>;
   } = {}
 ): Promise<DiscoveryRunResult> {
   const targetCount = input.targetCount ?? DEFAULT_DISCOVERY_TARGET_COUNT;
@@ -109,8 +140,9 @@ export async function runDiscovery(
   const basePerTopicResults = input.perTopicResults ?? DEFAULT_PER_TOPIC_RESULTS;
   const earlyStopBuffer = input.earlyStopBuffer ?? DEFAULT_EARLY_STOP_BUFFER;
   const maxPerDomain = input.maxPerDomain ?? DEFAULT_MAX_PER_DOMAIN;
-  const exaSearch = deps.exaSearch ?? searchExa;
+  const exaSearch = deps.exaSearch ?? searchSonar;
   const includeCandidate = deps.includeCandidate ?? (() => true);
+  const linkSelector = deps.linkSelector ?? selectBestTopicLink;
 
   const topics = deriveTopicsFromMemory({
     interestMemoryText: input.interestMemoryText,
@@ -122,23 +154,6 @@ export async function runDiscovery(
   }
 
   const warnings: string[] = [];
-  const queryPlanner =
-    deps.queryPlanner ?? (shouldUseQueryPlanner() ? ({ interestMemoryText, topics }) => planQueriesForTopics({ interestMemoryText, topics }) : null);
-  const plannedQueriesByTopic = new Map<string, string>();
-
-  if (queryPlanner) {
-    try {
-      const planned = await queryPlanner({ interestMemoryText: input.interestMemoryText, topics });
-      for (const [topic, query] of planned) {
-        plannedQueriesByTopic.set(topic, query);
-      }
-      if (plannedQueriesByTopic.size > 0) {
-        warnings.push(`QUERY_PLANNER_ACTIVE_${plannedQueriesByTopic.size}`);
-      }
-    } catch (error) {
-      warnings.push(`QUERY_PLANNER_FALLBACK:${error instanceof Error ? error.message : "UNKNOWN_ERROR"}`);
-    }
-  }
 
   const aggregateCandidates: DiscoveryCandidate[] = [];
   let candidateFilterExcludedCount = 0;
@@ -150,17 +165,23 @@ export async function runDiscovery(
     const perTopicResults = basePerTopicResults + attempt * 2;
 
     for (const topic of topics) {
-      const plannedQuery = plannedQueriesByTopic.get(topic.topic);
-      const query = buildAttemptQuery(
-        {
-          ...topic,
-          query: plannedQuery && plannedQuery.trim().length > 0 ? plannedQuery : topic.query
-        },
-        attempt
-      );
+      const query = appendRecencyOperator(buildAttemptQuery(topic, attempt), topic.topicRank, attempt);
 
       try {
-        const results = await exaSearch({ query, numResults: perTopicResults });
+        const rawResults = await exaSearch({ query, numResults: perTopicResults });
+        let results = rawResults;
+        if (rawResults.length > 1) {
+          try {
+            const selectedIndex = await linkSelector({
+              topic: topic.topic,
+              interestMemoryText: input.interestMemoryText,
+              candidates: rawResults
+            });
+            results = reorderBySelectedIndex(rawResults, selectedIndex);
+          } catch (error) {
+            warnings.push(`TOPIC_SELECTOR_FAILURE:${topic.topic}:${error instanceof Error ? error.message : "UNKNOWN_ERROR"}`);
+          }
+        }
 
         results.forEach((result, resultIndex) => {
           const normalized = normalizeCandidate({

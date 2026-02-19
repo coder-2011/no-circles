@@ -1,0 +1,239 @@
+{
+  "candidates": [
+    {
+      "url": "https://www.lazarev.agency/articles/weekly-startup-news-february-13-20-2026",
+      "canonicalUrl": "https://www.lazarev.agency/articles/weekly-startup-news-february-13-20-2026",
+      "title": "Manufact's $6.3M for MCP Infra Tackles Agent Toolchain Fragmentation in Production",
+      "highlight": "Manufact's $6.3M for MCP Infra Tackles Agent Toolchain Fragmentation in Production",
+      "highlights": [
+        "Manufact's $6.3M for MCP Infra Tackles Agent Toolchain Fragmentation in Production"
+      ],
+      "topic": "AI engineering",
+      "topicRank": 0,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "lazarev.agency",
+      "publishedAt": null,
+      "exaScore": null,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://dev.to/fahimulhaq/complete-guide-to-system-design-oc7",
+      "canonicalUrl": "https://dev.to/fahimulhaq/complete-guide-to-system-design-oc7",
+      "title": "Complete Guide to System Design in 2026",
+      "highlight": "Complete Guide to System Design in 2026",
+      "highlights": [
+        "Complete Guide to System Design in 2026"
+      ],
+      "topic": "Systems design",
+      "topicRank": 1,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "dev.to",
+      "publishedAt": null,
+      "exaScore": null,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://devopscube.com/system-design-books/[4]",
+      "canonicalUrl": "https://devopscube.com/system-design-books/[4]",
+      "title": "System Design on AWS: Practical Guide with Trade-offs and Failure Modes",
+      "highlight": "System Design on AWS: Practical Guide with Trade-offs and Failure Modes",
+      "highlights": [
+        "System Design on AWS: Practical Guide with Trade-offs and Failure Modes"
+      ],
+      "topic": "Software architecture",
+      "topicRank": 2,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "devopscube.com",
+      "publishedAt": null,
+      "exaScore": null,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://vidyatec.com/blog/industry-tech-trends-for-2026/[4]",
+      "canonicalUrl": "https://vidyatec.com/blog/industry-tech-trends-for-2026/[4]",
+      "title": "AI Supercomputing Platforms: High-Leverage Architecture for 2025-2026 Industrial Convergence Constraints",
+      "highlight": "AI Supercomputing Platforms: High-Leverage Architecture for 2025-2026 Industrial Convergence Constraints",
+      "highlights": [
+        "AI Supercomputing Platforms: High-Leverage Architecture for 2025-2026 Industrial Convergence Constraints"
+      ],
+      "topic": "Technical product strategy",
+      "topicRank": 4,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "vidyatec.com",
+      "publishedAt": null,
+      "exaScore": null,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://radicaldatascience.wordpress.com/2026/02/10/ai-news-briefs-bulletin-board-for-february-2026/",
+      "canonicalUrl": "https://radicaldatascience.wordpress.com/2026/02/10/ai-news-briefs-bulletin-board-for-february-2026",
+      "title": "Snorkel AI's $3M Grant Targets Production Blind Spots in Benchmarks",
+      "highlight": "Snorkel AI's $3M Grant Targets Production Blind Spots in Benchmarks",
+      "highlights": [
+        "Snorkel AI's $3M Grant Targets Production Blind Spots in Benchmarks"
+      ],
+      "topic": "AI engineering",
+      "topicRank": 0,
+      "softSuppressed": false,
+      "resultRank": 1,
+      "sourceDomain": "radicaldatascience.wordpress.com",
+      "publishedAt": null,
+      "exaScore": null,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://dentro.de/ai/news/",
+      "canonicalUrl": "https://dentro.de/ai/news",
+      "title": "AI Engineering Code Summit: Agent Swarms vs Single Agents in Coding Rollouts",
+      "highlight": "AI Engineering Code Summit: Agent Swarms vs Single Agents in Coding Rollouts",
+      "highlights": [
+        "AI Engineering Code Summit: Agent Swarms vs Single Agents in Coding Rollouts"
+      ],
+      "topic": "AI engineering",
+      "topicRank": 0,
+      "softSuppressed": false,
+      "resultRank": 2,
+      "sourceDomain": "dentro.de",
+      "publishedAt": null,
+      "exaScore": null,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://blog.logrocket.com/8-trends-web-dev-2026/",
+      "canonicalUrl": "https://blog.logrocket.com/8-trends-web-dev-2026",
+      "title": "TanStack-ification: Frontend System Modularity & Abstraction Failures",
+      "highlight": "TanStack-ification: Frontend System Modularity & Abstraction Failures",
+      "highlights": [
+        "TanStack-ification: Frontend System Modularity & Abstraction Failures"
+      ],
+      "topic": "Systems design",
+      "topicRank": 1,
+      "softSuppressed": false,
+      "resultRank": 1,
+      "sourceDomain": "blog.logrocket.com",
+      "publishedAt": null,
+      "exaScore": null,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://uxdesign.cc/the-most-popular-experience-design-trends-of-2026-3ca85c8a3e3d",
+      "canonicalUrl": "https://uxdesign.cc/the-most-popular-experience-design-trends-of-2026-3ca85c8a3e3d",
+      "title": "AI-Generated Design Systems: Prompt Engineering Rollouts & Accessibility Incidents",
+      "highlight": "AI-Generated Design Systems: Prompt Engineering Rollouts & Accessibility Incidents",
+      "highlights": [
+        "AI-Generated Design Systems: Prompt Engineering Rollouts & Accessibility Incidents"
+      ],
+      "topic": "Systems design",
+      "topicRank": 1,
+      "softSuppressed": false,
+      "resultRank": 2,
+      "sourceDomain": "uxdesign.cc",
+      "publishedAt": null,
+      "exaScore": null,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://www.workingsoftware.dev/the-ultimate-list-of-software-architecture-books/[1]",
+      "canonicalUrl": "https://www.workingsoftware.dev/the-ultimate-list-of-software-architecture-books/[1]",
+      "title": "Fundamentals of Software Architecture: An Engineering Approach",
+      "highlight": "Fundamentals of Software Architecture: An Engineering Approach",
+      "highlights": [
+        "Fundamentals of Software Architecture: An Engineering Approach"
+      ],
+      "topic": "Software architecture",
+      "topicRank": 2,
+      "softSuppressed": false,
+      "resultRank": 1,
+      "sourceDomain": "workingsoftware.dev",
+      "publishedAt": null,
+      "exaScore": null,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://leanpub.com/the-software-architecture-book[3]",
+      "canonicalUrl": "https://leanpub.com/the-software-architecture-book[3]",
+      "title": "Architecting Scalable Solutions: A Practical Approach to Software Design",
+      "highlight": "Architecting Scalable Solutions: A Practical Approach to Software Design",
+      "highlights": [
+        "Architecting Scalable Solutions: A Practical Approach to Software Design"
+      ],
+      "topic": "Software architecture",
+      "topicRank": 2,
+      "softSuppressed": false,
+      "resultRank": 3,
+      "sourceDomain": "leanpub.com",
+      "publishedAt": null,
+      "exaScore": null,
+      "highlightScore": null,
+      "highlightScores": []
+    }
+  ],
+  "topics": [
+    {
+      "topic": "AI engineering",
+      "query": "AI engineering",
+      "topicRank": 0,
+      "softSuppressed": false
+    },
+    {
+      "topic": "Systems design",
+      "query": "Systems design",
+      "topicRank": 1,
+      "softSuppressed": false
+    },
+    {
+      "topic": "Software architecture",
+      "query": "Software architecture",
+      "topicRank": 2,
+      "softSuppressed": false
+    },
+    {
+      "topic": "Data engineering",
+      "query": "Data engineering",
+      "topicRank": 3,
+      "softSuppressed": false
+    },
+    {
+      "topic": "Technical product strategy",
+      "query": "Technical product strategy",
+      "topicRank": 4,
+      "softSuppressed": false
+    }
+  ],
+  "attempts": 3,
+  "warnings": [
+    "LOW_SIGNAL_FILTERED_1",
+    "INSUFFICIENT_TOPIC_WINNERS",
+    "BACKFILLED_FROM_QUALITY_POOL_6",
+    "DIVERSITY_CARD_FAILED"
+  ],
+  "diversityCard": {
+    "itemCount": 10,
+    "targetCount": 10,
+    "distinctTopics": 4,
+    "distinctDomains": 10,
+    "maxTopicShare": 0.3,
+    "maxDomainShare": 0.1,
+    "topicEntropyNormalized": 0.9477309221191609,
+    "thresholds": {
+      "minDistinctTopics": 6,
+      "maxTopicShare": 0.3,
+      "minDistinctDomains": 6,
+      "maxDomainShare": 0.3
+    },
+    "passes": false
+  }
+}

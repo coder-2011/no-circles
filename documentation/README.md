@@ -42,6 +42,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 ## Current File Docs
 
 - `files/app-api-cron-generate-next-route.md`
+- `files/app-api-deepgram-token-route.md`
 - `files/app-api-onboarding-route.md`
 - `files/app-auth-callback-route.md`
 - `files/app-globals-css.md`
@@ -50,6 +51,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/app-onboarding-onboarding-config.md`
 - `files/app-onboarding-use-onboarding-controller.md`
 - `files/app-onboarding-onboarding-form.md`
+- `files/app-onboarding-deepgram-dictation.md`
 - `files/app-page.md`
 - `files/components-json.md`
 - `files/lib-db-client.md`
@@ -78,6 +80,8 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/tailwind-config.md`
 - `files/tests-onboarding.md`
 - `files/tests-onboarding-route.md`
+- `files/tests-onboarding-deepgram-dictation.md`
+- `files/tests-deepgram-token-route.md`
 - `files/tests-inbound-webhook-route.md`
 - `files/tests-cron-generate-next-route.md`
 - `files/tests-cron-selector-db-integration.md`
@@ -96,6 +100,8 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/lib-discovery-types.md`
 - `files/lib-discovery-topic-derivation.md`
 - `files/lib-discovery-exa-client.md`
+- `files/lib-discovery-sonar-client.md`
+- `files/lib-discovery-haiku-link-selector.md`
 - `files/lib-discovery-run-discovery.md`
 - `files/lib-summary-writer.md`
 - `files/lib-email-render-newsletter.md`
@@ -108,6 +114,8 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/tests-discovery-topic-derivation.md`
 - `files/tests-discovery-run.md`
 - `files/tests-discovery-query-planner.md`
+- `files/tests-discovery-sonar-client.md`
+- `files/tests-discovery-haiku-link-selector.md`
 - `files/tests-discovery-manual-eval-integration.md`
 - `files/tests-discovery-live-exa-integration.md`
 - `files/tests-summary-writer.md`
