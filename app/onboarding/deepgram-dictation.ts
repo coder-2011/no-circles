@@ -9,7 +9,23 @@ export function buildDeepgramWebSocketUrl(accessToken: string): string {
   const base = process.env.NEXT_PUBLIC_DEEPGRAM_WS_BASE?.trim() || DEFAULT_DEEPGRAM_WS_BASE;
   const model = process.env.NEXT_PUBLIC_DEEPGRAM_MODEL?.trim() || DEFAULT_DEEPGRAM_MODEL;
   const params = new URLSearchParams({
-    access_token: accessToken,
+    token: accessToken,
+    model,
+    encoding: "linear16",
+    sample_rate: String(DEEPGRAM_TARGET_SAMPLE_RATE),
+    channels: "1",
+    interim_results: "true",
+    punctuate: "true",
+    smart_format: "true"
+  });
+
+  return `${base.replace(/\/$/, "")}/listen?${params.toString()}`;
+}
+
+export function buildDeepgramWebSocketUrlWithoutToken(): string {
+  const base = process.env.NEXT_PUBLIC_DEEPGRAM_WS_BASE?.trim() || DEFAULT_DEEPGRAM_WS_BASE;
+  const model = process.env.NEXT_PUBLIC_DEEPGRAM_MODEL?.trim() || DEFAULT_DEEPGRAM_MODEL;
+  const params = new URLSearchParams({
     model,
     encoding: "linear16",
     sample_rate: String(DEEPGRAM_TARGET_SAMPLE_RATE),
@@ -38,6 +54,16 @@ export function appendTranscript(currentText: string, transcript: string): strin
 
   const normalizedCurrent = currentText.trimEnd();
   return normalizedCurrent ? `${normalizedCurrent}\n${cleanTranscript}` : cleanTranscript;
+}
+
+function appendTranscriptSegment(currentText: string, transcript: string): string {
+  const cleanTranscript = transcript.trim();
+  if (!cleanTranscript) {
+    return currentText;
+  }
+
+  const normalizedCurrent = currentText.trim();
+  return normalizedCurrent ? `${normalizedCurrent} ${cleanTranscript}` : cleanTranscript;
 }
 
 export type DeepgramMessageParseResult =
@@ -87,7 +113,7 @@ export function updateDeepgramTranscriptState(params: {
 }): { finalTranscript: string; interimTranscript: string } {
   if (params.result.isFinal) {
     return {
-      finalTranscript: appendTranscript(params.finalTranscript, params.result.transcript),
+      finalTranscript: appendTranscriptSegment(params.finalTranscript, params.result.transcript),
       interimTranscript: ""
     };
   }
@@ -99,7 +125,7 @@ export function updateDeepgramTranscriptState(params: {
 }
 
 export function buildFinalDictationTranscript(finalTranscript: string, interimTranscript: string): string {
-  return appendTranscript(finalTranscript, interimTranscript);
+  return appendTranscriptSegment(finalTranscript, interimTranscript);
 }
 
 export function downsampleToMono16k(inputSamples: Float32Array, inputSampleRate: number): Int16Array {

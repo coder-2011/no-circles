@@ -14,15 +14,22 @@ import {
   getDetectedTimezone,
   getPreferredNameFromEmail,
   initialSendTimeFromLocalNow,
+  INTEREST_QUICK_SPARKS,
+  ONBOARDING_PREFS_DRAFT_KEY,
+  ONBOARDING_QUICK_SPARKS_ROTATION_KEY,
+  ONBOARDING_QUICK_SPARKS_URL,
+  ONBOARDING_QUICK_SPARKS_VISIBLE_COUNT,
   parseSendTime,
   PREFERRED_NAME_SUGGESTIONS,
+  rotateQuickSparks,
   type SubmitState,
   truncateToWordLimit
 } from "@/app/onboarding/onboarding-config";
 import {
   appendTranscript,
-  buildFinalDictationTranscript,
   buildDeepgramWebSocketUrl,
+  buildDeepgramWebSocketUrlWithoutToken,
+  buildFinalDictationTranscript,
   downsampleToMono16k,
   getDeepgramPacketSize,
   int16ToArrayBuffer,
@@ -54,7 +61,9 @@ export type OnboardingController = {
   brainDumpText: string;
   brainDumpWordCount: number;
   dictationState: DictationState;
+  dictationLevels: number[];
   dictationError: string | null;
+  quickSparks: string[];
   setPreferredName: (value: string) => void;
   setTimezone: (value: string) => void;
   setSendHour12: (value: string) => void;
@@ -79,7 +88,9 @@ export function useOnboardingController(): OnboardingController {
   const [message, setMessage] = useState<string | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
   const [dictationState, setDictationState] = useState<DictationState>("idle");
+  const [dictationLevels, setDictationLevels] = useState<number[]>(() => Array.from({ length: 12 }, () => 0));
   const [dictationError, setDictationError] = useState<string | null>(null);
+  const [quickSparks, setQuickSparks] = useState<string[]>(() => [...INTEREST_QUICK_SPARKS]);
   const [preferredName, setPreferredName] = useState("");
   const [fallbackPreferredNameSuggestion] = useState(randomPreferredNameSuggestion);
   const [preferredNameSuggestion, setPreferredNameSuggestion] = useState(fallbackPreferredNameSuggestion);
@@ -97,11 +108,16 @@ export function useOnboardingController(): OnboardingController {
 
   const [brainDumpText, setBrainDumpTextState] = useState("");
   const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
-  const wsRef = useRef<WebSocket | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const processorRef = useRef<ScriptProcessorNode | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const meterAnimationFrameRef = useRef<number | null>(null);
+  const dictationLevelsRef = useRef<number[]>(Array.from({ length: 12 }, () => 0));
+  const wsRef = useRef<WebSocket | null>(null);
   const finalTranscriptRef = useRef("");
   const interimTranscriptRef = useRef("");
   const pendingSamplesRef = useRef<number[]>([]);
@@ -110,9 +126,18 @@ export function useOnboardingController(): OnboardingController {
 
   const brainDumpWordCount = countWords(brainDumpText);
 
+  function setDictationMode(nextState: DictationState) {
+    dictationStateRef.current = nextState;
+    setDictationState(nextState);
+  }
+
   useEffect(() => {
     dictationStateRef.current = dictationState;
   }, [dictationState]);
+
+  useEffect(() => {
+    dictationLevelsRef.current = dictationLevels;
+  }, [dictationLevels]);
 
   useEffect(() => {
     brainDumpTextRef.current = brainDumpText;
@@ -126,12 +151,60 @@ export function useOnboardingController(): OnboardingController {
     const inferredName = getPreferredNameFromEmail(email);
     if (inferredName) {
       setPreferredNameSuggestion(inferredName);
-      setPreferredName((current) => (current.trim() ? current : inferredName));
       return;
     }
 
     setPreferredNameSuggestion(fallbackPreferredNameSuggestion);
   }, [email, fallbackPreferredNameSuggestion]);
+
+  useEffect(() => {
+    const savedPrefs = window.localStorage.getItem(ONBOARDING_PREFS_DRAFT_KEY);
+    if (!savedPrefs) {
+      return;
+    }
+
+    let parsed:
+      | {
+          preferredName?: string;
+          timezone?: string;
+          sendHour12?: string;
+          sendMinute?: string;
+          sendMeridiem?: "AM" | "PM";
+        }
+      | null = null;
+    try {
+      parsed = JSON.parse(savedPrefs) as {
+        preferredName?: string;
+        timezone?: string;
+        sendHour12?: string;
+        sendMinute?: string;
+        sendMeridiem?: "AM" | "PM";
+      };
+    } catch {
+      window.localStorage.removeItem(ONBOARDING_PREFS_DRAFT_KEY);
+      return;
+    }
+
+    if (!parsed) {
+      return;
+    }
+
+    if (typeof parsed.preferredName === "string") {
+      setPreferredName(parsed.preferredName);
+    }
+    if (typeof parsed.timezone === "string" && parsed.timezone.trim()) {
+      setTimezone(parsed.timezone);
+    }
+    if (typeof parsed.sendHour12 === "string" && parsed.sendHour12.trim()) {
+      setSendHour12(parsed.sendHour12);
+    }
+    if (typeof parsed.sendMinute === "string" && parsed.sendMinute.trim()) {
+      setSendMinute(parsed.sendMinute);
+    }
+    if (parsed.sendMeridiem === "AM" || parsed.sendMeridiem === "PM") {
+      setSendMeridiem(parsed.sendMeridiem);
+    }
+  }, []);
 
   useEffect(() => {
     const savedDraft = window.localStorage.getItem(BRAIN_DUMP_DRAFT_KEY);
@@ -148,6 +221,55 @@ export function useOnboardingController(): OnboardingController {
 
     window.localStorage.setItem(BRAIN_DUMP_DRAFT_KEY, brainDumpText);
   }, [brainDumpText]);
+
+  useEffect(() => {
+    window.localStorage.setItem(
+      ONBOARDING_PREFS_DRAFT_KEY,
+      JSON.stringify({
+        preferredName,
+        timezone,
+        sendHour12,
+        sendMinute,
+        sendMeridiem
+      })
+    );
+  }, [preferredName, timezone, sendHour12, sendMinute, sendMeridiem]);
+
+  useEffect(() => {
+    let mounted = true;
+    void fetch(ONBOARDING_QUICK_SPARKS_URL)
+      .then((response) => (response.ok ? response.text() : null))
+      .then((text) => {
+        if (!mounted || !text) {
+          return;
+        }
+
+        const parsed = text
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter((line) => line.length > 0);
+
+        if (parsed.length === 0) {
+          return;
+        }
+
+        const rotationRaw = window.localStorage.getItem(ONBOARDING_QUICK_SPARKS_ROTATION_KEY);
+        const rotation = Number.parseInt(rotationRaw ?? "0", 10);
+        const startIndex = Number.isFinite(rotation) ? rotation : 0;
+        const rotated = rotateQuickSparks(parsed, startIndex, ONBOARDING_QUICK_SPARKS_VISIBLE_COUNT);
+        if (rotated.length > 0) {
+          setQuickSparks(rotated);
+        }
+
+        const nextIndex = (startIndex + ONBOARDING_QUICK_SPARKS_VISIBLE_COUNT) % parsed.length;
+        window.localStorage.setItem(ONBOARDING_QUICK_SPARKS_ROTATION_KEY, String(nextIndex));
+      })
+      .catch(() => undefined);
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     try {
@@ -332,61 +454,74 @@ export function useOnboardingController(): OnboardingController {
     }
 
     setDictationError(null);
-    setDictationState("warming");
-    const tokenResponse = await fetch("/api/deepgram/token", { method: "GET" }).catch(() => null);
-    const tokenBody = (await tokenResponse?.json().catch(() => null)) as
-      | { ok: true; access_token: string }
-      | { ok: false; message?: string }
-      | null;
-
-    if (!tokenResponse?.ok || !tokenBody || !("ok" in tokenBody) || tokenBody.ok !== true || !tokenBody.access_token) {
-      setDictationState("idle");
-      setDictationError("Dictation is not configured (missing DEEPGRAM_API_KEY or auth session).");
-      return;
-    }
-    const accessToken = tokenBody.access_token;
+    setDictationLevels(Array.from({ length: 12 }, () => 0.08));
+    setDictationMode("warming");
 
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => null);
     if (!stream) {
-      setDictationState("idle");
+      setDictationMode("idle");
+      setDictationLevels(Array.from({ length: 12 }, () => 0));
       setDictationError("Microphone access failed. Check browser permissions and try again.");
       return;
     }
 
-    const ws = new WebSocket(buildDeepgramWebSocketUrl(accessToken));
+    const tokenResponse = await fetch("/api/deepgram/token", { method: "GET" }).catch(() => null);
+    const tokenRawBody = await tokenResponse?.text().catch(() => null);
+    let tokenBody: { ok: true; access_token: string } | { ok: false; message?: string } | null = null;
+    if (tokenRawBody) {
+      try {
+        tokenBody = JSON.parse(tokenRawBody) as { ok: true; access_token: string } | { ok: false; message?: string };
+      } catch {
+        tokenBody = null;
+      }
+    }
+
+    if (!tokenResponse?.ok || !tokenBody || !("ok" in tokenBody) || tokenBody.ok !== true || !tokenBody.access_token) {
+      stream.getTracks().forEach((track) => track.stop());
+      setDictationMode("idle");
+      setDictationLevels(Array.from({ length: 12 }, () => 0));
+      const serverMessage = tokenBody && "ok" in tokenBody && tokenBody.ok === false ? tokenBody.message : null;
+      if (serverMessage) {
+        setDictationError(serverMessage);
+        return;
+      }
+
+      if (!tokenResponse) {
+        setDictationError("Failed to issue token. Could not reach /api/deepgram/token.");
+        return;
+      }
+
+      setDictationError(`Failed to issue token (HTTP ${tokenResponse.status}).`);
+      return;
+    }
+    const accessToken = tokenBody.access_token;
+    const connectionAttempt = await connectDeepgramWebSocket(accessToken);
+    if (!connectionAttempt.ws) {
+      stream.getTracks().forEach((track) => track.stop());
+      setDictationMode("idle");
+      setDictationLevels(Array.from({ length: 12 }, () => 0));
+      const reason = connectionAttempt.reason ? ` ${connectionAttempt.reason}.` : "";
+      setDictationError(`Could not connect to dictation server.${reason}`);
+      return;
+    }
+
+    const ws = connectionAttempt.ws;
     const audioContext = new AudioContext();
     const audioSource = audioContext.createMediaStreamSource(stream);
     const processor = audioContext.createScriptProcessor(16384, 1, 1);
+    const analyser = audioContext.createAnalyser();
+    analyser.fftSize = 256;
+    analyser.smoothingTimeConstant = 0.68;
 
     mediaStreamRef.current = stream;
     audioContextRef.current = audioContext;
     audioSourceRef.current = audioSource;
     processorRef.current = processor;
+    analyserRef.current = analyser;
     wsRef.current = ws;
     finalTranscriptRef.current = "";
     interimTranscriptRef.current = "";
     pendingSamplesRef.current = [];
-
-    const opened = await new Promise<boolean>((resolve) => {
-      const timeout = window.setTimeout(() => resolve(false), 5000);
-      ws.onopen = () => {
-        window.clearTimeout(timeout);
-        resolve(true);
-      };
-      ws.onerror = () => {
-        window.clearTimeout(timeout);
-        resolve(false);
-      };
-      ws.onclose = () => {
-        window.clearTimeout(timeout);
-      };
-    });
-
-    if (!opened) {
-      await stopDictation();
-      setDictationError("Could not connect to dictation server.");
-      return;
-    }
 
     ws.onmessage = (event) => {
       const parsed = parseDeepgramMessage(String(event.data));
@@ -409,6 +544,7 @@ export function useOnboardingController(): OnboardingController {
     };
 
     audioSource.connect(processor);
+    audioSource.connect(analyser);
     processor.connect(audioContext.destination);
 
     processor.onaudioprocess = (event) => {
@@ -419,7 +555,8 @@ export function useOnboardingController(): OnboardingController {
       const channelData = event.inputBuffer.getChannelData(0);
       const pending = pendingSamplesRef.current;
       for (let index = 0; index < channelData.length; index += 1) {
-        pending.push(channelData[index] ?? 0);
+        const sample = channelData[index] ?? 0;
+        pending.push(sample);
       }
 
       const chunkSize = getDeepgramPacketSize(audioContext.sampleRate);
@@ -437,7 +574,153 @@ export function useOnboardingController(): OnboardingController {
       }
     };
 
-    setDictationState("recording");
+    const frequencyData = new Uint8Array(analyser.frequencyBinCount);
+    const renderMeter = () => {
+      const currentAnalyser = analyserRef.current;
+      if (!currentAnalyser || dictationStateRef.current !== "recording") {
+        meterAnimationFrameRef.current = null;
+        return;
+      }
+
+      currentAnalyser.getByteFrequencyData(frequencyData);
+      const barCount = dictationLevelsRef.current.length;
+      const previous = dictationLevelsRef.current;
+      const nextRaw = new Array<number>(barCount);
+      const nyquistHz = audioContext.sampleRate / 2;
+      const speechMinHz = 80;
+      const speechMaxHz = 5200;
+      const maxIndex = Math.max(1, frequencyData.length - 1);
+      const minBin = Math.max(1, Math.floor((speechMinHz / nyquistHz) * maxIndex));
+      const maxBin = Math.max(minBin + 1, Math.min(maxIndex, Math.floor((speechMaxHz / nyquistHz) * maxIndex)));
+
+      let fullBandSum = 0;
+      for (let index = minBin; index <= maxBin; index += 1) {
+        fullBandSum += frequencyData[index] ?? 0;
+      }
+      const fullBandEnergy = Math.min(1, Math.max(0, fullBandSum / Math.max(1, maxBin - minBin + 1) / 255));
+
+      for (let barIndex = 0; barIndex < barCount; barIndex += 1) {
+        const startRatio = Math.pow(barIndex / barCount, 1.8);
+        const endRatio = Math.pow((barIndex + 1) / barCount, 1.8);
+        const start = minBin + Math.floor((maxBin - minBin) * startRatio);
+        const end = Math.min(maxBin + 1, minBin + Math.floor((maxBin - minBin) * endRatio) + 1);
+        let sum = 0;
+        let peak = 0;
+        for (let index = start; index < end; index += 1) {
+          const value = frequencyData[index] ?? 0;
+          sum += value;
+          if (value > peak) {
+            peak = value;
+          }
+        }
+
+        const average = sum / Math.max(1, end - start) / 255;
+        const peakNormalized = peak / 255;
+        const bandEnergy = average * 0.68 + peakNormalized * 0.32;
+        const sharedEnergy = fullBandEnergy * 0.12;
+        const adaptiveGain = 1.28 + (1 - fullBandEnergy) * 0.62;
+        const normalized = Math.min(1, Math.max(0, (bandEnergy + sharedEnergy) * adaptiveGain));
+        const compressed = Math.log1p(normalized * 5) / Math.log1p(5);
+        const target = 0.06 + compressed * 0.88;
+        const smoothed = previous[barIndex] * 0.56 + target * 0.44;
+        nextRaw[barIndex] = smoothed;
+      }
+
+      const next = nextRaw.map((value, index) => {
+        const left = index > 0 ? nextRaw[index - 1] : value;
+        const right = index < nextRaw.length - 1 ? nextRaw[index + 1] : value;
+        return value * 0.82 + (left + right) * 0.09;
+      });
+
+      setDictationLevels(next);
+      meterAnimationFrameRef.current = window.requestAnimationFrame(renderMeter);
+    };
+
+    setDictationMode("recording");
+    meterAnimationFrameRef.current = window.requestAnimationFrame(renderMeter);
+  }
+
+  async function connectDeepgramWebSocket(accessToken: string): Promise<{ ws: WebSocket | null; reason: string | null }> {
+    const queryAttempt = await attemptWebSocketOpen(buildDeepgramWebSocketUrl(accessToken));
+    if (queryAttempt.ws) {
+      return queryAttempt;
+    }
+
+    const subprotocolAttempt = await attemptWebSocketOpen(buildDeepgramWebSocketUrlWithoutToken(), [
+      "token",
+      accessToken
+    ]);
+    if (subprotocolAttempt.ws) {
+      return subprotocolAttempt;
+    }
+
+    const clientApiKey = process.env.NEXT_PUBLIC_DEEPGRAM_CLIENT_API_KEY?.trim();
+    if (clientApiKey) {
+      const clientKeyAttempt = await attemptWebSocketOpen(buildDeepgramWebSocketUrlWithoutToken(), [
+        "token",
+        clientApiKey
+      ]);
+      if (clientKeyAttempt.ws) {
+        return clientKeyAttempt;
+      }
+
+      const reason = clientKeyAttempt.reason ?? subprotocolAttempt.reason ?? queryAttempt.reason ?? null;
+      return { ws: null, reason };
+    }
+
+    const reason = subprotocolAttempt.reason ?? queryAttempt.reason ?? null;
+    return { ws: null, reason };
+  }
+
+  async function attemptWebSocketOpen(url: string, protocols?: string[]): Promise<{ ws: WebSocket | null; reason: string | null }> {
+    const ws = protocols ? new WebSocket(url, protocols) : new WebSocket(url);
+
+    const result = await new Promise<{ opened: boolean; reason: string | null }>((resolve) => {
+      let resolved = false;
+      const finish = (value: { opened: boolean; reason: string | null }) => {
+        if (resolved) {
+          return;
+        }
+
+        resolved = true;
+        resolve(value);
+      };
+      const timeout = window.setTimeout(
+        () => finish({ opened: false, reason: "connection timeout (10s)" }),
+        10000
+      );
+      ws.onopen = () => {
+        window.clearTimeout(timeout);
+        finish({ opened: true, reason: null });
+      };
+      ws.onerror = () => {
+        window.setTimeout(() => {
+          if (!resolved) {
+            window.clearTimeout(timeout);
+            finish({ opened: false, reason: "websocket error event" });
+          }
+        }, 300);
+      };
+      ws.onclose = (event) => {
+        window.clearTimeout(timeout);
+        finish({
+          opened: false,
+          reason: `close code ${event.code}${event.reason ? ` (${event.reason})` : ""}`
+        });
+      };
+    });
+
+    if (result.opened) {
+      return { ws, reason: null };
+    }
+
+    try {
+      ws.close();
+    } catch {
+      // no-op
+    }
+
+    return { ws: null, reason: result.reason };
   }
 
   async function stopDictation() {
@@ -445,19 +728,23 @@ export function useOnboardingController(): OnboardingController {
       return;
     }
 
-    setDictationState("stopping");
+    setDictationMode("stopping");
 
     const processor = processorRef.current;
     const source = audioSourceRef.current;
     const audioContext = audioContextRef.current;
+    const analyser = analyserRef.current;
     const mediaStream = mediaStreamRef.current;
     const ws = wsRef.current;
+    const meterAnimationFrame = meterAnimationFrameRef.current;
 
     processorRef.current = null;
     audioSourceRef.current = null;
     audioContextRef.current = null;
+    analyserRef.current = null;
     mediaStreamRef.current = null;
     wsRef.current = null;
+    meterAnimationFrameRef.current = null;
 
     if (processor) {
       processor.disconnect();
@@ -466,6 +753,14 @@ export function useOnboardingController(): OnboardingController {
 
     if (source) {
       source.disconnect();
+    }
+
+    if (analyser) {
+      analyser.disconnect();
+    }
+
+    if (meterAnimationFrame !== null) {
+      window.cancelAnimationFrame(meterAnimationFrame);
     }
 
     if (audioContext) {
@@ -495,7 +790,8 @@ export function useOnboardingController(): OnboardingController {
     pendingSamplesRef.current = [];
     finalTranscriptRef.current = "";
     interimTranscriptRef.current = "";
-    setDictationState("idle");
+    setDictationLevels(Array.from({ length: 12 }, () => 0));
+    setDictationMode("idle");
   }
 
   useEffect(() => {
@@ -503,14 +799,18 @@ export function useOnboardingController(): OnboardingController {
       const processor = processorRef.current;
       const source = audioSourceRef.current;
       const audioContext = audioContextRef.current;
+      const analyser = analyserRef.current;
       const mediaStream = mediaStreamRef.current;
       const ws = wsRef.current;
+      const meterAnimationFrame = meterAnimationFrameRef.current;
 
       processorRef.current = null;
       audioSourceRef.current = null;
       audioContextRef.current = null;
+      analyserRef.current = null;
       mediaStreamRef.current = null;
       wsRef.current = null;
+      meterAnimationFrameRef.current = null;
 
       if (processor) {
         processor.disconnect();
@@ -519,6 +819,14 @@ export function useOnboardingController(): OnboardingController {
 
       if (source) {
         source.disconnect();
+      }
+
+      if (analyser) {
+        analyser.disconnect();
+      }
+
+      if (meterAnimationFrame !== null) {
+        window.cancelAnimationFrame(meterAnimationFrame);
       }
 
       if (audioContext) {
@@ -552,7 +860,9 @@ export function useOnboardingController(): OnboardingController {
     brainDumpText,
     brainDumpWordCount,
     dictationState,
+    dictationLevels,
     dictationError,
+    quickSparks,
     setPreferredName,
     setTimezone,
     setSendHour12,

@@ -226,7 +226,6 @@ These are candidate features for future scoped PRs after core pipeline stability
   - consume discovery candidates from PR 6 without changing topic/discovery ranking semantics.
 - Explicit non-goals:
   - no URL fetch/HTML extraction pipeline in this PR.
-  - no Playwright/browser-rendered extraction in this PR.
   - no Exa `/contents` full-text expansion pipeline in this PR.
   - no summary-writing prompts.
   - no email send/persistence behavior.
@@ -290,7 +289,7 @@ These are candidate features for future scoped PRs after core pipeline stability
 - Primary objective:
   - lock baseline user journey with automated confidence.
 - Frontend scope:
-  - Playwright coverage: auth/onboarding UX path.
+  - UI journey coverage for auth/onboarding path.
 - Backend scope:
   - integration tests for cron selection, memory update, and send pipeline seams.
 - Data and contracts:

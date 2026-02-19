@@ -100,7 +100,7 @@ describe("GET /api/deepgram/token", () => {
     expect(body).toEqual({
       ok: false,
       error_code: "DEEPGRAM_TOKEN_FAILED",
-      message: "Failed to create Deepgram access token."
+      message: "Failed to create Deepgram access token: Deepgram token endpoint rejected request."
     });
   });
 
@@ -131,7 +131,24 @@ describe("GET /api/deepgram/token", () => {
     expect(body).toEqual({
       ok: false,
       error_code: "DEEPGRAM_TOKEN_FAILED",
-      message: "Failed to create Deepgram access token."
+      message: "Failed to create Deepgram access token: Deepgram token endpoint rejected request."
+    });
+  });
+
+  it("returns upstream Deepgram error message when provided", async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({ err_code: "FORBIDDEN", err_msg: "Insufficient permissions." })
+    });
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(502);
+    expect(body).toEqual({
+      ok: false,
+      error_code: "DEEPGRAM_TOKEN_FAILED",
+      message: "Failed to create Deepgram access token: Insufficient permissions."
     });
   });
 });

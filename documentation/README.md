@@ -110,6 +110,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/lib-pipeline-send-user-newsletter.md`
 - `files/scripts-prune-inbound-idempotency.md`
 - `files/scripts-setup-supabase-cron.md`
+- `files/public-onboarding-quick-sparks-txt.md`
 - `files/next-env.md`
 - `files/tests-discovery-topic-derivation.md`
 - `files/tests-discovery-run.md`
