@@ -43,10 +43,12 @@ This folder is the organized, source-of-truth documentation for the personalized
 
 - `files/app-api-cron-generate-next-route.md`
 - `files/app-api-deepgram-token-route.md`
+- `files/app-art-page.md`
 - `files/app-api-onboarding-route.md`
 - `files/app-auth-callback-route.md`
 - `files/app-globals-css.md`
 - `files/app-layout.md`
+- `files/app-not-found.md`
 - `files/app-onboarding-page.md`
 - `files/app-onboarding-onboarding-config.md`
 - `files/app-onboarding-use-onboarding-controller.md`
@@ -54,6 +56,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/app-onboarding-deepgram-dictation.md`
 - `files/app-page.md`
 - `files/components-json.md`
+- `files/components-dwitter-canvas.md`
 - `files/lib-db-client.md`
 - `files/lib-db-schema.md`
 - `files/lib-auth-server-user.md`
@@ -96,6 +99,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/lib-webhooks-inbound-idempotency.md`
 - `files/lib-ai-memory-prompts.md`
 - `files/lib-ai-summary-prompts.md`
+- `files/lib-art-dwitter-sketches.md`
 - `files/lib-bloom-user-url-bloom.md`
 - `files/lib-discovery-types.md`
 - `files/lib-discovery-topic-derivation.md`

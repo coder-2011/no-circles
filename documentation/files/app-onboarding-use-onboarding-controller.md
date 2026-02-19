@@ -8,7 +8,7 @@ Encapsulates onboarding page state, side effects, and action handlers as a reusa
 - derive preferred-name suggestion from signed-in email when local-part clearly matches first/last pattern; otherwise fall back to curated famous-name placeholder
 - resolve auth/session status through Supabase browser client
 - redirect signed-out users
-- persist/remove local draft text in `localStorage`
+- persist/remove local draft text in `localStorage` (debounced writes to reduce typing/main-thread pressure)
 - submit onboarding payload to `POST /api/onboarding`
 - derive no-permission local defaults:
   - timezone from `Intl.DateTimeFormat().resolvedOptions().timeZone`
@@ -23,3 +23,4 @@ Encapsulates onboarding page state, side effects, and action handlers as a reusa
 
 ## Notes
 - `send_time_local` is derived from hour/minute/meridiem state via `buildSendTime`, avoiding redundant state syncing.
+- auth bootstrap reads from Supabase `getSession()` for lower-latency client-side state initialization.

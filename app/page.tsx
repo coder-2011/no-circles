@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { getBrowserSupabaseClient } from "@/lib/auth/browser-client";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 type AuthState = "loading" | "signed_in" | "signed_out" | "error";
 
 export default function HomePage() {
+  const router = useRouter();
   const [authState, setAuthState] = useState<AuthState>("loading");
   const [email, setEmail] = useState<string | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -28,7 +30,7 @@ export default function HomePage() {
 
     let mounted = true;
 
-    void supabase.auth.getUser().then(({ data, error }) => {
+    void supabase.auth.getSession().then(({ data, error }) => {
       if (!mounted) return;
       if (error) {
         setAuthState("error");
@@ -36,8 +38,9 @@ export default function HomePage() {
         return;
       }
 
-      if (data.user?.email) {
-        setEmail(data.user.email);
+      const sessionEmail = data.session?.user?.email;
+      if (sessionEmail) {
+        setEmail(sessionEmail);
         setAuthState("signed_in");
       } else {
         setAuthState("signed_out");
@@ -84,7 +87,7 @@ export default function HomePage() {
       return;
     }
 
-    window.location.assign("/");
+    router.replace("/");
   }
 
   return (
