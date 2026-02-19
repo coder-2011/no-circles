@@ -109,8 +109,6 @@ export function useOnboardingController(): OnboardingController {
   const [brainDumpText, setBrainDumpTextState] = useState("");
   const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const recordedChunksRef = useRef<Blob[]>([]);
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const processorRef = useRef<ScriptProcessorNode | null>(null);
@@ -219,55 +217,66 @@ export function useOnboardingController(): OnboardingController {
       return;
     }
 
-    window.localStorage.setItem(BRAIN_DUMP_DRAFT_KEY, brainDumpText);
+    const timeout = window.setTimeout(() => {
+      window.localStorage.setItem(BRAIN_DUMP_DRAFT_KEY, brainDumpText);
+    }, 250);
+
+    return () => window.clearTimeout(timeout);
   }, [brainDumpText]);
 
   useEffect(() => {
-    window.localStorage.setItem(
-      ONBOARDING_PREFS_DRAFT_KEY,
-      JSON.stringify({
-        preferredName,
-        timezone,
-        sendHour12,
-        sendMinute,
-        sendMeridiem
-      })
-    );
+    const timeout = window.setTimeout(() => {
+      window.localStorage.setItem(
+        ONBOARDING_PREFS_DRAFT_KEY,
+        JSON.stringify({
+          preferredName,
+          timezone,
+          sendHour12,
+          sendMinute,
+          sendMeridiem
+        })
+      );
+    }, 250);
+
+    return () => window.clearTimeout(timeout);
   }, [preferredName, timezone, sendHour12, sendMinute, sendMeridiem]);
 
   useEffect(() => {
     let mounted = true;
-    void fetch(ONBOARDING_QUICK_SPARKS_URL)
-      .then((response) => (response.ok ? response.text() : null))
-      .then((text) => {
-        if (!mounted || !text) {
-          return;
-        }
+    const timeout = window.setTimeout(() => {
+      void fetch(ONBOARDING_QUICK_SPARKS_URL)
+        .then((response) => (response.ok ? response.text() : null))
+        .then((text) => {
+          if (!mounted || !text) {
+            return;
+          }
 
-        const parsed = text
-          .split(/\r?\n/)
-          .map((line) => line.trim())
-          .filter((line) => line.length > 0);
+          const parsed = text
+            .split(/\r?\n/)
+            .map((line) => line.trim())
+            .filter((line) => line.length > 0);
 
-        if (parsed.length === 0) {
-          return;
-        }
+          if (parsed.length === 0) {
+            return;
+          }
 
-        const rotationRaw = window.localStorage.getItem(ONBOARDING_QUICK_SPARKS_ROTATION_KEY);
-        const rotation = Number.parseInt(rotationRaw ?? "0", 10);
-        const startIndex = Number.isFinite(rotation) ? rotation : 0;
-        const rotated = rotateQuickSparks(parsed, startIndex, ONBOARDING_QUICK_SPARKS_VISIBLE_COUNT);
-        if (rotated.length > 0) {
-          setQuickSparks(rotated);
-        }
+          const rotationRaw = window.localStorage.getItem(ONBOARDING_QUICK_SPARKS_ROTATION_KEY);
+          const rotation = Number.parseInt(rotationRaw ?? "0", 10);
+          const startIndex = Number.isFinite(rotation) ? rotation : 0;
+          const rotated = rotateQuickSparks(parsed, startIndex, ONBOARDING_QUICK_SPARKS_VISIBLE_COUNT);
+          if (rotated.length > 0) {
+            setQuickSparks(rotated);
+          }
 
-        const nextIndex = (startIndex + ONBOARDING_QUICK_SPARKS_VISIBLE_COUNT) % parsed.length;
-        window.localStorage.setItem(ONBOARDING_QUICK_SPARKS_ROTATION_KEY, String(nextIndex));
-      })
-      .catch(() => undefined);
+          const nextIndex = (startIndex + ONBOARDING_QUICK_SPARKS_VISIBLE_COUNT) % parsed.length;
+          window.localStorage.setItem(ONBOARDING_QUICK_SPARKS_ROTATION_KEY, String(nextIndex));
+        })
+        .catch(() => undefined);
+    }, 300);
 
     return () => {
       mounted = false;
+      window.clearTimeout(timeout);
     };
   }, []);
 
@@ -286,7 +295,7 @@ export function useOnboardingController(): OnboardingController {
     }
 
     let mounted = true;
-    void supabase.auth.getUser().then(({ data, error }) => {
+    void supabase.auth.getSession().then(({ data, error }) => {
       if (!mounted) {
         return;
       }
@@ -297,8 +306,9 @@ export function useOnboardingController(): OnboardingController {
         return;
       }
 
-      if (data.user?.email) {
-        setEmail(data.user.email);
+      const sessionEmail = data.session?.user?.email;
+      if (sessionEmail) {
+        setEmail(sessionEmail);
         setAuthState("signed_in");
       } else {
         setAuthState("signed_out");
@@ -315,11 +325,7 @@ export function useOnboardingController(): OnboardingController {
       return;
     }
 
-    const timeout = window.setTimeout(() => {
-      router.replace("/?auth=required");
-    }, 900);
-
-    return () => window.clearTimeout(timeout);
+    router.replace("/?auth=required");
   }, [authState, router]);
 
   async function signInWithGoogle() {
@@ -352,7 +358,7 @@ export function useOnboardingController(): OnboardingController {
       return;
     }
 
-    window.location.assign("/");
+    router.replace("/");
   }
 
   async function submitOnboarding(event: React.FormEvent<HTMLFormElement>) {
