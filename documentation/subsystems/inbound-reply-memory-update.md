@@ -46,4 +46,5 @@ Implements PR3 memory processing and inbound webhook update safety:
   - index `(processed_at)` for cleanup
 
 ## Retention Policy
-- `processed_webhooks` rows older than 30 days are pruned by `scripts/prune-inbound-idempotency.ts`.
+- `processed_webhooks` rows older than 30 days are pruned daily by DB cron job `prune-processed-webhooks-daily` configured in `scripts/setup-supabase-cron.sql`.
+- `scripts/prune-inbound-idempotency.ts` remains available for manual/one-off cleanup runs.

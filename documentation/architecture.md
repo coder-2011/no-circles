@@ -74,7 +74,7 @@ This system is a website-first, email-delivered personalized newsletter product.
 4. User is marked ready for daily generation.
 
 ### 2) Daily Newsletter Generation Flow
-1. Supabase `pg_cron` executes `public.claim_next_due_user(now(), 5)` every minute.
+1. Supabase `pg_cron` executes `net.http_post(...)` every minute to call `POST /api/cron/generate-next` with `CRON_SECRET`.
 2. Backend reads `users.interest_memory_text`.
 3. System runs discovery and applies Bloom anti-repeat gating on candidate canonical URLs before final item selection.
 4. System composes final `{ title, summary, url }` item payloads.
@@ -118,23 +118,22 @@ V1 intentionally excludes a manual regenerate endpoint.
 - **Response**:
   - `{ ok: true, user_id: string }`
 
-### 2) Cron Trigger (Single User Per Call)
+### 2) Cron Trigger (Batch Claim + Send)
 - **Endpoint**: `POST /api/cron/generate-next`
-- **Auth**: service secret (only required for HTTP wrapper calls).
-- **Purpose**: optional HTTP wrapper around DB selector function for downstream generation/send work.
+- **Auth**: service secret (`Authorization: Bearer ${CRON_SECRET}`).
+- **Purpose**: scheduled route that claims due users in batch and runs send pipeline.
 - **Request schema (zod shape)**:
   - `run_at_utc?: string` (optional override)
+  - `batch_size?: number` (`1..25`, default route value `3`)
 - **Behavior**:
-  - calls `public.claim_next_due_user(run_at_utc, 5)` in Postgres
+  - calls `public.claim_due_users_batch(run_at_utc, 5, batch_size)` in Postgres
   - function computes due users from `timezone`, `send_time_local`, and `last_issue_sent_at`
   - function excludes users already sent on their current local day
-  - function selects one due user deterministically (`last_issue_sent_at` asc nulls first, then `id` asc)
-  - runs single-user send pipeline when a user is selected
+  - function selects up to `batch_size` users deterministically (`last_issue_sent_at` asc nulls first, then `id` asc)
+  - runs bounded-concurrency send pipeline for each claimed user
   - returns `no_due_user` when queue is empty
 - **Response**:
-  - `{ ok: true, status: "sent", user_id: string, provider_message_id: string | null }`
-  - `{ ok: true, status: "insufficient_content", user_id: string }`
-  - `{ ok: true, status: "send_failed", user_id: string }`
+  - `{ ok: true, status: "processed_batch", requested_batch_size: number, claimed_user_count: number, counts: { sent: number, insufficient_content: number, send_failed: number, internal_error: number }, user_results: Array<{ user_id: string, status: string, provider_message_id: string | null }> }`
   - or `{ ok: true, status: "no_due_user" }`
 
 ### 3) Inbound Reply Webhook
@@ -259,7 +258,7 @@ Recommended constraints/indexes:
 - Index: (`processed_at`) for retention pruning.
 
 Retention policy:
-- prune rows older than 30 days.
+- prune rows older than 30 days via daily DB cron job (`prune-processed-webhooks-daily`) configured in `scripts/setup-supabase-cron.sql`.
 
 ## Runtime Flow with Minimal State
 1. Read `users.interest_memory_text`.
