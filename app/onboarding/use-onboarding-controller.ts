@@ -326,7 +326,36 @@ export function useOnboardingController(): OnboardingController {
 
           quickSparksUnseenRef.current = unseen;
           quickSparksSeenRef.current = seen;
-          rotateQuickSparksBatch();
+          const requested = ONBOARDING_QUICK_SPARKS_VISIBLE_COUNT + ONBOARDING_QUICK_SPARKS_DRAWER_COUNT;
+          const batch: string[] = [];
+          while (batch.length < requested && quickSparksPoolRef.current.length > 0) {
+            if (quickSparksUnseenRef.current.length === 0) {
+              if (quickSparksSeenRef.current.length === 0) {
+                break;
+              }
+              quickSparksUnseenRef.current = shuffleQuickSparks(quickSparksSeenRef.current);
+              quickSparksSeenRef.current = [];
+            }
+
+            const next = quickSparksUnseenRef.current.shift();
+            if (!next) {
+              break;
+            }
+            batch.push(next);
+            quickSparksSeenRef.current.push(next);
+          }
+
+          if (batch.length > 0) {
+            setQuickSparks(batch.slice(0, ONBOARDING_QUICK_SPARKS_VISIBLE_COUNT));
+            setQuickSparksDrawer(batch.slice(ONBOARDING_QUICK_SPARKS_VISIBLE_COUNT));
+            window.localStorage.setItem(
+              ONBOARDING_QUICK_SPARKS_DECK_KEY,
+              JSON.stringify({
+                unseen: quickSparksUnseenRef.current,
+                seen: quickSparksSeenRef.current
+              })
+            );
+          }
         })
         .catch(() => undefined);
     }, 300);
