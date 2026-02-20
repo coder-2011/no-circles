@@ -139,7 +139,7 @@ export async function POST(request: Request) {
           userId: selectedUserId,
           status: "insufficient_content",
           providerMessageId: null,
-          error: pipelineResult.error
+          error: pipelineResult.error ?? null
         } satisfies CronPipelineResult;
       }
 
@@ -155,7 +155,7 @@ export async function POST(request: Request) {
           userId: selectedUserId,
           status: "send_failed",
           providerMessageId: null,
-          error: pipelineResult.error
+          error: pipelineResult.error ?? null
         } satisfies CronPipelineResult;
       }
 
@@ -170,7 +170,7 @@ export async function POST(request: Request) {
         userId: selectedUserId,
         status: "internal_error",
         providerMessageId: null,
-        error: pipelineResult.error
+        error: pipelineResult.error ?? null
       } satisfies CronPipelineResult;
     });
 
