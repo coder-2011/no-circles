@@ -33,6 +33,10 @@ function getAuthQueryErrorMessage(): string | null {
   return "Authentication failed. Please try again.";
 }
 
+function hasOAuthCodeParam(): boolean {
+  return new URLSearchParams(window.location.search).has("code");
+}
+
 export default function HomePage() {
   const router = useRouter();
   const [authState, setAuthState] = useState<AuthState>("loading");
@@ -112,6 +116,10 @@ export default function HomePage() {
 
   useEffect(() => {
     if (authState !== "signed_in") {
+      return;
+    }
+
+    if (!hasOAuthCodeParam()) {
       return;
     }
 
