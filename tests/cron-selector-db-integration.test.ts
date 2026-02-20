@@ -179,4 +179,76 @@ describeDb("claim_next_due_user db integration", () => {
       client.release();
     }
   });
+
+  it("claims multiple due users in deterministic order via claim_due_users_batch", async () => {
+    const client = await pool.connect();
+
+    try {
+      await client.query("begin");
+      const runAt = "2026-02-16T16:00:00.000Z";
+      await suppressPreexistingDueUsers(client, runAt);
+
+      const firstInsert = await client.query<{ id: string }>(
+        `
+        insert into public.users (email, preferred_name, timezone, send_time_local, interest_memory_text, last_issue_sent_at)
+        values ($1, $2, $3, $4, $5, null)
+        returning id
+        `,
+        [
+          `cron-batch-a-${Date.now()}@example.com`,
+          "Batch A",
+          "UTC",
+          "09:00",
+          canonicalMemory
+        ]
+      );
+
+      const secondInsert = await client.query<{ id: string }>(
+        `
+        insert into public.users (email, preferred_name, timezone, send_time_local, interest_memory_text, last_issue_sent_at)
+        values ($1, $2, $3, $4, $5, null)
+        returning id
+        `,
+        [
+          `cron-batch-b-${Date.now()}@example.com`,
+          "Batch B",
+          "UTC",
+          "09:00",
+          canonicalMemory
+        ]
+      );
+
+      const thirdInsert = await client.query<{ id: string }>(
+        `
+        insert into public.users (email, preferred_name, timezone, send_time_local, interest_memory_text, last_issue_sent_at)
+        values ($1, $2, $3, $4, $5, $6::timestamptz)
+        returning id
+        `,
+        [
+          `cron-batch-c-${Date.now()}@example.com`,
+          "Batch C",
+          "UTC",
+          "09:00",
+          canonicalMemory,
+          "2026-02-15T10:00:00.000Z"
+        ]
+      );
+
+      const batchClaim = await client.query<{ user_id: string }>(
+        "select user_id from public.claim_due_users_batch($1::timestamptz, 5, 2)",
+        [runAt]
+      );
+
+      expect(batchClaim.rows.map((row) => row.user_id)).toEqual([firstInsert.rows[0]?.id, secondInsert.rows[0]?.id]);
+
+      const nextSingleClaim = await client.query<{ selected_user_id: string | null }>(
+        "select public.claim_next_due_user($1::timestamptz, 5) as selected_user_id",
+        [runAt]
+      );
+      expect(nextSingleClaim.rows[0]?.selected_user_id).toBe(thirdInsert.rows[0]?.id);
+    } finally {
+      await client.query("rollback");
+      client.release();
+    }
+  });
 });

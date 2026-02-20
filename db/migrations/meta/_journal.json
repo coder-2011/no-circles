@@ -57,6 +57,13 @@
       "when": 1771272500000,
       "tag": "0007_calm_guardrail",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1771531200000,
+      "tag": "0008_swift_current",
+      "breakpoints": true
     }
   ]
 }
