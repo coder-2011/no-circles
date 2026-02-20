@@ -139,6 +139,11 @@ export default function HomePage() {
   }, [authState]);
 
   async function signInWithGoogle() {
+    if (authState === "signed_in") {
+      router.replace("/onboarding");
+      return;
+    }
+
     if (!supabase) return;
 
     setAuthError(null);
