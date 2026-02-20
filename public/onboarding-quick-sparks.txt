@@ -399,3 +399,203 @@ History of the Global Environmental Movement
 Advances in Smart Energy Grid Technology
 Sociology of Youth Countercultures
 Business of Competitive Esports Franchises
+Open Source Software Sustainability
+Distributed Systems Architecture
+Edge Computing Infrastructure
+Fundamentals of API Design
+Data Engineering Pipelines
+Microcontroller Programming and IoT
+Precision CNC Machining
+History of Renaissance Art
+Political Philosophy and Ethics
+History of Medical Science
+Corporate Restructuring and Turnarounds
+Microfinance in Emerging Markets
+Real Estate Development Economics
+Cognitive Behavioral Psychology
+Sports Psychology and Performance
+Psycholinguistics and Language Acquisition
+History of Jazz Music
+Indie Video Game Development
+Screenwriting and Narrative Mechanics
+History of Typography and Print
+Epigenetics and Gene Expression
+Virology and Pandemic Preparedness
+Immunology and Disease Resistance
+Particle Accelerators and Physics
+Climatology and Weather Modeling
+Economics of the Music Industry
+Business of Commercial Spaceflight
+Logistics of the Cold Chain
+Sociology of Intentional Communities
+Philosophy of the Human Mind
+Ethics of Digital Surveillance
+History of the Enlightenment Era
+Evolutionary Origins of Early Humans
+Biomechanics of the Human Body
+Dynamics of Business to Business Sales
+Economics of Open Source
+Future of Wearable Computing
+Advanced Graphic Design Principles
+History of the English Language
+Mechanics of Cryptographic Hashing
+Geopolitics of the Suez Canal
+Sociology of Online Multiplayer Gaming
+Psychology of Motivation and Drive
+Nutritional Psychiatry and Mood Health
+History of Cartoons and Animation
+Economics of the Publishing Industry
+Principles of Urban Economics
+Science of Musical Harmony
+Philosophy of Existentialism
+History of Ancient Egypt
+Modern Space Law and Policy
+Logistics of Organ Transplantation
+Psychology of Charisma and Influence
+Business of Fine Dining Restaurants
+Science of Baking and Pastry
+Evolution of the Modern Novel
+History of Photography and Cameras
+Economics of the Fine Art Market
+Sociology of Digital Nomadism
+Principles of Landscape Architecture
+Future of Cultured Lab Meat
+History of the Industrial Revolution
+Ethics of Modern Journalism
+Cognitive Science of Human Attention
+Business of Software Subscription Models
+Economics of Global Carbon Taxes
+History of the Olympic Games
+Sociology of Changing Consumer Tastes
+Psychology of Phobias and Fears
+Cellular Mechanisms of Human Aging
+History of the US Supreme Court
+Geopolitics of the Panama Canal
+Logistics of the Global Floral Industry
+Business of Independent Bookstores
+Chemistry of Coffee Roasting
+Evolution of Theatrical Performance
+History of the United Nations
+Economics of the Pharmaceutical Industry
+Sociology of Gated Communities
+Principles of Civic Engineering
+Future of Autonomous Vehicles
+History of the Civil Rights Movement
+Ethics of Global Wealth Distribution
+Cognitive Benefits of Bilingualism
+Business of Digital Media Publishing
+Economics of the Wedding Industry
+History of the Space Shuttle Program
+Sociology of Elite Universities
+Psychology of Chronic Procrastination
+Science of Venomous Animals
+History of the British Empire
+Geopolitics of State Cyber Warfare
+Logistics of E-commerce Order Fulfillment
+Business of Boutique Fitness Franchises
+Neurology of Circadian Rhythms
+Evolution of the Comic Book Industry
+History of the Transcontinental Railroad
+Economics of the Cosmetics Industry
+Sociology of Celebrity Worship Culture
+Principles of Corporate Crisis Communications
+Brain Computer Interface Technology
+Quantum Cryptography and Security
+Neuromorphic Computing Hardware
+Information Theory and Entropy
+Combinatorics and Discrete Mathematics
+Chaos Theory and Fractals
+Graph Theory Applications
+WebAssembly and Browser Tech
+Computational Linguistics and Semantics
+High Voltage Power Grid Mechanics
+Hydraulic Engineering and Dams
+Computational Fluid Dynamics
+History of the Semiconductor Industry
+Acoustics of Concert Halls
+Mechanics of Mechanical Watches
+Silicon Photonics and Optics
+Advanced Metallurgy and Alloys
+Computer Vision Algorithms
+FPGA Programming and Design
+Generative Art and Creative Coding
+Volcanology and Magma Dynamics
+Glaciology and Ice Sheet Melting
+Radio Astronomy and Pulsars
+Parasitology and Host Behavior
+Endocrinology and Human Hormones
+Biomaterials and Advanced Prosthetics
+Pharmacology and Drug Discovery
+Paleoclimatology and Ancient Earth
+Taxonomy and Species Classification
+Ethology and Animal Behavior
+Seismology and Tectonic Plates
+Physics of Superconductors
+Metamaterials and Invisibility Cloaks
+Biochemistry of Fermentation
+Atmospheric Chemistry and Ozone
+Botany of Medicinal Plants
+Marine Biology of Coral Reefs
+Exoplanet Discovery Techniques
+Myrmecology and Ant Colonies
+Physics of Non-Newtonian Fluids
+History of the Han Dynasty
+Pre-Columbian Mesoamerican Civilizations
+Polynesian Wayfinding and Navigation
+History of the Byzantine Empire
+Norse Mythology and Sagas
+History of the East India Company
+Development of the Latin Alphabet
+History of Anesthesiology
+Economics of the Spice Route
+History of Paper Manufacturing
+History of the Shogunate
+Architectural History of Cathedrals
+History of the Manhattan Project
+Evolution of the Modern Jury System
+Deciphering Egyptian Hieroglyphs
+History of the Telegraph Network
+Philosophy of Pragmatism
+History of the Gold Standard
+Anthropology of Hunter Gatherers
+History of the English Common Law
+Economics of the Diamond Trade
+Management of Sovereign Wealth Funds
+Game Theory in Auction Design
+Municipal Bond Markets
+Economics of the Insurance Industry
+History of Antitrust Legislation
+Geopolitics of the Black Sea
+Maritime Law and Piracy
+Economics of the Casino Industry
+Business of the Global Art Market
+Economics of the Lithium Supply
+Economics of the Fast Fashion Industry
+Private Equity and Leveraged Buyouts
+Economics of Commercial Real Estate
+Trade Tariffs and Protectionism
+History of the Five Day Workweek
+Economics of the Wine Industry
+Financing of Hollywood Blockbusters
+Geopolitics of the South China Sea
+Economics of the Global Arms Trade
+Brutalist Architecture and Design
+History of Method Acting
+Analog Synthesizer Sound Design
+History of Modern Dance
+Ethnography of Indigenous Music
+Sociology of Urban Gentrification
+Neuroscience of Magic Tricks
+Art of Stand Up Comedy
+History of the Fashion Industry
+Psychology of Superstition
+Evolution of the Broadway Musical
+Art of Documentary Filmmaking
+History of the Comic Strip
+Sociology of the Restaurant Kitchen
+Aesthetics of Cyberpunk Culture
+Engineering of the Synthesizer
+Evolution of the Horror Genre
+Art of the Graphic Novel
+Sociology of Professional Wrestling
+History of the Tattoo Industry
