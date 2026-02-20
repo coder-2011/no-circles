@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:hyper": "vitest run --config vitest.hyper.config.ts"
+    "test:hyper": "vitest run --config vitest.hyper.config.ts",
+    "test:query-planner-live": "vitest run --config vitest.hyper.config.ts tests/hyper/query-planner-live.integration.test.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.8.0",

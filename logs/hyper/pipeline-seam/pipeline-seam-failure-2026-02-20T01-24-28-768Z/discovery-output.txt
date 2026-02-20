@@ -1,0 +1,276 @@
+{
+  "candidates": [
+    {
+      "url": "https://example.com/ai-engineering-last-7-days",
+      "canonicalUrl": "https://example.com/ai-engineering-last-7-days",
+      "title": "AI engineering last 7 days report",
+      "highlight": "A practical report for AI engineering last 7 days with concrete implementation details.",
+      "highlights": [
+        "A practical report for AI engineering last 7 days with concrete implementation details.",
+        "It compares reliability, cost, and rollout tradeoffs."
+      ],
+      "topic": "AI engineering",
+      "topicRank": 0,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "example.com",
+      "publishedAt": null,
+      "exaScore": 0.8,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://example.com/distributed-systems-last-30-days",
+      "canonicalUrl": "https://example.com/distributed-systems-last-30-days",
+      "title": "distributed systems last 30 days report",
+      "highlight": "A practical report for distributed systems last 30 days with concrete implementation details.",
+      "highlights": [
+        "A practical report for distributed systems last 30 days with concrete implementation details.",
+        "It compares reliability, cost, and rollout tradeoffs."
+      ],
+      "topic": "distributed systems",
+      "topicRank": 1,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "example.com",
+      "publishedAt": null,
+      "exaScore": 0.8,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://example.com/software-architecture-last-90-days",
+      "canonicalUrl": "https://example.com/software-architecture-last-90-days",
+      "title": "software architecture last 90 days report",
+      "highlight": "A practical report for software architecture last 90 days with concrete implementation details.",
+      "highlights": [
+        "A practical report for software architecture last 90 days with concrete implementation details.",
+        "It compares reliability, cost, and rollout tradeoffs."
+      ],
+      "topic": "software architecture",
+      "topicRank": 2,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "example.com",
+      "publishedAt": null,
+      "exaScore": 0.8,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://example.com/developer-productivity-last-12-months",
+      "canonicalUrl": "https://example.com/developer-productivity-last-12-months",
+      "title": "developer productivity last 12 months report",
+      "highlight": "A practical report for developer productivity last 12 months with concrete implementation details.",
+      "highlights": [
+        "A practical report for developer productivity last 12 months with concrete implementation details.",
+        "It compares reliability, cost, and rollout tradeoffs."
+      ],
+      "topic": "developer productivity",
+      "topicRank": 3,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "example.com",
+      "publishedAt": null,
+      "exaScore": 0.8,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://example.com/data-engineering-since-previous-year",
+      "canonicalUrl": "https://example.com/data-engineering-since-previous-year",
+      "title": "data engineering since previous year report",
+      "highlight": "A practical report for data engineering since previous year with concrete implementation details.",
+      "highlights": [
+        "A practical report for data engineering since previous year with concrete implementation details.",
+        "It compares reliability, cost, and rollout tradeoffs."
+      ],
+      "topic": "data engineering",
+      "topicRank": 4,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "example.com",
+      "publishedAt": null,
+      "exaScore": 0.8,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://example.com/cloud-cost-optimization-last-7-days",
+      "canonicalUrl": "https://example.com/cloud-cost-optimization-last-7-days",
+      "title": "cloud cost optimization last 7 days report",
+      "highlight": "A practical report for cloud cost optimization last 7 days with concrete implementation details.",
+      "highlights": [
+        "A practical report for cloud cost optimization last 7 days with concrete implementation details.",
+        "It compares reliability, cost, and rollout tradeoffs."
+      ],
+      "topic": "cloud cost optimization",
+      "topicRank": 5,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "example.com",
+      "publishedAt": null,
+      "exaScore": 0.8,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://example.com/observability-last-30-days",
+      "canonicalUrl": "https://example.com/observability-last-30-days",
+      "title": "observability last 30 days report",
+      "highlight": "A practical report for observability last 30 days with concrete implementation details.",
+      "highlights": [
+        "A practical report for observability last 30 days with concrete implementation details.",
+        "It compares reliability, cost, and rollout tradeoffs."
+      ],
+      "topic": "observability",
+      "topicRank": 6,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "example.com",
+      "publishedAt": null,
+      "exaScore": 0.8,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://example.com/testing-strategy-last-90-days",
+      "canonicalUrl": "https://example.com/testing-strategy-last-90-days",
+      "title": "testing strategy last 90 days report",
+      "highlight": "A practical report for testing strategy last 90 days with concrete implementation details.",
+      "highlights": [
+        "A practical report for testing strategy last 90 days with concrete implementation details.",
+        "It compares reliability, cost, and rollout tradeoffs."
+      ],
+      "topic": "testing strategy",
+      "topicRank": 7,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "example.com",
+      "publishedAt": null,
+      "exaScore": 0.8,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://example.com/product-analytics-last-12-months",
+      "canonicalUrl": "https://example.com/product-analytics-last-12-months",
+      "title": "product analytics last 12 months report",
+      "highlight": "A practical report for product analytics last 12 months with concrete implementation details.",
+      "highlights": [
+        "A practical report for product analytics last 12 months with concrete implementation details.",
+        "It compares reliability, cost, and rollout tradeoffs."
+      ],
+      "topic": "product analytics",
+      "topicRank": 8,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "example.com",
+      "publishedAt": null,
+      "exaScore": 0.8,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://example.com/programming-languages-since-previous-year",
+      "canonicalUrl": "https://example.com/programming-languages-since-previous-year",
+      "title": "programming languages since previous year report",
+      "highlight": "A practical report for programming languages since previous year with concrete implementation details.",
+      "highlights": [
+        "A practical report for programming languages since previous year with concrete implementation details.",
+        "It compares reliability, cost, and rollout tradeoffs."
+      ],
+      "topic": "programming languages",
+      "topicRank": 9,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "example.com",
+      "publishedAt": null,
+      "exaScore": 0.8,
+      "highlightScore": null,
+      "highlightScores": []
+    }
+  ],
+  "topics": [
+    {
+      "topic": "AI engineering",
+      "query": "AI engineering",
+      "topicRank": 0,
+      "softSuppressed": false
+    },
+    {
+      "topic": "distributed systems",
+      "query": "distributed systems",
+      "topicRank": 1,
+      "softSuppressed": false
+    },
+    {
+      "topic": "software architecture",
+      "query": "software architecture",
+      "topicRank": 2,
+      "softSuppressed": false
+    },
+    {
+      "topic": "developer productivity",
+      "query": "developer productivity",
+      "topicRank": 3,
+      "softSuppressed": false
+    },
+    {
+      "topic": "data engineering",
+      "query": "data engineering",
+      "topicRank": 4,
+      "softSuppressed": false
+    },
+    {
+      "topic": "cloud cost optimization",
+      "query": "cloud cost optimization",
+      "topicRank": 5,
+      "softSuppressed": false
+    },
+    {
+      "topic": "observability",
+      "query": "observability",
+      "topicRank": 6,
+      "softSuppressed": false
+    },
+    {
+      "topic": "testing strategy",
+      "query": "testing strategy",
+      "topicRank": 7,
+      "softSuppressed": false
+    },
+    {
+      "topic": "product analytics",
+      "query": "product analytics",
+      "topicRank": 8,
+      "softSuppressed": false
+    },
+    {
+      "topic": "programming languages",
+      "query": "programming languages",
+      "topicRank": 9,
+      "softSuppressed": false
+    }
+  ],
+  "attempts": 1,
+  "warnings": [
+    "DIVERSITY_CARD_FAILED"
+  ],
+  "diversityCard": {
+    "itemCount": 10,
+    "targetCount": 10,
+    "distinctTopics": 10,
+    "distinctDomains": 1,
+    "maxTopicShare": 0.1,
+    "maxDomainShare": 1,
+    "topicEntropyNormalized": 0.9999999999999998,
+    "thresholds": {
+      "minDistinctTopics": 6,
+      "maxTopicShare": 0.3,
+      "minDistinctDomains": 6,
+      "maxDomainShare": 0.3
+    },
+    "passes": false
+  }
+}

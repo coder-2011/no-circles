@@ -59,11 +59,11 @@ Why:
 - Done when:
   - candidate pool is generated for one user run
 
-## 6) Extraction + Playwright Fallback
+## 6) Extraction + Content Readiness
 - Branch: `feature/content-extraction`
 - Tasks:
   - normal extraction path
-  - Playwright fallback for JS-heavy pages
+  - content readiness validation for downstream summarization
 - Done when:
   - text extraction succeeds for most candidate links
 
@@ -90,7 +90,7 @@ Why:
 - Branch: `feature/e2e-happy-path`
 - Tasks:
   - add Vitest coverage for core logic (schemas, due-user selection, memory update)
-  - add Playwright e2e for onboarding -> send loop (mock integrations as needed)
+  - add integration smoke coverage for onboarding -> send loop (mock integrations as needed)
 - Done when:
   - basic pipeline passes in automated tests
 

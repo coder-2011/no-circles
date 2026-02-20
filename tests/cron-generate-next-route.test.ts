@@ -95,11 +95,72 @@ describe("POST /api/cron/generate-next", () => {
     expect(executeMock).not.toHaveBeenCalled();
   });
 
-  it("selects one due user and sends newsletter", async () => {
+  it("returns no_due_user when selector returns no rows", async () => {
+    executeMock.mockResolvedValueOnce({ rows: [] });
+
+    const response = await POST(
+      new Request("http://localhost/api/cron/generate-next", {
+        method: "POST",
+        body: JSON.stringify({}),
+        headers: {
+          "content-type": "application/json",
+          authorization: "Bearer cron-secret"
+        }
+      })
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true, status: "no_due_user" });
+    expect(executeMock).toHaveBeenCalledTimes(1);
+    expect(sendUserNewsletterMock).not.toHaveBeenCalled();
+  });
+
+  it("processes a claimed batch and returns per-status counts", async () => {
+    executeMock.mockResolvedValueOnce({
+      rows: [{ user_id: "user-1" }, { user_id: "user-2" }, { user_id: "user-3" }]
+    });
+    sendUserNewsletterMock
+      .mockResolvedValueOnce({ status: "sent", providerMessageId: "msg_1" })
+      .mockResolvedValueOnce({ status: "insufficient_content", error: "INSUFFICIENT_QUALITY_CANDIDATES" })
+      .mockResolvedValueOnce({ status: "send_failed", error: "RESEND_ERROR" });
+
+    const response = await POST(
+      new Request("http://localhost/api/cron/generate-next", {
+        method: "POST",
+        body: JSON.stringify({ batch_size: 3 }),
+        headers: {
+          "content-type": "application/json",
+          authorization: "Bearer cron-secret"
+        }
+      })
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      ok: true,
+      status: "processed_batch",
+      requested_batch_size: 3,
+      claimed_user_count: 3,
+      counts: {
+        sent: 1,
+        insufficient_content: 1,
+        send_failed: 1,
+        internal_error: 0
+      },
+      user_results: [
+        { user_id: "user-1", status: "sent", provider_message_id: "msg_1" },
+        { user_id: "user-2", status: "insufficient_content", provider_message_id: null },
+        { user_id: "user-3", status: "send_failed", provider_message_id: null }
+      ]
+    });
+    expect(sendUserNewsletterMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("includes internal_error results in batch summary", async () => {
     executeMock.mockResolvedValueOnce({ rows: [{ user_id: "user-123" }] });
     sendUserNewsletterMock.mockResolvedValueOnce({
-      status: "sent",
-      providerMessageId: "msg_123"
+      status: "internal_error",
+      error: "USER_NOT_FOUND"
     });
 
     const response = await POST(
@@ -116,110 +177,17 @@ describe("POST /api/cron/generate-next", () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
       ok: true,
-      status: "sent",
-      user_id: "user-123",
-      provider_message_id: "msg_123"
+      status: "processed_batch",
+      requested_batch_size: 3,
+      claimed_user_count: 1,
+      counts: {
+        sent: 0,
+        insufficient_content: 0,
+        send_failed: 0,
+        internal_error: 1
+      },
+      user_results: [{ user_id: "user-123", status: "internal_error", provider_message_id: null }]
     });
-    expect(executeMock).toHaveBeenCalledTimes(1);
-    expect(sendUserNewsletterMock).toHaveBeenCalledTimes(1);
-  });
-
-  it("returns no_due_user when none are due", async () => {
-    executeMock.mockResolvedValueOnce({ rows: [] });
-
-    const response = await POST(
-      new Request("http://localhost/api/cron/generate-next", {
-        method: "POST",
-        body: JSON.stringify({}),
-        headers: {
-          "content-type": "application/json",
-          authorization: "Bearer cron-secret"
-        }
-      })
-    );
-
-    expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ ok: true, status: "no_due_user" });
-    expect(executeMock).toHaveBeenCalledTimes(1);
-  });
-
-  it("returns no_due_user when all candidates were already sent today", async () => {
-    executeMock.mockResolvedValueOnce({ rows: [] });
-
-    const response = await POST(
-      new Request("http://localhost/api/cron/generate-next", {
-        method: "POST",
-        body: JSON.stringify({ run_at_utc: "2026-02-16T18:00:00.000Z" }),
-        headers: {
-          "content-type": "application/json",
-          authorization: "Bearer cron-secret"
-        }
-      })
-    );
-
-    expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ ok: true, status: "no_due_user" });
-  });
-
-  it("handles timezone boundary runs around local midnight", async () => {
-    executeMock
-      .mockResolvedValueOnce({ rows: [{ user_id: null }] })
-      .mockResolvedValueOnce({ rows: [{ user_id: "user-boundary" }] });
-
-    const beforeMidnightResponse = await POST(
-      new Request("http://localhost/api/cron/generate-next", {
-        method: "POST",
-        body: JSON.stringify({ run_at_utc: "2026-02-16T13:59:00.000Z" }),
-        headers: {
-          "content-type": "application/json",
-          authorization: "Bearer cron-secret"
-        }
-      })
-    );
-
-    expect(beforeMidnightResponse.status).toBe(200);
-    expect(await beforeMidnightResponse.json()).toEqual({ ok: true, status: "no_due_user" });
-
-    sendUserNewsletterMock.mockResolvedValueOnce({ status: "sent", providerMessageId: null });
-    const afterMidnightResponse = await POST(
-      new Request("http://localhost/api/cron/generate-next", {
-        method: "POST",
-        body: JSON.stringify({ run_at_utc: "2026-02-16T14:01:00.000Z" }),
-        headers: {
-          "content-type": "application/json",
-          authorization: "Bearer cron-secret"
-        }
-      })
-    );
-
-    expect(afterMidnightResponse.status).toBe(200);
-    expect(await afterMidnightResponse.json()).toEqual({
-      ok: true,
-      status: "sent",
-      user_id: "user-boundary",
-      provider_message_id: null
-    });
-    expect(executeMock).toHaveBeenCalledTimes(2);
-    expect(sendUserNewsletterMock).toHaveBeenCalledTimes(1);
-  });
-
-  it("returns no_due_user when rpc returns null user", async () => {
-    executeMock.mockResolvedValueOnce({ rows: [{ user_id: null }] });
-
-    const response = await POST(
-      new Request("http://localhost/api/cron/generate-next", {
-        method: "POST",
-        body: JSON.stringify({}),
-        headers: {
-          "content-type": "application/json",
-          authorization: "Bearer cron-secret"
-        }
-      })
-    );
-
-    expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ ok: true, status: "no_due_user" });
-    expect(executeMock).toHaveBeenCalledTimes(1);
   });
 
   it("returns 400 on invalid payload", async () => {
@@ -241,6 +209,26 @@ describe("POST /api/cron/generate-next", () => {
       message: "Invalid cron payload."
     });
     expect(executeMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when batch_size exceeds validation bounds", async () => {
+    const response = await POST(
+      new Request("http://localhost/api/cron/generate-next", {
+        method: "POST",
+        body: JSON.stringify({ batch_size: 26 }),
+        headers: {
+          "content-type": "application/json",
+          authorization: "Bearer cron-secret"
+        }
+      })
+    );
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({
+      ok: false,
+      error_code: "INVALID_PAYLOAD",
+      message: "Invalid cron payload."
+    });
   });
 
   it("treats malformed json body as empty payload", async () => {
@@ -281,84 +269,6 @@ describe("POST /api/cron/generate-next", () => {
       ok: false,
       error_code: "INTERNAL_ERROR",
       message: "Failed to select due user."
-    });
-  });
-
-  it("returns insufficient_content when pipeline reports shortfall", async () => {
-    executeMock.mockResolvedValueOnce({ rows: [{ user_id: "user-123" }] });
-    sendUserNewsletterMock.mockResolvedValueOnce({
-      status: "insufficient_content",
-      error: "INSUFFICIENT_QUALITY_CANDIDATES"
-    });
-
-    const response = await POST(
-      new Request("http://localhost/api/cron/generate-next", {
-        method: "POST",
-        body: JSON.stringify({}),
-        headers: {
-          "content-type": "application/json",
-          authorization: "Bearer cron-secret"
-        }
-      })
-    );
-
-    expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({
-      ok: true,
-      status: "insufficient_content",
-      user_id: "user-123"
-    });
-  });
-
-  it("returns send_failed when pipeline send fails", async () => {
-    executeMock.mockResolvedValueOnce({ rows: [{ user_id: "user-123" }] });
-    sendUserNewsletterMock.mockResolvedValueOnce({
-      status: "send_failed",
-      error: "RESEND_ERROR"
-    });
-
-    const response = await POST(
-      new Request("http://localhost/api/cron/generate-next", {
-        method: "POST",
-        body: JSON.stringify({}),
-        headers: {
-          "content-type": "application/json",
-          authorization: "Bearer cron-secret"
-        }
-      })
-    );
-
-    expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({
-      ok: true,
-      status: "send_failed",
-      user_id: "user-123"
-    });
-  });
-
-  it("returns 500 when pipeline returns internal_error", async () => {
-    executeMock.mockResolvedValueOnce({ rows: [{ user_id: "user-123" }] });
-    sendUserNewsletterMock.mockResolvedValueOnce({
-      status: "internal_error",
-      error: "USER_NOT_FOUND"
-    });
-
-    const response = await POST(
-      new Request("http://localhost/api/cron/generate-next", {
-        method: "POST",
-        body: JSON.stringify({}),
-        headers: {
-          "content-type": "application/json",
-          authorization: "Bearer cron-secret"
-        }
-      })
-    );
-
-    expect(response.status).toBe(500);
-    expect(await response.json()).toEqual({
-      ok: false,
-      error_code: "INTERNAL_ERROR",
-      message: "Failed to process selected user."
     });
   });
 });

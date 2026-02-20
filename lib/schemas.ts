@@ -19,7 +19,8 @@ export const onboardingSchema = z.object({
 });
 
 export const cronGenerateNextSchema = z.object({
-  run_at_utc: z.string().datetime().optional()
+  run_at_utc: z.string().datetime().optional(),
+  batch_size: z.number().int().min(1).max(25).optional()
 });
 
 export const resendInboundWebhookSchema = z.object({

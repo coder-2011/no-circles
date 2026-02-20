@@ -483,4 +483,51 @@ describe("runDiscovery", () => {
     expect(result.candidates[0]?.canonicalUrl).toBe("https://example.com/allowed");
     expect(result.warnings).toContain("CANDIDATE_FILTERED_1");
   });
+
+  it("uses per-topic link selector and appends rotated recency operator", async () => {
+    const exaSearch = vi.fn(async () => [{ url: "https://example.com/one", title: "one", highlights: ["x"], score: 0.9 }]);
+    const linkSelector = vi.fn(async () => 0);
+
+    await runDiscovery(
+      {
+        interestMemoryText: memory,
+        targetCount: 1,
+        maxRetries: 1,
+        maxTopics: 1,
+        perTopicResults: 1
+      },
+      { exaSearch, linkSelector }
+    );
+
+    expect(linkSelector).not.toHaveBeenCalled();
+    expect(exaSearch).toHaveBeenCalledTimes(1);
+    expect(exaSearch.mock.calls[0]?.[0]?.query).toContain("AI engineering");
+    expect(
+      ["last 7 days", "last 30 days", "last 90 days", "last 12 months", "since previous year"].some((operator) =>
+        String(exaSearch.mock.calls[0]?.[0]?.query ?? "").includes(operator)
+      )
+    ).toBe(true);
+  });
+
+  it("reorders topic results when selector returns a non-zero index", async () => {
+    const exaSearch = vi.fn(async () => [
+      { url: "https://example.com/first", title: "first", highlights: ["x"], score: 0.7 },
+      { url: "https://example.com/second", title: "second", highlights: ["x"], score: 0.7 }
+    ]);
+    const linkSelector = vi.fn(async () => 1);
+
+    const result = await runDiscovery(
+      {
+        interestMemoryText: memory,
+        targetCount: 1,
+        maxRetries: 1,
+        maxTopics: 1,
+        perTopicResults: 2
+      },
+      { exaSearch, linkSelector }
+    );
+
+    expect(linkSelector).toHaveBeenCalledTimes(1);
+    expect(result.candidates[0]?.canonicalUrl).toBe("https://example.com/second");
+  });
 });

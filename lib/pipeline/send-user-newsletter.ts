@@ -19,6 +19,7 @@ import {
   reserveOutboundSendIdempotency,
   type ReserveOutboundSendResult
 } from "@/lib/send/idempotency";
+import { logError, logInfo } from "@/lib/observability/log";
 
 type PipelineStatus = "sent" | "insufficient_content" | "send_failed" | "internal_error";
 
@@ -61,7 +62,7 @@ type SendPipelineDeps = {
 const TARGET_ITEM_COUNT = 10;
 
 function logPipeline(event: string, details: Record<string, unknown>) {
-  console.info(JSON.stringify({ subsystem: "send_pipeline", event, ...details }));
+  logInfo("send_pipeline", event, details);
 }
 
 function loadUserBloomState(user: PipelineUser): UserBloomState {
@@ -329,14 +330,12 @@ export async function sendUserNewsletter(
     const message = error instanceof Error ? error.message : "POST_SEND_DB_UPDATE_FAILED";
     await markIdempotencyFailedFn({ idempotencyKey, reason: message });
 
-    console.error(JSON.stringify({
-      subsystem: "send_pipeline",
-      event: "post_send_db_update_failed",
+    logError("send_pipeline", "post_send_db_update_failed", {
       user_id: user.id,
       run_at_utc: args.runAtUtc.toISOString(),
       idempotency_key: idempotencyKey,
       error: message
-    }));
+    });
 
     return {
       status: "send_failed",

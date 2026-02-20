@@ -1,0 +1,52 @@
+[
+  {
+    "title": "7 Design Trends in 2026 That Actually Matter",
+    "url": "https://think.design/blog/design-trends-2026-that-actually-matter/",
+    "summary": "The article identifies seven design trends expected to be significant in 2026, focusing on systems design approaches. These trends represent practical developments in the design field rather than superficial aesthetic shifts, emphasizing functional and strategic design considerations for the coming year."
+  },
+  {
+    "title": "Data Engineering in 2026: Trends, Tools, and How to Thrive",
+    "url": "https://www.refontelearning.com/blog/data-engineering-in-2026-trends-tools-and-how-to-thrive",
+    "summary": "This article examines the data engineering landscape projected for 2026, covering emerging trends, relevant tools, and strategies for professionals to succeed in the field during this period. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "The Evolved Edge: Market Landscape of Distributed Computing Infrastructure in 2026",
+    "url": "https://omdia.tech.informa.com/om143585/the-evolved-edge-market-landscape-of-distributed-computing-infrastructure-in-2026",
+    "summary": "This report examines the distributed computing infrastructure market landscape projected for 2026, analyzing the evolution of edge computing technologies and their market positioning within the broader distributed systems ecosystem. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "System Design Handbook Guide",
+    "url": "https://www.systemdesignhandbook.com/guides/system-design/",
+    "summary": "A resource guide focused on system design principles and practices. The handbook provides structured information on designing scalable and reliable systems, serving as a reference for understanding core system design concepts and methodologies. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "The most popular experience design trends of 2026 - UX Collective",
+    "url": "https://uxdesign.cc/the-most-popular-experience-design-trends-of-2026-3ca85c8a3e3d",
+    "summary": "UX Collective identifies leading experience design trends for 2026. The article examines emerging patterns in systems design and user experience practices expected to shape the field during the year. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "System Design Tutorial Complete Guide",
+    "url": "https://www.systemdesignhandbook.com/guides/system-design-tutorial/",
+    "summary": "A comprehensive guide covering system design principles and practices. The resource provides structured instruction on designing scalable and reliable systems, serving as a reference for understanding core concepts and methodologies in systems architecture and implementation. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "7 Data Engineering Trends for 2026 and Beyond",
+    "url": "https://www.n-ix.com/data-engineering-trends/",
+    "summary": "N-iX identifies seven emerging data engineering trends expected to shape the field through 2026 and beyond. The article examines key developments anticipated to influence data engineering practices, technologies, and methodologies in the coming years. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "5 Emerging Trends in Data Engineering for 2026",
+    "url": "https://www.kdnuggets.com/5-emerging-trends-in-data-engineering-for-2026",
+    "summary": "KDnuggets identifies five emerging trends expected to shape data engineering in 2026. The article examines key developments anticipated to influence the field, though specific trend details are not provided in the available highlights. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "The Top 5 Data Engineering Trends for 2026 - Boomi",
+    "url": "https://boomi.com/content/ebook/5-data-engineering-trends/",
+    "summary": "Boomi identifies five key data engineering trends expected to shape 2026. The content outlines emerging patterns and developments in the data engineering field, providing insights into technological directions and industry shifts anticipated for the coming year. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "Hands On System Design with Distributed Systems Implementation",
+    "url": "https://sdcourse.substack.com/p/hands-on-distributed-systems-with",
+    "summary": "A practical guide to distributed systems implementation, focusing on hands-on system design approaches. The content covers foundational concepts and implementation techniques for building distributed systems, providing learners with direct experience in designing and working with distributed architectures. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  }
+]

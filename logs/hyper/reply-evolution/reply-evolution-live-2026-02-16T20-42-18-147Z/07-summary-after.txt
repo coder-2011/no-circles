@@ -1,0 +1,52 @@
+[
+  {
+    "title": "Learn Artificial Intelligence with Guides, Resources, and Strategies",
+    "url": "https://www.upgrad.com/blog/prompt-engineering-training/",
+    "summary": "Prompt engineering training teaches users to design effective instructions for AI systems like ChatGPT. It covers fundamentals including context setting and role prompting, plus advanced techniques such as chain-of-thought reasoning and multimodal prompting. Training is available through platforms like Google Cloud and IBM, offering hands-on projects and career guidance for this in-demand skill."
+  },
+  {
+    "title": "System Design Primer",
+    "url": "https://systemdesignschool.io/primer",
+    "summary": "System Design School offers a fundamentals-first approach to system design education, emphasizing core concepts and reusable patterns over memorized solutions. The primer covers essential components, interview frameworks, and mental models for solving system design problems, organized into tracks covering patterns, data scaling, and batch/stream processing."
+  },
+  {
+    "title": "Data Pipeline Architecture: Building Scalable Data Systems in 2026",
+    "url": "https://latestfromtechguy.com/article/data-pipeline-architecture",
+    "summary": "Organizations increasingly adopt real-time data pipelines, with 78% now operating them compared to 32% in 2022. Data downtime costs enterprises $15 million annually. Modern architectures integrate multiple data sources through ingestion layers using tools like Kafka and Airbyte, with transformation via dbt and Spark, served through BI and ML platforms."
+  },
+  {
+    "title": "The Data Engineering Roadmap for Beginners (2026) - Dataquest",
+    "url": "https://www.dataquest.io/blog/the-data-engineer-roadmap-for-beginners/",
+    "summary": "Data engineering is a high-demand field with median U.S. salaries around $131,000 and entry-level positions starting at $90,000-$110,000. The industry grew 22.89% annually with over 20,000 new professionals added. A realistic career path requires 8-12 months to job-readiness, covering Python, SQL, cloud platforms, and orchestration tools. Core skills remain relevant despite evolving technology."
+  },
+  {
+    "title": "What is Data Engineering? Everything You Need to Know in 2025",
+    "url": "https://hackr.io/blog/what-is-data-engineering",
+    "summary": "Data engineering manages ETL processes, pipelines, and data infrastructure to process, store, and deliver vast amounts of data. Data engineers build pipelines that transport and transform data from various sources into centralized repositories. The field complements data science by providing the infrastructure that enables analysts and scientists to work with clean, organized data."
+  },
+  {
+    "title": "Data Engineering 101 - GeeksforGeeks",
+    "url": "https://www.geeksforgeeks.org/data-engineering/data-engineering-101/",
+    "summary": "Data engineering involves designing, building, and maintaining systems that process and store large data volumes. Core concepts include data pipelines, ETL workflows, and performance optimization. Getting started requires learning tools like relational and NoSQL databases, exploring online resources, building projects, and engaging with data engineering communities."
+  },
+  {
+    "title": "Database Internals: A Deep Dive Into How Distributed Data Systems Work",
+    "url": "https://mitpressbookstore.mit.edu/book/9781492040347",
+    "summary": "Published by O'Reilly Media in November 2019, this 370-page guide by Alex Petrov examines modern database internals for developers. It covers storage engines including B-Tree and Log Structured variants, storage building blocks like Buffer Pool and Write-Ahead Log, distributed systems communication patterns, and consistency models in database clusters."
+  },
+  {
+    "title": "Building a Distributed Database: Cassandra's Architecture Deep Dive",
+    "url": "https://dev.to/sgchris/building-a-distributed-database-cassandras-architecture-deep-dive-lkp",
+    "summary": "This article examines Cassandra's distributed database architecture for system design interview preparation. It covers key principles including consistent hashing, replication strategies, and eventual consistency. Cassandra prioritizes availability and partition tolerance under the CAP theorem, using configurable consistency levels and fault-tolerance mechanisms for handling node failures across globally distributed systems."
+  },
+  {
+    "title": "Distributed Systems - CS Primer",
+    "url": "https://csprimer.com/courses/distributed-systems/",
+    "summary": "A course on distributed systems covering how to reason about trade-offs when applications run across multiple machines. Content includes communication and encoding, redundancy, consistency, consensus, and distributed patterns. The course uses seminars, explainers, and system design modules, drawing from \"Designing Data-Intensive Applications\" textbook, with practical projects including building a key-value store."
+  },
+  {
+    "title": "Databases and SQL: All in One View",
+    "url": "http://swcarpentry.github.io/sql-novice-survey/aio.html",
+    "summary": "This resource covers relational database fundamentals and SQL querying. It explains how databases organize data into tables with columns (fields) and rows (records), and how SQL queries retrieve and manipulate this information. Topics include selecting data, filtering records by criteria, removing duplicates, and sorting results across various database managers."
+  }
+]

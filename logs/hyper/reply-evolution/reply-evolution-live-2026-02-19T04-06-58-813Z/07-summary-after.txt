@@ -1,0 +1,52 @@
+[
+  {
+    "title": "AI Engineering Full Course (PyTorch) 2026 UPDATED | One Shot",
+    "url": "https://www.youtube.com/watch?v=UqA7bxp7VBk",
+    "summary": "A comprehensive AI engineering course covering PyTorch, updated for 2026. The course is presented as a single, consolidated learning resource designed to provide complete instruction in AI engineering fundamentals and practical implementation using the PyTorch framework. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "Ultimate Data Lakehouse Guide 2025-2026: Architecture Inflection Design Doc",
+    "url": "https://dev.to/alexmercedcoder/the-2025-2026-ultimate-guide-to-the-data-lakehouse-and-the-data-lakehouse-ecosystem-dig",
+    "summary": "A comprehensive guide covering data lakehouse architecture and ecosystem developments for 2025-2026. The document addresses architectural inflection points and design considerations relevant to modern data engineering practices and lakehouse implementations. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "15-440/640 Distributed Systems Spring 2026 Syllabus: Consensus & Replication Benchmarks",
+    "url": "https://www.andrew.cmu.edu/course/15-440/",
+    "summary": "The Spring 2026 syllabus for CMU's 15-440/640 Distributed Systems course covers consensus and replication benchmarks as core topics. The course examines fundamental distributed systems concepts through the lens of consensus mechanisms and performance evaluation of replication strategies. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "Databases in 2025: A Year in Review",
+    "url": "https://www.cs.cmu.edu/~pavlo/blog/2026/01/2025-databases-retrospective.html",
+    "summary": "This retrospective examines key developments in database technology throughout 2025. The review covers significant trends, innovations, and shifts in the database landscape during the year, providing an overview of the field's evolution and notable changes. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "Data Observability Tools: Key Features & Top 8 Solutions in 2026",
+    "url": "https://dagster.io/learn/data-observability-tools",
+    "summary": "The article examines data observability tools and their essential features. It presents eight leading solutions available in 2026, providing guidance for organizations evaluating platforms to monitor data quality, pipeline health, and system performance across their data infrastructure. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "Data observability in 2026: a comprehensive guide",
+    "url": "https://www.future-processing.com/blog/data-observability/",
+    "summary": "This guide addresses data observability practices and approaches anticipated for 2026. It covers comprehensive strategies for monitoring and understanding data systems, providing insights into how organizations can implement observability frameworks to maintain data quality and system reliability. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "Monitoring to Observability: A Complete Guide for Enterprise",
+    "url": "https://www.ir.com/guides/monitoring-to-observability",
+    "summary": "This guide addresses the transition from traditional monitoring to observability in enterprise environments. It covers the conceptual shift and practical approaches organizations use to gain deeper insights into system behavior and performance through comprehensive data collection and analysis. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "What Is Data Observability? The Complete Guide [2026]",
+    "url": "https://tacnode.io/post/what-is-data-observability",
+    "summary": "This guide from Tacnode provides a comprehensive overview of data observability, covering its definition, principles, and applications. The resource serves as a complete reference for understanding how organizations monitor and maintain data system health and performance. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "AI Engineer Roadmap: How to Become an AI Engineer in 2026",
+    "url": "https://www.turingcollege.com/blog/ai-engineer-roadmap-how-to-become-an-ai-engineer",
+    "summary": "This resource outlines a structured pathway for aspiring AI engineers to enter the field in 2026. The roadmap provides guidance on the skills, knowledge areas, and steps necessary to pursue a career in AI engineering. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "How I'd Learn AI Engineering in 2026 (Complete Roadmap)",
+    "url": "https://www.youtube.com/watch?v=O2UmHpNlwUw",
+    "summary": "A comprehensive roadmap outlining the approach to learning AI engineering in 2026. The content provides structured guidance for individuals seeking to develop skills and knowledge in the AI engineering field during that timeframe. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  }
+]

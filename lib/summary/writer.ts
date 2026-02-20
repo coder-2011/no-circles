@@ -1,4 +1,5 @@
 import { buildSummaryPrompt } from "@/lib/ai/summary-prompts";
+import { logInfo, logWarn } from "@/lib/observability/log";
 import { summaryWriterOutputSchema } from "@/lib/schemas";
 
 type SummarySourceItem = {
@@ -38,13 +39,12 @@ type SummarizeOneItemResult = {
 };
 
 function logSummaryEvent(level: "info" | "warn", event: string, details: Record<string, unknown>) {
-  const payload = JSON.stringify({ subsystem: "summary_writer", event, ...details });
   if (level === "warn") {
-    console.warn(payload);
+    logWarn("summary_writer", event, details);
     return;
   }
 
-  console.info(payload);
+  logInfo("summary_writer", event, details);
 }
 
 function extractTextContent(value: unknown): string {

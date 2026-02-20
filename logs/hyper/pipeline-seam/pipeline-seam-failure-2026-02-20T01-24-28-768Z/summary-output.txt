@@ -1,0 +1,52 @@
+[
+  {
+    "title": "AI engineering last 7 days report",
+    "url": "https://example.com/ai-engineering-last-7-days",
+    "summary": "The writeup explains implementation constraints, key architectural decisions, and practical tradeoffs for rollout under production reliability requirements. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical"
+  },
+  {
+    "title": "distributed systems last 30 days report",
+    "url": "https://example.com/distributed-systems-last-30-days",
+    "summary": "The writeup explains implementation constraints, key architectural decisions, and practical tradeoffs for rollout under production reliability requirements. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical"
+  },
+  {
+    "title": "software architecture last 90 days report",
+    "url": "https://example.com/software-architecture-last-90-days",
+    "summary": "A practical report for software architecture last 90 days with concrete implementation details. It compares reliability, cost, and rollout tradeoffs. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "developer productivity last 12 months report",
+    "url": "https://example.com/developer-productivity-last-12-months",
+    "summary": "The writeup explains implementation constraints, key architectural decisions, and practical tradeoffs for rollout under production reliability requirements. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical"
+  },
+  {
+    "title": "data engineering since previous year report",
+    "url": "https://example.com/data-engineering-since-previous-year",
+    "summary": "The writeup explains implementation constraints, key architectural decisions, and practical tradeoffs for rollout under production reliability requirements. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical"
+  },
+  {
+    "title": "cloud cost optimization last 7 days report",
+    "url": "https://example.com/cloud-cost-optimization-last-7-days",
+    "summary": "The writeup explains implementation constraints, key architectural decisions, and practical tradeoffs for rollout under production reliability requirements. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical"
+  },
+  {
+    "title": "observability last 30 days report",
+    "url": "https://example.com/observability-last-30-days",
+    "summary": "A practical report for observability last 30 days with concrete implementation details. It compares reliability, cost, and rollout tradeoffs. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "testing strategy last 90 days report",
+    "url": "https://example.com/testing-strategy-last-90-days",
+    "summary": "The writeup explains implementation constraints, key architectural decisions, and practical tradeoffs for rollout under production reliability requirements. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical"
+  },
+  {
+    "title": "product analytics last 12 months report",
+    "url": "https://example.com/product-analytics-last-12-months",
+    "summary": "The writeup explains implementation constraints, key architectural decisions, and practical tradeoffs for rollout under production reliability requirements. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical"
+  },
+  {
+    "title": "programming languages since previous year report",
+    "url": "https://example.com/programming-languages-since-previous-year",
+    "summary": "The writeup explains implementation constraints, key architectural decisions, and practical tradeoffs for rollout under production reliability requirements. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical"
+  }
+]

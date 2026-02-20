@@ -1,0 +1,245 @@
+{
+  "candidates": [
+    {
+      "url": "https://www.youtube.com/watch?v=UqA7bxp7VBk",
+      "canonicalUrl": "https://www.youtube.com/watch?v=UqA7bxp7VBk",
+      "title": "AI Engineering Full Course (PyTorch) 2026 UPDATED | One Shot",
+      "highlight": "AI Engineering Full Course (PyTorch) 2026 UPDATED | One Shot",
+      "highlights": [
+        "AI Engineering Full Course (PyTorch) 2026 UPDATED | One Shot"
+      ],
+      "topic": "AI engineering",
+      "topicRank": 0,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "youtube.com",
+      "publishedAt": null,
+      "exaScore": null,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://dev.to/alexmercedcoder/the-2025-2026-ultimate-guide-to-the-data-lakehouse-and-the-data-lakehouse-ecosystem-dig",
+      "canonicalUrl": "https://dev.to/alexmercedcoder/the-2025-2026-ultimate-guide-to-the-data-lakehouse-and-the-data-lakehouse-ecosystem-dig",
+      "title": "Ultimate Data Lakehouse Guide 2025-2026: Architecture Inflection Design Doc",
+      "highlight": "Ultimate Data Lakehouse Guide 2025-2026: Architecture Inflection Design Doc",
+      "highlights": [
+        "Ultimate Data Lakehouse Guide 2025-2026: Architecture Inflection Design Doc"
+      ],
+      "topic": "Data engineering",
+      "topicRank": 2,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "dev.to",
+      "publishedAt": null,
+      "exaScore": null,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://www.andrew.cmu.edu/course/15-440/",
+      "canonicalUrl": "https://www.andrew.cmu.edu/course/15-440",
+      "title": "15-440/640 Distributed Systems Spring 2026 Syllabus: Consensus & Replication Benchmarks",
+      "highlight": "15-440/640 Distributed Systems Spring 2026 Syllabus: Consensus & Replication Benchmarks",
+      "highlights": [
+        "15-440/640 Distributed Systems Spring 2026 Syllabus: Consensus & Replication Benchmarks"
+      ],
+      "topic": "distributed systems",
+      "topicRank": 3,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "andrew.cmu.edu",
+      "publishedAt": null,
+      "exaScore": null,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://www.cs.cmu.edu/~pavlo/blog/2026/01/2025-databases-retrospective.html",
+      "canonicalUrl": "https://www.cs.cmu.edu/~pavlo/blog/2026/01/2025-databases-retrospective.html",
+      "title": "Databases in 2025: A Year in Review",
+      "highlight": "Databases in 2025: A Year in Review",
+      "highlights": [
+        "Databases in 2025: A Year in Review"
+      ],
+      "topic": "databases",
+      "topicRank": 4,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "cs.cmu.edu",
+      "publishedAt": null,
+      "exaScore": null,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://dagster.io/learn/data-observability-tools",
+      "canonicalUrl": "https://dagster.io/learn/data-observability-tools",
+      "title": "Data Observability Tools: Key Features & Top 8 Solutions in 2026",
+      "highlight": "Data Observability Tools: Key Features & Top 8 Solutions in 2026",
+      "highlights": [
+        "Data Observability Tools: Key Features & Top 8 Solutions in 2026"
+      ],
+      "topic": "observability",
+      "topicRank": 5,
+      "softSuppressed": false,
+      "resultRank": 0,
+      "sourceDomain": "dagster.io",
+      "publishedAt": null,
+      "exaScore": null,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://www.future-processing.com/blog/data-observability/",
+      "canonicalUrl": "https://www.future-processing.com/blog/data-observability",
+      "title": "Data observability in 2026: a comprehensive guide",
+      "highlight": "Data observability in 2026: a comprehensive guide",
+      "highlights": [
+        "Data observability in 2026: a comprehensive guide"
+      ],
+      "topic": "observability",
+      "topicRank": 5,
+      "softSuppressed": false,
+      "resultRank": 1,
+      "sourceDomain": "future-processing.com",
+      "publishedAt": null,
+      "exaScore": null,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://www.ir.com/guides/monitoring-to-observability",
+      "canonicalUrl": "https://www.ir.com/guides/monitoring-to-observability",
+      "title": "Monitoring to Observability: A Complete Guide for Enterprise ... - IR",
+      "highlight": "Monitoring to Observability: A Complete Guide for Enterprise ... - IR",
+      "highlights": [
+        "Monitoring to Observability: A Complete Guide for Enterprise ... - IR"
+      ],
+      "topic": "observability",
+      "topicRank": 5,
+      "softSuppressed": false,
+      "resultRank": 2,
+      "sourceDomain": "ir.com",
+      "publishedAt": null,
+      "exaScore": null,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://tacnode.io/post/what-is-data-observability",
+      "canonicalUrl": "https://tacnode.io/post/what-is-data-observability",
+      "title": "What Is Data Observability? The Complete Guide [2026] - Tacnode",
+      "highlight": "What Is Data Observability? The Complete Guide [2026] - Tacnode",
+      "highlights": [
+        "What Is Data Observability? The Complete Guide [2026] - Tacnode"
+      ],
+      "topic": "observability",
+      "topicRank": 5,
+      "softSuppressed": false,
+      "resultRank": 3,
+      "sourceDomain": "tacnode.io",
+      "publishedAt": null,
+      "exaScore": null,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://www.turingcollege.com/blog/ai-engineer-roadmap-how-to-become-an-ai-engineer",
+      "canonicalUrl": "https://www.turingcollege.com/blog/ai-engineer-roadmap-how-to-become-an-ai-engineer",
+      "title": "AI Engineer Roadmap: How to Become an AI Engineer in 2026",
+      "highlight": "AI Engineer Roadmap: How to Become an AI Engineer in 2026",
+      "highlights": [
+        "AI Engineer Roadmap: How to Become an AI Engineer in 2026"
+      ],
+      "topic": "AI engineering",
+      "topicRank": 0,
+      "softSuppressed": false,
+      "resultRank": 1,
+      "sourceDomain": "turingcollege.com",
+      "publishedAt": null,
+      "exaScore": null,
+      "highlightScore": null,
+      "highlightScores": []
+    },
+    {
+      "url": "https://www.youtube.com/watch?v=O2UmHpNlwUw",
+      "canonicalUrl": "https://www.youtube.com/watch?v=O2UmHpNlwUw",
+      "title": "How I'd Learn AI Engineering in 2026 (Complete Roadmap)",
+      "highlight": "How I'd Learn AI Engineering in 2026 (Complete Roadmap)",
+      "highlights": [
+        "How I'd Learn AI Engineering in 2026 (Complete Roadmap)"
+      ],
+      "topic": "AI engineering",
+      "topicRank": 0,
+      "softSuppressed": false,
+      "resultRank": 2,
+      "sourceDomain": "youtube.com",
+      "publishedAt": null,
+      "exaScore": null,
+      "highlightScore": null,
+      "highlightScores": []
+    }
+  ],
+  "topics": [
+    {
+      "topic": "AI engineering",
+      "query": "AI engineering",
+      "topicRank": 0,
+      "softSuppressed": false
+    },
+    {
+      "topic": "Systems design",
+      "query": "Systems design",
+      "topicRank": 1,
+      "softSuppressed": false
+    },
+    {
+      "topic": "Data engineering",
+      "query": "Data engineering",
+      "topicRank": 2,
+      "softSuppressed": false
+    },
+    {
+      "topic": "distributed systems",
+      "query": "distributed systems",
+      "topicRank": 3,
+      "softSuppressed": false
+    },
+    {
+      "topic": "databases",
+      "query": "databases",
+      "topicRank": 4,
+      "softSuppressed": false
+    },
+    {
+      "topic": "observability",
+      "query": "observability",
+      "topicRank": 5,
+      "softSuppressed": false
+    }
+  ],
+  "attempts": 3,
+  "warnings": [
+    "LOW_SIGNAL_FILTERED_2",
+    "INSUFFICIENT_TOPIC_WINNERS",
+    "BACKFILLED_FROM_QUALITY_POOL_6",
+    "DIVERSITY_CARD_FAILED"
+  ],
+  "diversityCard": {
+    "itemCount": 10,
+    "targetCount": 10,
+    "distinctTopics": 5,
+    "distinctDomains": 9,
+    "maxTopicShare": 0.4,
+    "maxDomainShare": 0.2,
+    "topicEntropyNormalized": 0.8813534532688829,
+    "thresholds": {
+      "minDistinctTopics": 6,
+      "maxTopicShare": 0.3,
+      "minDistinctDomains": 6,
+      "maxDomainShare": 0.3
+    },
+    "passes": false
+  }
+}

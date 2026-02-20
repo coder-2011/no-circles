@@ -1,11 +1,12 @@
-# Subsystem: Exa Discovery (PR6)
+# Subsystem: Discovery Retrieval and Ranking
 
 ## Scope
 Implements candidate discovery stage only.
 
 ## In Scope
 - Topic derivation from canonical user memory (`ACTIVE_INTERESTS` source of topics)
-- Exa search per topic
+- Perplexity Sonar search per topic
+- Anthropic Haiku single-link selection per topic (reorders topic candidates)
 - Result normalization and global URL dedupe
 - Attempt-tier quality/diversity early-stop gating
 - Suppression-aware primary selection with no suppressed fallback
@@ -27,7 +28,9 @@ Integration hook:
 
 ## Policy Highlights
 - Suppressed interests are soft-ranked in topic derivation and excluded from both primary and fallback selection.
-- Query construction is topic-focused (minimal context noise) to improve retrieval precision.
+- Query construction is topic-focused with per-topic recency rotation (`last 7 days`, `last 30 days`, `last 90 days`, `last 12 months`, `since previous year`).
+- Sonar retrieval prompt enforces strict parseable output format (`[TITLE] || https://...`) for deterministic extraction.
+- Haiku selector runs once per topic to choose best candidate link from Sonar outputs.
 - Discovery attempts use calibrated relaxed thresholds to improve first-attempt pass rate while preserving diversity checks.
 - Final selection starts strict one-per-topic with weighted topic-local scoring (`exa` weighted higher than highlight score), then backfills to target count with topic-balance preference before relaxed fallback.
 - Diversity and source-signal diagnostics are emitted in warnings and `diversityCard`.

@@ -1,0 +1,52 @@
+[
+  {
+    "title": "Artificial Intelligence Tutorial | AI Tutorial - GeeksforGeeks",
+    "url": "https://www.geeksforgeeks.org/artificial-intelligence/artificial-intelligence/",
+    "summary": "GeeksforGeeks provides an AI tutorial covering artificial intelligence as the simulation of human intelligence in machines. Content includes AI types, problem-solving algorithms, generative AI, machine learning, natural language processing, computer vision, and practical applications across domains like manufacturing. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
+  },
+  {
+    "title": "Database Internals: A Deep Dive into How Distributed Data Systems Work",
+    "url": "https://booksrun.com/9781492040347-database-internals-a-deep-dive-into-how-distributed-data-systems-work-1st-edition",
+    "summary": "Published by O'Reilly Media in 2019, Alex Petrov's guide examines modern database internals through storage engines, storage building blocks, distributed systems communication patterns, and database cluster consistency models. The book explores B-Tree and Log Structured storage engines, auxiliary structures like Buffer Pool and Write-Ahead Log, and how nodes connect in distributed systems."
+  },
+  {
+    "title": "I Tried 20+ Books on Software Architecture — Here Are My Top 7 Recommendations for Senior Developers",
+    "url": "https://dev.to/somadevtoo/i-tried-20-books-on-software-architecture-here-are-my-top-7-recommendations-for-senior-developers-54n2",
+    "summary": "An author reviewed over 20 software architecture books and selected 7 recommendations for senior developers. Key titles include Head First Software Architecture for beginners, Software Architecture: The Hard Parts on managing trade-offs, Fundamentals of Software Architecture, and Software Engineering at Google on scaling engineering culture. The author emphasizes architecture focuses on understanding trade-offs rather than memorizing patterns."
+  },
+  {
+    "title": "Data Pipeline Architecture: Building Scalable Data Systems in 2026",
+    "url": "https://latestfromtechguy.com/article/data-pipeline-architecture",
+    "summary": "Organizations increasingly adopt real-time data pipelines, with 78% now operating them compared to 32% in 2022. Data downtime costs enterprises $15 million annually. Modern architectures integrate multiple data sources through ingestion layers using tools like Kafka and Airbyte, with transformation via dbt and Spark, and serving through BI and ML platforms."
+  },
+  {
+    "title": "The Data Engineering Roadmap for Beginners (2026)",
+    "url": "https://www.dataquest.io/blog/the-data-engineer-roadmap-for-beginners/",
+    "summary": "Data engineering builds infrastructure that moves, transforms, and stores data across organizations. The field offers median compensation of $131,000 annually in the U.S., with entry-level positions starting at $90,000-$110,000. Industry growth reached 22.89% last year, adding over 20,000 professionals. Beginners typically require 8-12 months to reach job-readiness, focusing on Python, SQL, cloud platforms, and orchestration tools."
+  },
+  {
+    "title": "Data engineering 101: lifecycle, best practices, and emerging trends",
+    "url": "https://redpanda.com/guides/fundamentals-of-data-engineering",
+    "summary": "Data engineering is the process of designing and maintaining systems that convert raw data into actionable insights. It encompasses data ingestion, transformation, and pipeline architecture across multiple stages. Key tools include Apache Hadoop, Spark, Kafka, and Airflow. Data engineering supports analytics, machine learning, and AI applications across modern business operations."
+  },
+  {
+    "title": "Data Engineering for Everyone Course",
+    "url": "https://www.datacamp.com/courses/understanding-data-engineering",
+    "summary": "DataCamp's introductory course teaches data engineering fundamentals through hands-on exercises using a fictional music streaming company case study. Topics include core data engineer responsibilities, differences from data scientists, data collection and cleaning, pipeline development, data storage, and processing techniques. The course is designed for beginners and professionals in data science fields."
+  },
+  {
+    "title": "How to Build a Strategy for an Existing Product",
+    "url": "https://building.theatlantic.com/how-to-build-a-strategy-for-an-existing-product-32eef1ea447b",
+    "summary": "Roman Pichler outlines a five-step process for developing effective product strategies. The approach involves articulating current strategy, assessing its viability, replacing it if needed, creating an outcome-based roadmap, and conducting regular quarterly reviews. Clear strategy provides decision-making guardrails and aligns teams, preventing confusion about feature priorities."
+  },
+  {
+    "title": "How to Build a Strategy for an Existing Product",
+    "url": "https://www.romanpichler.com/blog/how-to-create-a-product-strategy-for-an-existing-product/",
+    "summary": "Product strategy is a cohesive decision-making framework answering what differentiates a product, how it benefits the business, and why users want it. A five-step process involves articulating the current strategy, assessing its viability, replacing it if needed, deriving an actionable roadmap, and regularly reviewing it quarterly to respond to market changes."
+  },
+  {
+    "title": "Product Strategy: How a Clear One Leads to Success",
+    "url": "https://aha.io/roadmapping/guide/product-strategy",
+    "summary": "Product strategy defines the direction and rationale for what a company builds. It aligns organizational vision with customer needs and market conditions, serving as the foundation for product development. Effective strategies are goal-first, customer-driven, and articulate how a company will differentiate itself and achieve its objectives."
+  }
+]

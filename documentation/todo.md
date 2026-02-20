@@ -33,6 +33,10 @@ These are candidate features for future scoped PRs after core pipeline stability
 - Allow issue size preferences (for example light/standard/deep).
 - Goal: match cognitive load to user preference and improve retention.
 
+7. Contextual curiosity discovery loop
+- Make discovery feel progressively smarter for each user by combining curiosity with explicit context.
+- Goal: improve retention by reducing generic repeats and increasing "next-layer" relevance.
+
 ## Current Status
 - `feature/db-and-onboarding`: merged.
 - `feature/google-auth`: merged.
@@ -222,7 +226,6 @@ These are candidate features for future scoped PRs after core pipeline stability
   - consume discovery candidates from PR 6 without changing topic/discovery ranking semantics.
 - Explicit non-goals:
   - no URL fetch/HTML extraction pipeline in this PR.
-  - no Playwright/browser-rendered extraction in this PR.
   - no Exa `/contents` full-text expansion pipeline in this PR.
   - no summary-writing prompts.
   - no email send/persistence behavior.
@@ -286,7 +289,7 @@ These are candidate features for future scoped PRs after core pipeline stability
 - Primary objective:
   - lock baseline user journey with automated confidence.
 - Frontend scope:
-  - Playwright coverage: auth/onboarding UX path.
+  - UI journey coverage for auth/onboarding path.
 - Backend scope:
   - integration tests for cron selection, memory update, and send pipeline seams.
 - Data and contracts:
@@ -319,6 +322,37 @@ These are candidate features for future scoped PRs after core pipeline stability
   - provider outage -> graceful error, no silent corruption.
 - Done when:
   - operational failures are visible and system degrades safely.
+
+## PR 12: Contextual Curiosity Discovery
+- Branch: `feature/contextual-curiosity-discovery`
+- Primary objective:
+  - evolve discovery from broad topical retrieval into progressive, context-aware retrieval.
+- Frontend scope:
+  - none.
+- Backend scope:
+  - add query-intent lanes per topic (`core_depth`, `adjacent`, `edge_serendipity`).
+  - add anti-generic query constraints to reduce beginner/intro/listicle output.
+  - preserve Bloom anti-repeat gating and add a tiny recoverable recent-learning store (recent canonical URLs/topics/domains) for progression context.
+  - generate "next-layer" queries informed by recent learning history + memory text.
+  - keep deterministic scoring/ranking first; optional tiny-model tie-breaker only for borderline candidates.
+- Data and contracts:
+  - keep current discovery output contract unchanged for downstream PR7/PR8/PR9 compatibility.
+  - do not rely on Bloom as recoverable history (Bloom is membership-only).
+  - target discovery composition policy:
+    - `~70%` core-depth
+    - `~20%` adjacent
+    - `~10%` controlled serendipity
+- Explicit non-goals:
+  - no send pipeline redesign.
+  - no onboarding/reply memory contract redesign.
+  - no UI changes in this PR.
+- Tests required:
+  - query builder emits lane-specific constraints and progression hints.
+  - recent-learning history influences next query set deterministically.
+  - output keeps target count and existing schema under mixed lane success/failure.
+  - Bloom-only mode remains safe when recent-learning history is unavailable.
+- Done when:
+  - manual and hyper evaluation shows lower generic-result rate and stronger perceived progression without regressions in diversity/coverage.
 
 ## Working Rules
 - one subsystem per branch

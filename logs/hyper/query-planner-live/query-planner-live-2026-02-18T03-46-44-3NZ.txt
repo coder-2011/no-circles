@@ -1,0 +1,9 @@
+
+ RUN  v4.0.18 /Users/namanchetwani/Projects/SerendipitousEncounters
+
+No test files found, exiting with code 1
+
+filter: tests/discovery-query-planner-live.integration.test.ts
+include: tests/**/*.test.ts
+exclude:  tests/hyper/**, tests/discovery-query-planner-live.integration.test.ts
+
