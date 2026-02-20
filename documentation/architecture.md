@@ -11,7 +11,6 @@ This system is a website-first, email-delivered personalized newsletter product.
 - `documentation/`: product, architecture, and subsystem docs.
 - `.codex/`: agent prompts, state logs, and durable learnings.
 - `tests/`: Vitest unit/integration tests.
-- `e2e/`: Playwright end-to-end tests.
 - `public/`: static assets served by the app.
 - `scripts/`: operational scripts (maintenance/backfill/setup helpers).
 
@@ -38,12 +37,11 @@ This system is a website-first, email-delivered personalized newsletter product.
 - **date-fns + date-fns-tz**: Timezone-aware daily send logic.
 
 ### Extraction, Testing, and Reliability
-- **Playwright**: Fallback extraction for hard pages and end-to-end UI tests.
 - **Vitest**: Unit/integration tests.
 
 ## System Pattern
 - Single monolith architecture (web + API + cron endpoints).
-- Pipeline: `Exa discovery -> fetch/extract (Playwright fallback) -> Claude writer -> assemble newsletter -> send via Resend`.
+- Pipeline: `Exa discovery -> fetch/extract -> Claude writer -> assemble newsletter -> send via Resend`.
 - User personalization is dynamic and text-based, not rigid topic-table driven.
 
 ## Critical System Risks

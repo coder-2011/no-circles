@@ -92,6 +92,13 @@
       "when": 1771553940000,
       "tag": "0012_steady_signal",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1771578433000,
+      "tag": "0013_vivid_safeguard",
+      "breakpoints": true
     }
   ]
 }

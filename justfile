@@ -33,9 +33,6 @@ lint:
 test:
 	npm run test
 
-e2e:
-	npx playwright test
-
 # Run reply-evolution hyper live integration test with local env loaded
 hyper-reply-evolution-live:
 	set -a; [ -f ./.env.local ] && . ./.env.local; set +a; \

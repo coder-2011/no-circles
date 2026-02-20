@@ -21,9 +21,9 @@ export const metadata: Metadata = {
   title: "No Circles",
   description: "Personalized daily newsletter",
   icons: {
-    icon: "/logo-no-circles.svg",
-    shortcut: "/logo-no-circles.svg",
-    apple: "/logo-no-circles.svg"
+    icon: "/logo-no-circles.png",
+    shortcut: "/logo-no-circles.png",
+    apple: "/logo-no-circles.png"
   }
 };
 
@@ -40,7 +40,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             alt="No Circles logo"
             className="block h-16 w-16 rounded-full object-contain"
             height={64}
-            src="/logo-no-circles.svg"
+            src="/logo-no-circles.png"
             width={64}
           />
         </Link>

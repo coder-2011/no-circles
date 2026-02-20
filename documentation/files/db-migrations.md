@@ -47,6 +47,9 @@ Versioned SQL history for database schema state.
 - `db/migrations/0012_steady_signal.sql`
   - updates batch upsert conflict target to `ON CONFLICT ON CONSTRAINT cron_selection_leases_pkey`
   - aliases lease CTE output as `leased_user_id` to avoid PL/pgSQL output-variable ambiguity
+- `db/migrations/0013_vivid_safeguard.sql`
+  - enables row level security on all active public runtime tables (`users`, `processed_webhooks`, `cron_selection_leases`, `outbound_send_idempotency`)
+  - sets deny-by-default access posture until explicit table policies are created
 
 ## Metadata
 - `db/migrations/meta/_journal.json`: migration journal

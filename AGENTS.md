@@ -20,7 +20,7 @@ Build a website-first, personalized daily newsletter system that curates 10 high
 - Exa (discovery)
 - Resend (outbound + inbound)
 - Vercel + Vercel Cron (every minute)
-- zod, date-fns/date-fns-tz, Vitest, Playwright
+- zod, date-fns/date-fns-tz, Vitest
 
 ## Root Folder Structure
 - `app/`: Next.js pages and API routes.
@@ -30,7 +30,6 @@ Build a website-first, personalized daily newsletter system that curates 10 high
 - `documentation/`: source-of-truth product and architecture docs.
 - `.codex/`: memory system files, prompts, and state logs.
 - `tests/`: Vitest unit/integration tests.
-- `e2e/`: Playwright end-to-end tests.
 - `public/`: static assets.
 - `scripts/`: operational helper scripts.
 
@@ -104,6 +103,10 @@ Build a website-first, personalized daily newsletter system that curates 10 high
   - If a scoped change modifies more than 10 lines of code, you must commit and push that change before continuing to additional unrelated work.
   - Count threshold using git diff line changes on code files (`.ts`, `.tsx`, `.js`, `.jsx`, `.mjs`, `.cjs`, `.css`, `.sql`): additions + deletions.
   - This rule applies even when the feature is not fully complete; use small, coherent, incremental commits.
+- Commit message rigor (required):
+  - Before every commit, inspect `git diff --stat` and `git diff --name-status` (or equivalent) and base the commit message on the actual diff.
+  - Commit messages must be specific to changed subsystem/files and user-visible or contract-level behavior.
+  - Do not use vague messages (for example: `update`, `misc`, `random`, `wip`) and do not push random mixed changes without a scoped message.
 - PR after feature is done and testing is done.
 - PR must include: scope summary, rationale, test evidence, and screenshots for UI changes.
 - Before PR: check CI status with `gh run list` / `gh run view` and get green.
@@ -116,7 +119,6 @@ Build a website-first, personalized daily newsletter system that curates 10 high
 - `npm run build` - production build check.
 - `npm run lint` - lint checks.
 - `npm run test` - unit/integration tests (Vitest).
-- `npx playwright test` - end-to-end tests.
 - Do not run `npm run test` or `npm run test:hyper` unless user explicitly grants permission in the current session.
 
 ## Coding Style and Conventions
@@ -151,7 +153,6 @@ Build a website-first, personalized daily newsletter system that curates 10 high
   - `just build`
   - `just lint`
   - `just test`
-  - `just e2e`
   - `just hyper-reply-evolution-live`
   - `just main-loc`
   - `just loc`

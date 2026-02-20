@@ -100,7 +100,7 @@ sequenceDiagram
 - Claude Sonnet 4.5 (summary and memory processing)
 - Resend (outbound + inbound)
 - zod, date-fns/date-fns-tz
-- Vitest + Playwright
+- Vitest
 
 ## Repository Layout
 
@@ -109,7 +109,6 @@ sequenceDiagram
 - `lib/` - core services, schemas, helpers
 - `db/` - schema + migrations
 - `tests/` - unit/integration tests
-- `e2e/` - browser tests
 - `scripts/` - operational scripts
 - `documentation/` - source-of-truth design/architecture docs
 - `.codex/` - memory and session logs
@@ -173,7 +172,7 @@ npm run lint
 npm run build
 ```
 
-Project also includes Vitest and Playwright suites under `tests/` and `e2e/`.
+Project test coverage is currently centered in Vitest suites under `tests/`.
 
 ## Documentation
 
