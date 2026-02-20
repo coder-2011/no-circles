@@ -10,6 +10,7 @@ Declares Drizzle table definitions and DB constraints for V1 minimal persistence
 - `preferred_name` text not null
 - `timezone` text not null
 - `send_time_local` text not null
+- `send_time_local_minute` generated integer bucket from `send_time_local` (`0..1439`) for scheduler selection
 - `interest_memory_text` text not null
 - `last_issue_sent_at` timestamptz nullable (delivery-state authority for scheduler)
 - `sent_url_bloom_bits` text nullable (base64-encoded Bloom bitset)
@@ -37,6 +38,7 @@ Declares Drizzle table definitions and DB constraints for V1 minimal persistence
 
 ## Indexes and Constraints
 - check constraint: `users_sent_url_bloom_bits_length_check` bounds `users.sent_url_bloom_bits` payload length
+- index: `users_send_time_local_minute_idx` supports due-bucket filtering in cron selector SQL
 - unique index: `processed_webhooks(provider, webhook_id)` for inbound idempotency
 - index: `processed_webhooks(processed_at)` for retention pruning
 - index: `cron_selection_leases(leased_at)` for lease visibility/cleanup scans
