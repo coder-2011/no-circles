@@ -46,6 +46,18 @@ This system is a website-first, email-delivered personalized newsletter product.
 - Pipeline: `Exa discovery -> fetch/extract (Playwright fallback) -> Claude writer -> assemble newsletter -> send via Resend`.
 - User personalization is dynamic and text-based, not rigid topic-table driven.
 
+## Critical System Risks
+
+### 1) Over-fitting to recent feedback
+- Risk: reply signals can be overweighted relative to long-term user identity.
+- Example failure mode: user replies "I liked that drones article" and the next issue over-rotates to aerospace, dropping baseline interests.
+- Why this is hard: balancing `core identity` vs `passing curiosity` requires stable weighting/decay policy and guardrails on one-shot updates.
+
+### 2) 7:00 AM personalization latency bottleneck
+- Risk: generating and sending thousands of highly personalized issues at one time can saturate compute and queue capacity.
+- Example failure mode: at ~5,000 users targeting `07:00` local send, on-the-fly generation causes delivery delays and misses timing expectations.
+- Why this is hard: this is a queueing/concurrency/orchestration problem, not just an email API problem; generation throughput must be engineered as a first-class system concern.
+
 ## System Flows
 
 ### 1) Onboarding Flow
