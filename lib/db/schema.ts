@@ -1,4 +1,5 @@
-import { date, index, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { date, index, integer, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -6,10 +7,14 @@ export const users = pgTable("users", {
   preferredName: text("preferred_name").notNull(),
   timezone: text("timezone").notNull(),
   sendTimeLocal: text("send_time_local").notNull(),
+  sendTimeLocalMinute: integer("send_time_local_minute")
+    .generatedAlwaysAs(sql`((split_part(send_time_local, ':', 1)::int * 60) + split_part(send_time_local, ':', 2)::int)`),
   interestMemoryText: text("interest_memory_text").notNull(),
   lastIssueSentAt: timestamp("last_issue_sent_at", { withTimezone: true }),
   sentUrlBloomBits: text("sent_url_bloom_bits")
-});
+}, (table) => ({
+  sendTimeLocalMinuteIdx: index("users_send_time_local_minute_idx").on(table.sendTimeLocalMinute)
+}));
 
 export const processedWebhooks = pgTable(
   "processed_webhooks",

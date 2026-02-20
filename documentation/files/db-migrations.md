@@ -31,6 +31,22 @@ Versioned SQL history for database schema state.
   - creates `outbound_send_idempotency` table for per-user/local-date outbound replay safety
 - `db/migrations/0007_calm_guardrail.sql`
   - adds `users_sent_url_bloom_bits_length_check` constraint to bound persisted Bloom bitset payload size
+- `db/migrations/0008_swift_current.sql`
+  - adds `public.claim_due_users_batch(run_at_utc, lease_ttl_minutes, batch_size)`
+  - introduces deterministic multi-user lease claiming for each cron invocation
+- `db/migrations/0009_crisp_bucket.sql`
+  - adds generated `users.send_time_local_minute` due bucket column
+  - adds `users_send_time_local_minute_idx` index
+  - updates `public.claim_due_users_batch(...)` to compare local-minute values against the precomputed bucket
+- `db/migrations/0010_calm_lockstep.sql`
+  - rewrites `public.claim_due_users_batch(...)` CTE shape to separate row locking from ranking
+  - preserves deterministic batch ordering while avoiding PostgreSQL `FOR UPDATE` + window-function restriction
+- `db/migrations/0011_clear_output.sql`
+  - qualifies `RETURNING public.cron_selection_leases.user_id` in lease upsert CTE
+  - removes ambiguous `user_id` reference during batch claim execution
+- `db/migrations/0012_steady_signal.sql`
+  - updates batch upsert conflict target to `ON CONFLICT ON CONSTRAINT cron_selection_leases_pkey`
+  - aliases lease CTE output as `leased_user_id` to avoid PL/pgSQL output-variable ambiguity
 
 ## Metadata
 - `db/migrations/meta/_journal.json`: migration journal
