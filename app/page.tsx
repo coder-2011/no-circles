@@ -110,6 +110,14 @@ export default function HomePage() {
     };
   }, [supabase]);
 
+  useEffect(() => {
+    if (authState !== "signed_in") {
+      return;
+    }
+
+    router.replace("/onboarding");
+  }, [authState, router]);
+
   async function signInWithGoogle() {
     if (!supabase) return;
 
