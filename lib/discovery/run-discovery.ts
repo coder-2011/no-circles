@@ -1,6 +1,7 @@
 import { deriveTopicsFromMemory } from "@/lib/discovery/topic-derivation";
 import { selectBestTopicLink } from "@/lib/discovery/haiku-link-selector";
 import { searchSonar } from "@/lib/discovery/sonar-client";
+import { fetchUrlExcerpt } from "@/lib/discovery/url-excerpt";
 import { logInfo } from "@/lib/observability/log";
 import {
   DEFAULT_DISCOVERY_MAX_RETRIES,
@@ -8,7 +9,8 @@ import {
   type DiscoveryCandidate,
   type DiscoveryRunInput,
   type DiscoveryRunResult,
-  type ExaSearchFn
+  type ExaSearchFn,
+  type ExaSearchResult
 } from "@/lib/discovery/types";
 import {
   applyDomainCap,
@@ -130,8 +132,9 @@ export async function runDiscovery(
     linkSelector?: (args: {
       topic: string;
       interestMemoryText: string;
-      candidates: Array<{ url: string; title: string | null; highlights?: string[] }>;
+      candidates: Array<{ url: string; title: string | null; highlights?: string[]; excerpt?: string }>;
     }) => Promise<number | null>;
+    excerptExtractor?: (args: { url: string; maxCharacters: number }) => Promise<string | null>;
   } = {}
 ): Promise<DiscoveryRunResult> {
   const targetCount = input.targetCount ?? DEFAULT_DISCOVERY_TARGET_COUNT;
@@ -143,6 +146,7 @@ export async function runDiscovery(
   const exaSearch = deps.exaSearch ?? searchSonar;
   const includeCandidate = deps.includeCandidate ?? (() => true);
   const linkSelector = deps.linkSelector ?? selectBestTopicLink;
+  const excerptExtractor = deps.excerptExtractor ?? fetchUrlExcerpt;
 
   const topics = deriveTopicsFromMemory({
     interestMemoryText: input.interestMemoryText,
@@ -169,15 +173,45 @@ export async function runDiscovery(
 
       try {
         const rawResults = await exaSearch({ query, numResults: perTopicResults });
-        let results = rawResults;
-        if (rawResults.length > 1) {
+        let selectorCandidates: ExaSearchResult[] = rawResults;
+
+        if (input.requireUrlExcerpt) {
+          const extracted: ExaSearchResult[] = [];
+          for (const rawResult of rawResults) {
+            const excerpt = await excerptExtractor({
+              url: rawResult.url,
+              maxCharacters: 1500
+            });
+
+            if (!excerpt) {
+              warnings.push(`CANDIDATE_EXTRACTION_FAILED:${topic.topic}:${rawResult.url}`);
+              continue;
+            }
+
+            extracted.push({
+              ...rawResult,
+              excerpt,
+              highlights: [excerpt]
+            });
+          }
+
+          selectorCandidates = extracted;
+        }
+
+        if (selectorCandidates.length === 0) {
+          warnings.push(`TOPIC_NO_EXTRACTED_CANDIDATES:${topic.topic}`);
+          continue;
+        }
+
+        let results = selectorCandidates;
+        if (selectorCandidates.length > 1) {
           try {
             const selectedIndex = await linkSelector({
               topic: topic.topic,
               interestMemoryText: input.interestMemoryText,
-              candidates: rawResults
+              candidates: selectorCandidates
             });
-            results = reorderBySelectedIndex(rawResults, selectedIndex);
+            results = reorderBySelectedIndex(selectorCandidates, selectedIndex);
           } catch (error) {
             warnings.push(`TOPIC_SELECTOR_FAILURE:${topic.topic}:${error instanceof Error ? error.message : "UNKNOWN_ERROR"}`);
           }

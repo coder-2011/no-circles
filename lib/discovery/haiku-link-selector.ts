@@ -42,13 +42,16 @@ function buildSelectorPrompt(args: { topic: string; interestMemoryText: string; 
   const items = args.candidates
     .map((candidate, index) => {
       const title = candidate.title?.trim() || "Untitled";
-      return `${index + 1}. ${title} || ${candidate.url}`;
+      const excerpt = candidate.excerpt?.trim() || candidate.highlights?.[0]?.trim() || "-";
+      const clippedExcerpt = excerpt.length > 320 ? `${excerpt.slice(0, 320)}...` : excerpt;
+      return `${index + 1}. ${title} || ${candidate.url}\n   Excerpt: ${clippedExcerpt}`;
     })
     .join("\n");
 
   return [
     "Pick the single best link for this topic.",
     "Criteria: relevance to topic, practical depth, novelty, and source quality.",
+    "Weight title relevance heavily, but use the excerpt to avoid shallow picks.",
     "Output only one integer index from the candidate list (for example: 3).",
     "",
     `Topic: ${args.topic}`,
@@ -106,4 +109,3 @@ export async function selectBestTopicLink(args: {
   const text = extractTextContent(json);
   return parseSelectedIndex(text, args.candidates.length);
 }
-

@@ -9,7 +9,7 @@ Runs one Anthropic model call per topic to select the best candidate link from S
    - `ANTHROPIC_LINK_SELECTOR_MODEL`
    - `ANTHROPIC_SUMMARY_MODEL`
    - `ANTHROPIC_MEMORY_MODEL`
-3. Sends topic, user memory snippet, and numbered candidate list.
+3. Sends topic, user memory snippet, and numbered candidate list with short URL excerpt text when available.
 4. Enforces integer-only output contract (single index).
 5. Parses first integer and returns zero-based selected index or `null`.
 

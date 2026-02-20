@@ -50,6 +50,7 @@ export type DiscoveryRunInput = {
   perTopicResults?: number;
   earlyStopBuffer?: number;
   maxPerDomain?: number;
+  requireUrlExcerpt?: boolean;
 };
 
 export type DiscoveryRunResult = {
@@ -67,6 +68,7 @@ export type ExaSearchResult = {
   score?: number;
   highlights?: string[];
   highlightScores?: number[];
+  excerpt?: string;
 };
 
 export type ExaSearchFn = (args: {

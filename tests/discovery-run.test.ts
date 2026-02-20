@@ -17,6 +17,35 @@ const memory = [
 ].join("\n");
 
 describe("runDiscovery", () => {
+  it("requires URL excerpts when enabled and drops candidates that fail extraction", async () => {
+    const exaSearch = vi.fn(async () => [
+      { url: "https://example.com/kept", title: "Kept", highlights: ["legacy"], score: 0.9 },
+      { url: "https://example.com/dropped", title: "Dropped", highlights: ["legacy"], score: 0.85 }
+    ]);
+    const excerptExtractor = vi.fn(async ({ url }: { url: string }) => {
+      if (url.includes("dropped")) return null;
+      return "Extracted body text for ranking and selection.";
+    });
+    const linkSelector = vi.fn(async () => 0);
+
+    const result = await runDiscovery(
+      {
+        interestMemoryText: memory,
+        targetCount: 1,
+        maxRetries: 1,
+        perTopicResults: 2,
+        maxTopics: 1,
+        requireUrlExcerpt: true
+      },
+      { exaSearch, excerptExtractor, linkSelector }
+    );
+
+    expect(result.candidates).toHaveLength(1);
+    expect(result.candidates[0]?.canonicalUrl).toBe("https://example.com/kept");
+    expect(linkSelector).not.toHaveBeenCalled();
+    expect(result.warnings.some((warning) => warning.startsWith("CANDIDATE_EXTRACTION_FAILED:"))).toBe(true);
+  });
+
   it("fills to target count after selecting one winner per topic", async () => {
     const exaSearch = vi.fn(async ({ query }: { query: string; numResults: number }) => {
       if (query.startsWith("AI engineering")) {
