@@ -125,6 +125,19 @@ export default function HomePage() {
     };
   }, [supabase]);
 
+  useEffect(() => {
+    if (authState !== "signed_in") {
+      return;
+    }
+
+    if (!window.location.search.includes("auth=")) {
+      return;
+    }
+
+    setAuthError(null);
+    window.history.replaceState(null, "", window.location.pathname);
+  }, [authState]);
+
   async function signInWithGoogle() {
     if (!supabase) return;
 

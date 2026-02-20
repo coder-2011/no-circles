@@ -50,9 +50,18 @@ export async function GET(request: Request) {
     }
   });
 
+  async function redirectBasedOnSessionOnError() {
+    const userLookup = await supabase.auth.getUser();
+    if (userLookup.data.user?.email) {
+      return NextResponse.redirect(new URL(redirectTo, publicOrigin));
+    }
+
+    return NextResponse.redirect(new URL("/?auth=oauth_error", publicOrigin));
+  }
+
   const providerError = requestUrl.searchParams.get("error");
   if (providerError) {
-    return NextResponse.redirect(new URL("/?auth=oauth_error", publicOrigin));
+    return redirectBasedOnSessionOnError();
   }
 
   if (!code) {
@@ -67,7 +76,7 @@ export async function GET(request: Request) {
   const { error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
-    return NextResponse.redirect(new URL("/?auth=oauth_error", publicOrigin));
+    return redirectBasedOnSessionOnError();
   }
 
   return NextResponse.redirect(new URL(redirectTo, publicOrigin));
