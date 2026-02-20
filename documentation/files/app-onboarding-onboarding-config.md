@@ -6,8 +6,10 @@ Holds onboarding constants and small pure utilities used by the page controller 
 ## Contents
 - shared UI/data constants:
   - word-limit + localStorage draft key
+  - onboarding prefs draft key
   - curated timezones
   - quick-spark suggestions
+  - quick-sparks deck key + visible/drawer batch sizes
   - preferred-name placeholder suggestions
 - email-name inference pattern for `first.last` / `first_last` / `first-last`
 - onboarding state types:
@@ -21,3 +23,4 @@ Holds onboarding constants and small pure utilities used by the page controller 
   - `getPreferredNameFromEmail` for lightweight suggested-name inference
   - `getDetectedTimezone` + `buildTimezoneOptions` for browser timezone defaults
   - `initialSendTimeFromLocalNow` for no-permission local send-time default
+  - `shuffleQuickSparks` for non-repeating deck batching

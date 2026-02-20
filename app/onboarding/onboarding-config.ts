@@ -5,8 +5,9 @@ export const BRAIN_DUMP_WORD_LIMIT = 1000;
 export const BRAIN_DUMP_DRAFT_KEY = "onboarding_brain_dump_draft_v1";
 export const ONBOARDING_PREFS_DRAFT_KEY = "onboarding_prefs_draft_v1";
 export const ONBOARDING_QUICK_SPARKS_URL = "/onboarding-quick-sparks.txt";
-export const ONBOARDING_QUICK_SPARKS_ROTATION_KEY = "onboarding_quick_sparks_rotation_v1";
+export const ONBOARDING_QUICK_SPARKS_DECK_KEY = "onboarding_quick_sparks_deck_v1";
 export const ONBOARDING_QUICK_SPARKS_VISIBLE_COUNT = 7;
+export const ONBOARDING_QUICK_SPARKS_DRAWER_COUNT = 21;
 
 export const CURATED_TIMEZONES = [
   "America/Los_Angeles",
@@ -31,20 +32,15 @@ export const INTEREST_QUICK_SPARKS = [
   "Economics through first principles"
 ] as const;
 
-export function rotateQuickSparks(allSparks: string[], startIndex: number, visibleCount: number): string[] {
-  if (allSparks.length === 0 || visibleCount <= 0) {
-    return [];
+export function shuffleQuickSparks(items: string[]): string[] {
+  const next = [...items];
+  for (let i = next.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = next[i];
+    next[i] = next[j] ?? next[i];
+    next[j] = tmp;
   }
-
-  const count = Math.min(visibleCount, allSparks.length);
-  const normalizedStart = ((startIndex % allSparks.length) + allSparks.length) % allSparks.length;
-  const selected: string[] = [];
-
-  for (let index = 0; index < count; index += 1) {
-    selected.push(allSparks[(normalizedStart + index) % allSparks.length] ?? "");
-  }
-
-  return selected.filter((spark) => spark.trim().length > 0);
+  return next;
 }
 
 export const PREFERRED_NAME_SUGGESTIONS = [

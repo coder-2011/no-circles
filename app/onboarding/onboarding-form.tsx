@@ -8,8 +8,21 @@ type OnboardingFormProps = {
   controller: OnboardingController;
 };
 
+const BRAIN_DUMP_ALLOWED_KEYS = new Set([
+  "Backspace",
+  "Delete",
+  "ArrowLeft",
+  "ArrowRight",
+  "ArrowUp",
+  "ArrowDown",
+  "Home",
+  "End",
+  "Tab",
+  "Escape"
+]);
+
 export function OnboardingForm({ controller }: OnboardingFormProps) {
-  const meterBars = controller.dictationLevels.length > 0 ? controller.dictationLevels : Array.from({ length: 12 }, () => 0);
+  const meterBars = controller.dictationLevels;
   const isWarming = controller.dictationState === "warming";
   const isRecording = controller.dictationState === "recording";
 
@@ -137,20 +150,7 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
                     return;
                   }
 
-                  const allowedKeys = new Set([
-                    "Backspace",
-                    "Delete",
-                    "ArrowLeft",
-                    "ArrowRight",
-                    "ArrowUp",
-                    "ArrowDown",
-                    "Home",
-                    "End",
-                    "Tab",
-                    "Escape"
-                  ]);
-
-                  if (event.metaKey || event.ctrlKey || event.altKey || allowedKeys.has(event.key)) {
+                  if (event.metaKey || event.ctrlKey || event.altKey || BRAIN_DUMP_ALLOWED_KEYS.has(event.key)) {
                     return;
                   }
 
@@ -224,6 +224,28 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
                   {controller.brainDumpWordCount}/{BRAIN_DUMP_WORD_LIMIT} words
                 </span>
               </div>
+              <div className="mt-2">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#5F6E54]">Quick Sparks</p>
+                <p className="mt-1 text-xs text-[#6B775D]">
+                  Popular starter interests. Tap any Quick Spark to add it to your brain dump.
+                </p>
+              </div>
+              <div className="mt-2 flex items-center gap-2">
+                <button
+                  className="rounded-md border border-[#CDBF98] bg-[#F6EFD9] px-2.5 py-1 text-[11px] font-semibold text-[#4F5D45] transition hover:bg-[#ECE2C8]"
+                  onClick={controller.toggleQuickSparksExpanded}
+                  type="button"
+                >
+                  {controller.quickSparksExpanded ? "Hide" : "More"}
+                </button>
+                <button
+                  className="rounded-md border border-[#CDBF98] bg-[#F6EFD9] px-2.5 py-1 text-[11px] font-semibold text-[#4F5D45] transition hover:bg-[#ECE2C8]"
+                  onClick={controller.refreshQuickSparks}
+                  type="button"
+                >
+                  Refresh
+                </button>
+              </div>
               <div className="mt-2 flex flex-wrap gap-2.5">
                 {controller.quickSparks.map((spark) => (
                   <button
@@ -236,6 +258,22 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
                   </button>
                 ))}
               </div>
+              {controller.quickSparksExpanded ? (
+                <div className="mt-2 max-h-32 overflow-y-auto rounded-lg border border-[#D7CCAE] bg-[#FFF8E8] p-2">
+                  <div className="flex flex-wrap gap-2">
+                    {controller.quickSparksDrawer.map((spark) => (
+                      <button
+                        className="rounded-full border border-[#CDBF98] bg-[#F6EFD9] px-2.5 py-1 text-[11px] font-medium text-[#4F5D45] transition hover:bg-[#ECE2C8]"
+                        key={spark}
+                        onClick={() => controller.appendQuickSpark(spark)}
+                        type="button"
+                      >
+                        {spark}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
               <span className="mt-1 block text-xs text-[#6B775D]">
                 {controller.dictationState === "warming" && "Preparing microphone..."}
                 {controller.dictationState === "recording" && "Listening..."}
