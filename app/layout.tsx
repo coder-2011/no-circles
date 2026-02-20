@@ -19,7 +19,12 @@ const uiFont = Source_Sans_3({
 
 export const metadata: Metadata = {
   title: "No Circles",
-  description: "Personalized daily newsletter"
+  description: "Personalized daily newsletter",
+  icons: {
+    icon: "/logo-no-circles.svg",
+    shortcut: "/logo-no-circles.svg",
+    apple: "/logo-no-circles.svg"
+  }
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
