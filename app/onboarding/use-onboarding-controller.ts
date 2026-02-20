@@ -467,14 +467,6 @@ export function useOnboardingController(): OnboardingController {
     };
   }, [supabase]);
 
-  useEffect(() => {
-    if (authState !== "signed_out") {
-      return;
-    }
-
-    router.replace("/?auth=required");
-  }, [authState, router]);
-
   async function signInWithGoogle() {
     if (!supabase) {
       return;

@@ -33,10 +33,6 @@ function getAuthQueryErrorMessage(): string | null {
   return "Authentication failed. Please try again.";
 }
 
-function hasOAuthCodeParam(): boolean {
-  return new URLSearchParams(window.location.search).has("code");
-}
-
 export default function HomePage() {
   const router = useRouter();
   const [authState, setAuthState] = useState<AuthState>("loading");
@@ -63,6 +59,21 @@ export default function HomePage() {
     setAuthState("error");
     setAuthError(authClient.initError);
   }, [authClient.initError]);
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const code = searchParams.get("code");
+    if (!code) {
+      return;
+    }
+
+    const nextParam = searchParams.get("next");
+    const nextPath = nextParam && nextParam.startsWith("/") ? nextParam : "/onboarding";
+    const callbackUrl = new URL("/auth/callback", window.location.origin);
+    callbackUrl.searchParams.set("code", code);
+    callbackUrl.searchParams.set("next", nextPath);
+    router.replace(callbackUrl.pathname + callbackUrl.search);
+  }, [router]);
 
   useEffect(() => {
     const queryError = getAuthQueryErrorMessage();
@@ -113,18 +124,6 @@ export default function HomePage() {
       data.subscription.unsubscribe();
     };
   }, [supabase]);
-
-  useEffect(() => {
-    if (authState !== "signed_in") {
-      return;
-    }
-
-    if (!hasOAuthCodeParam()) {
-      return;
-    }
-
-    router.replace("/onboarding");
-  }, [authState, router]);
 
   async function signInWithGoogle() {
     if (!supabase) return;
