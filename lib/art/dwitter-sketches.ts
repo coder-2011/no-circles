@@ -148,7 +148,6 @@ const sketch5: DwitterSketch = {
         p.h(50 * S(i * 0.1) + 5),
         1.6 + 0.5 * S(t * 0.5),
         9.5,
-        0,
         6.3
       );
     }
