@@ -217,6 +217,11 @@ export async function sendUserNewsletter(
       error: message
     };
   }
+  type CandidateWithHighlights = (typeof selectedCandidates)[number] & {
+    highlights: string[];
+    highlight: string;
+  };
+
   const candidatesWithHighlights = selectedCandidates
     .map((candidate) => {
       const highlights = highlightsByUrl.get(candidate.canonicalUrl);
@@ -224,13 +229,18 @@ export async function sendUserNewsletter(
         return null;
       }
 
+      const primaryHighlight = highlights[0];
+      if (!primaryHighlight) {
+        return null;
+      }
+
       return {
         ...candidate,
         highlights,
-        highlight: highlights[0] ?? candidate.highlight
+        highlight: primaryHighlight
       };
     })
-    .filter((candidate): candidate is (typeof selectedCandidates)[number] => candidate !== null);
+    .filter((candidate): candidate is CandidateWithHighlights => candidate !== null);
 
   if (candidatesWithHighlights.length < TARGET_ITEM_COUNT) {
     return {
