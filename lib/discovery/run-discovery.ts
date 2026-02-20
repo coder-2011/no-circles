@@ -12,6 +12,7 @@ import {
   type ExaSearchFn,
   type ExaSearchResult
 } from "@/lib/discovery/types";
+export type { DiscoveryRunResult } from "@/lib/discovery/types";
 import {
   applyDomainCap,
   buildAttemptQuery,

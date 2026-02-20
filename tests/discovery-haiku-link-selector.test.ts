@@ -42,7 +42,7 @@ describe("selectBestTopicLink", () => {
     vi.unstubAllGlobals();
   });
 
-  it("returns zero-based selected index from numeric model output", async () => {
+  it("returns zero-based selected index from JSON model output", async () => {
     process.env.ANTHROPIC_API_KEY = "test-key";
     process.env.ANTHROPIC_LINK_SELECTOR_MODEL = "claude-3-5-haiku-latest";
 
@@ -50,7 +50,7 @@ describe("selectBestTopicLink", () => {
       ok: true,
       status: 200,
       json: async () => ({
-        content: [{ type: "text", text: "2" }]
+        content: [{ type: "text", text: "{\"selected_index\":2,\"rationale\":\"Most concrete first-hand implementation evidence.\"}" }]
       })
     });
 
@@ -72,10 +72,35 @@ describe("selectBestTopicLink", () => {
       messages: Array<{ role: string; content: string }>;
     };
     expect(requestBody.model).toBe("claude-3-5-haiku-latest");
-    expect(requestBody.max_tokens).toBe(20);
+    expect(requestBody.max_tokens).toBe(120);
     expect(requestBody.temperature).toBe(0);
-    expect(requestBody.messages[0]?.content).toContain("Output only one integer index");
-    expect(requestBody.messages[0]?.content).toContain("Excerpt:");
+    expect(requestBody.messages[0]?.content).toContain("Output strict JSON only");
+    expect(requestBody.messages[0]?.content).toContain("Hard reject rules:");
+    expect(requestBody.messages[0]?.content).toContain("Score each candidate silently using this weighted rubric");
+  });
+
+  it("returns null when model explicitly returns NULL selector output", async () => {
+    process.env.ANTHROPIC_API_KEY = "test-key";
+    process.env.ANTHROPIC_LINK_SELECTOR_MODEL = "claude-3-5-haiku-latest";
+
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        content: [{ type: "text", text: "{\"selected_index\":\"NULL\",\"rationale\":\"All candidates are generic SEO-style content.\"}" }]
+      })
+    });
+
+    const selected = await selectBestTopicLink({
+      topic: "Distributed systems",
+      interestMemoryText: "prefers practical incident analyses",
+      candidates: [
+        { url: "https://example.com/one", title: "one", excerpt: "first excerpt" },
+        { url: "https://example.com/two", title: "two", excerpt: "second excerpt" }
+      ]
+    });
+
+    expect(selected).toBeNull();
   });
 
   it("returns null when no candidates are provided", async () => {

@@ -10,8 +10,11 @@ Runs one Anthropic model call per topic to select the best candidate link from S
    - `ANTHROPIC_SUMMARY_MODEL`
    - `ANTHROPIC_MEMORY_MODEL`
 3. Sends topic, user memory snippet, and numbered candidate list with short URL excerpt text when available.
-4. Enforces integer-only output contract (single index).
-5. Parses first integer and returns zero-based selected index or `null`.
+4. Selector prompt enforces weighted scoring guidance (`topic_fit`, `novelty_vs_memory`, `evidence_density`, `actionability`, `credibility_signal`) plus hard reject rules for low-signal SEO-like pages.
+5. Selector prompt includes novelty/progression + advanced-reader self-check and allows explicit `NULL` when no candidate clears quality bar.
+6. Expects strict JSON output: `{"selected_index": <1-based integer or "NULL">, "rationale": "<short text>"}`.
+7. Parses JSON output first and retains integer-text fallback parsing for compatibility.
+8. Returns zero-based selected index or `null`.
 
 ## Errors
 - `MISSING_ANTHROPIC_API_KEY`

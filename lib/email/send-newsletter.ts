@@ -26,7 +26,7 @@ function getResendClient(): Resend {
 }
 
 function getFromAddress(): string {
-  return process.env.RESEND_FROM_EMAIL?.trim() || "Serendipitous Encounters <newsletter@updates.serendipitous-encounters.com>";
+  return process.env.RESEND_FROM_EMAIL?.trim() || "No Circles <newsletter@updates.nocircles.com>";
 }
 
 function getReplyToAddress(): string | undefined {

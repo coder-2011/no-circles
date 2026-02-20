@@ -52,7 +52,7 @@ export async function fetchUrlExcerpt(args: {
       signal: buildTimeoutSignal(timeoutMs),
       headers: {
         "user-agent":
-          "SerendipitousEncountersBot/1.0 (+https://serendipitousencounters.local; discovery excerpt fetch)"
+          "NoCirclesBot/1.0 (+https://nocircles.local; discovery excerpt fetch)"
       }
     });
   } catch {

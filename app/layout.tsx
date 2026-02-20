@@ -18,7 +18,7 @@ const uiFont = Source_Sans_3({
 });
 
 export const metadata: Metadata = {
-  title: "Serendipitous Encounters",
+  title: "No Circles",
   description: "Personalized daily newsletter"
 };
 
@@ -32,10 +32,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           href="/#top"
         >
           <Image
-            alt="Serendipitous Encounters logo"
-            className="block h-16 w-16 rounded-lg object-contain scale-125"
+            alt="No Circles logo"
+            className="block h-16 w-16 rounded-full object-contain"
             height={64}
-            src="/logo-green.svg"
+            src="/logo-no-circles.svg"
             width={64}
           />
         </Link>

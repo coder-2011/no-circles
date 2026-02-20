@@ -120,7 +120,6 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/next-env.md`
 - `files/tests-discovery-topic-derivation.md`
 - `files/tests-discovery-run.md`
-- `files/tests-discovery-query-planner.md`
 - `files/tests-discovery-sonar-client.md`
 - `files/tests-discovery-haiku-link-selector.md`
 - `files/tests-discovery-manual-eval-integration.md`

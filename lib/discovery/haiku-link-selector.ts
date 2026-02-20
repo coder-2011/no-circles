@@ -30,7 +30,41 @@ function extractTextContent(value: unknown): string {
   return text;
 }
 
+function parseJsonFromModelText(text: string): unknown {
+  const trimmed = text.trim();
+  const fencedMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  const candidate = (fencedMatch?.[1] ?? trimmed).trim();
+  return JSON.parse(candidate);
+}
+
 function parseSelectedIndex(text: string, max: number): number | null {
+  try {
+    const parsed = parseJsonFromModelText(text);
+    if (parsed && typeof parsed === "object") {
+      const selectedIndex = (parsed as { selected_index?: unknown }).selected_index;
+
+      if (selectedIndex === null) {
+        return null;
+      }
+
+      if (typeof selectedIndex === "string" && selectedIndex.trim().toUpperCase() === "NULL") {
+        return null;
+      }
+
+      if (typeof selectedIndex === "number" && Number.isFinite(selectedIndex)) {
+        if (selectedIndex >= 1 && selectedIndex <= max) {
+          return Math.trunc(selectedIndex) - 1;
+        }
+
+        if (selectedIndex >= 0 && selectedIndex < max) {
+          return Math.trunc(selectedIndex);
+        }
+      }
+    }
+  } catch {
+    // Allow legacy integer-only outputs as fallback while migrating prompt contract.
+  }
+
   const match = text.match(/\d+/);
   if (!match) return null;
   const parsed = Number(match[0]);
@@ -49,10 +83,28 @@ function buildSelectorPrompt(args: { topic: string; interestMemoryText: string; 
     .join("\n");
 
   return [
-    "Pick the single best link for this topic.",
-    "Criteria: relevance to topic, practical depth, novelty, and source quality.",
-    "Weight title relevance heavily, but use the excerpt to avoid shallow picks.",
-    "Output only one integer index from the candidate list (for example: 3).",
+    "You are selecting one best source link for a personalized technical newsletter.",
+    "Primary objective: choose the candidate that maximizes topic-fit, practical depth, novelty vs user memory, and evidence quality.",
+    "Soft prior: many candidate links may be SEO-style or AI-generated fluff; prefer the one with original data or first-hand account when available.",
+    "Do not force the prior when evidence quality is clearly strong across multiple candidates.",
+    "Score each candidate silently using this weighted rubric:",
+    "- topic_fit (0-5) x 0.35",
+    "- novelty_vs_memory (0-5) x 0.2",
+    "- evidence_density (0-5) x 0.2",
+    "- actionability (0-5) x 0.15",
+    "- credibility_signal (0-5) x 0.1",
+    "Hard reject rules:",
+    "- reject obvious SEO listicles, generic beginner intros, and thin summary pages",
+    "- reject weakly evidenced claims with no concrete detail",
+    "- reject links that are off-topic for the requested topic",
+    "Prefer signals:",
+    "- postmortems, benchmarks, migration reports, design docs, first-hand implementation notes, and research analysis",
+    "- concrete numbers, failure modes, tradeoffs, and constraints",
+    "Tie-break order (highest to lowest): topic_fit, evidence_density, novelty_vs_memory, credibility_signal, actionability.",
+    "Adversarial self-check: if your top choice would feel shallow to an advanced reader, choose the strongest deeper candidate instead.",
+    "If no candidate clears the quality bar, return NULL.",
+    "Output strict JSON only with this shape:",
+    '{"selected_index": <1-based integer or "NULL">, "rationale": "<max 30 words>"}',
     "",
     `Topic: ${args.topic}`,
     "User memory:",
@@ -95,7 +147,7 @@ export async function selectBestTopicLink(args: {
     },
     body: JSON.stringify({
       model: modelName,
-      max_tokens: 20,
+      max_tokens: 120,
       temperature: 0,
       messages: [{ role: "user", content: buildSelectorPrompt(args) }]
     })

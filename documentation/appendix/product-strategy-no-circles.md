@@ -1,4 +1,4 @@
-# Product Strategy: Serendipitous Encounters
+# Product Strategy: No Circles
 
 ## Core Positioning
 - Build high-quality software for small things.

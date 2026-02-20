@@ -100,6 +100,10 @@ Build a website-first, personalized daily newsletter system that curates 10 high
 ## Commit and PR Rules
 - Micro commits are expected.
 - Commit frequently during implementation, not only at the end.
+- Mandatory commit/push threshold:
+  - If a scoped change modifies more than 10 lines of code, you must commit and push that change before continuing to additional unrelated work.
+  - Count threshold using git diff line changes on code files (`.ts`, `.tsx`, `.js`, `.jsx`, `.mjs`, `.cjs`, `.css`, `.sql`): additions + deletions.
+  - This rule applies even when the feature is not fully complete; use small, coherent, incremental commits.
 - PR after feature is done and testing is done.
 - PR must include: scope summary, rationale, test evidence, and screenshots for UI changes.
 - Before PR: check CI status with `gh run list` / `gh run view` and get green.
