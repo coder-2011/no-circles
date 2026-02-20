@@ -113,6 +113,7 @@ describe("hyper integration: pipeline seam", () => {
         {
           loadUserFn: async () => ({ ...mutableUser }),
           runDiscoveryFn,
+          getFinalHighlightsByUrlFn: async ({ urls }) => new Map(urls.map((url) => [url, [`Highlight for ${url}`]])),
           generateSummariesFn: async ({ items }) => {
             summaryUrlRuns.push(items.map((item) => item.url));
             return items.map((item) => ({ title: item.title, url: item.url, summary: "summary" }));

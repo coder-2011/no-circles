@@ -60,6 +60,10 @@ const user = {
   sentUrlBloomBits: null
 };
 
+const getFinalHighlightsByUrlFn = async (args: { urls: string[] }) => {
+  return new Map(args.urls.map((url) => [url, [`Highlight for ${url}`]]));
+};
+
 describe("sendUserNewsletter", () => {
   it("sends exactly 10 items and persists bloom state on success", async () => {
     const runDiscoveryFn = vi.fn(async () => {
@@ -82,6 +86,7 @@ describe("sendUserNewsletter", () => {
       {
         loadUserFn: async () => user,
         runDiscoveryFn,
+        getFinalHighlightsByUrlFn,
         generateSummariesFn,
         sendNewsletterFn,
         reserveIdempotencyFn: async () => ({ outcome: "claimed", status: "processing", providerMessageId: null }),
@@ -132,6 +137,7 @@ describe("sendUserNewsletter", () => {
         loadUserFn: async () => user,
         runDiscoveryFn: async () =>
           makeDiscoveryResult(Array.from({ length: 10 }).map((_, index) => `https://example.com/${index + 1}`)),
+        getFinalHighlightsByUrlFn,
         generateSummariesFn: async ({ items }) => items.map((item) => ({ title: item.title, summary: "summary", url: item.url })),
         sendNewsletterFn: async () => ({ ok: false, providerMessageId: null, attempts: 2, error: "provider down" }),
         reserveIdempotencyFn: async () => ({ outcome: "claimed", status: "processing", providerMessageId: null }),
@@ -155,6 +161,7 @@ describe("sendUserNewsletter", () => {
         loadUserFn: async () => user,
         runDiscoveryFn: async () =>
           makeDiscoveryResult(Array.from({ length: 10 }).map((_, index) => `https://example.com/${index + 1}`)),
+        getFinalHighlightsByUrlFn,
         reserveIdempotencyFn: async () => ({ outcome: "already_sent", status: "sent", providerMessageId: "msg_existing" }),
         sendNewsletterFn
       }
@@ -177,6 +184,7 @@ describe("sendUserNewsletter", () => {
         loadUserFn: async () => user,
         runDiscoveryFn: async () =>
           makeDiscoveryResult(Array.from({ length: 10 }).map((_, index) => `https://example.com/${index + 1}`)),
+        getFinalHighlightsByUrlFn,
         reserveIdempotencyFn: async () => ({ outcome: "already_processing", status: "processing", providerMessageId: null }),
         sendNewsletterFn
       }
@@ -199,6 +207,7 @@ describe("sendUserNewsletter", () => {
         loadUserFn: async () => user,
         runDiscoveryFn: async () =>
           makeDiscoveryResult(Array.from({ length: 10 }).map((_, index) => `https://example.com/${index + 1}`)),
+        getFinalHighlightsByUrlFn,
         generateSummariesFn: async ({ items }) => items.map((item) => ({ title: item.title, summary: "summary", url: item.url })),
         reserveIdempotencyFn: async () => ({ outcome: "retryable_failed_claimed", status: "processing", providerMessageId: null }),
         persistSendSuccessFn: async () => undefined,
@@ -208,5 +217,24 @@ describe("sendUserNewsletter", () => {
 
     expect(result.status).toBe("sent");
     expect(sendNewsletterFn).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns insufficient_content when final Exa highlights are missing", async () => {
+    const result = await sendUserNewsletter(
+      {
+        userId: user.id,
+        runAtUtc: new Date("2026-02-16T18:00:00.000Z")
+      },
+      {
+        loadUserFn: async () => user,
+        runDiscoveryFn: async () =>
+          makeDiscoveryResult(Array.from({ length: 10 }).map((_, index) => `https://example.com/${index + 1}`)),
+        getFinalHighlightsByUrlFn: async () => new Map(),
+        reserveIdempotencyFn: async () => ({ outcome: "claimed", status: "processing", providerMessageId: null })
+      }
+    );
+
+    expect(result.status).toBe("insufficient_content");
+    expect(result.error).toBe("INSUFFICIENT_EXA_HIGHLIGHTS");
   });
 });

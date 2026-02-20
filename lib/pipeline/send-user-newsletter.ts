@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { outboundSendIdempotency, users } from "@/lib/db/schema";
 import { runDiscovery, type DiscoveryRunResult } from "@/lib/discovery/run-discovery";
+import { getFinalHighlightsByUrl } from "@/lib/discovery/exa-contents";
 import {
   addCanonicalUrls,
   encodeBloomBitsBase64,
@@ -45,6 +46,7 @@ type PipelineUser = {
 type SendPipelineDeps = {
   runDiscoveryFn?: typeof runDiscovery;
   generateSummariesFn?: typeof generateNewsletterSummaries;
+  getFinalHighlightsByUrlFn?: typeof getFinalHighlightsByUrl;
   renderNewsletterFn?: typeof renderNewsletter;
   sendNewsletterFn?: typeof sendNewsletter;
   loadUserFn?: (userId: string) => Promise<PipelineUser | null>;
@@ -94,6 +96,7 @@ export async function sendUserNewsletter(
 ): Promise<SendUserNewsletterResult> {
   const runDiscoveryFn = deps.runDiscoveryFn ?? runDiscovery;
   const generateSummariesFn = deps.generateSummariesFn ?? generateNewsletterSummaries;
+  const getFinalHighlightsByUrlFn = deps.getFinalHighlightsByUrlFn ?? getFinalHighlightsByUrl;
   const renderNewsletterFn = deps.renderNewsletterFn ?? renderNewsletter;
   const sendNewsletterFn = deps.sendNewsletterFn ?? sendNewsletter;
 
@@ -161,7 +164,10 @@ export async function sendUserNewsletter(
     discovery = await runDiscoveryFn(
       {
         interestMemoryText: user.interestMemoryText,
-        targetCount: TARGET_ITEM_COUNT
+        targetCount: TARGET_ITEM_COUNT,
+        maxRetries: 1,
+        perTopicResults: 7,
+        requireUrlExcerpt: true
       },
       {
         includeCandidate: (candidate) => !mightContainCanonicalUrl(bloomState, candidate.canonicalUrl)
@@ -193,6 +199,49 @@ export async function sendUserNewsletter(
   }
 
   const selectedCandidates = discovery.candidates.slice(0, TARGET_ITEM_COUNT);
+
+  let highlightsByUrl: Map<string, string[]>;
+  try {
+    highlightsByUrl = await getFinalHighlightsByUrlFn({
+      urls: selectedCandidates.map((candidate) => candidate.url),
+      maxCharacters: 4500
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "EXA_HIGHLIGHTS_FETCH_FAILED";
+    return {
+      status: "send_failed",
+      userId: user.id,
+      runAtUtc: args.runAtUtc.toISOString(),
+      itemCount: 0,
+      idempotencyKey,
+      error: message
+    };
+  }
+  const candidatesWithHighlights = selectedCandidates
+    .map((candidate) => {
+      const highlights = highlightsByUrl.get(candidate.canonicalUrl);
+      if (!highlights || highlights.length === 0) {
+        return null;
+      }
+
+      return {
+        ...candidate,
+        highlights,
+        highlight: highlights[0] ?? candidate.highlight
+      };
+    })
+    .filter((candidate): candidate is (typeof selectedCandidates)[number] => candidate !== null);
+
+  if (candidatesWithHighlights.length < TARGET_ITEM_COUNT) {
+    return {
+      status: "insufficient_content",
+      userId: user.id,
+      runAtUtc: args.runAtUtc.toISOString(),
+      itemCount: candidatesWithHighlights.length,
+      idempotencyKey,
+      error: "INSUFFICIENT_EXA_HIGHLIGHTS"
+    };
+  }
 
   logPipeline("discovery_completed", {
     user_id: user.id,
@@ -241,7 +290,7 @@ export async function sendUserNewsletter(
 
   try {
     summaries = await generateSummariesFn({
-      items: selectedCandidates.map((candidate) => ({
+      items: candidatesWithHighlights.map((candidate) => ({
         url: candidate.url,
         title: candidate.title ?? "Untitled",
         highlights: candidate.highlights,

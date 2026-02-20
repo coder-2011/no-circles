@@ -58,8 +58,8 @@ describe("selectBestTopicLink", () => {
       topic: "Distributed systems",
       interestMemoryText: "prefers practical incident analyses",
       candidates: [
-        { url: "https://example.com/one", title: "one" },
-        { url: "https://example.com/two", title: "two" }
+        { url: "https://example.com/one", title: "one", excerpt: "first excerpt" },
+        { url: "https://example.com/two", title: "two", excerpt: "second excerpt" }
       ]
     });
 
@@ -75,6 +75,7 @@ describe("selectBestTopicLink", () => {
     expect(requestBody.max_tokens).toBe(20);
     expect(requestBody.temperature).toBe(0);
     expect(requestBody.messages[0]?.content).toContain("Output only one integer index");
+    expect(requestBody.messages[0]?.content).toContain("Excerpt:");
   });
 
   it("returns null when no candidates are provided", async () => {
@@ -89,4 +90,3 @@ describe("selectBestTopicLink", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });
-
