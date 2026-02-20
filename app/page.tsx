@@ -12,16 +12,27 @@ export default function HomePage() {
   const [authState, setAuthState] = useState<AuthState>("loading");
   const [email, setEmail] = useState<string | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
-  const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
+  const [authClient] = useState<{ supabase: SupabaseClient | null; initError: string | null }>(() => {
+    try {
+      return { supabase: getBrowserSupabaseClient(), initError: null };
+    } catch {
+      return {
+        supabase: null,
+        initError: "Auth client is not configured. Add Supabase env vars."
+      };
+    }
+  });
+
+  const supabase = authClient.supabase;
 
   useEffect(() => {
-    try {
-      setSupabase(getBrowserSupabaseClient());
-    } catch {
-      setAuthState("error");
-      setAuthError("Auth client is not configured. Add Supabase env vars.");
+    if (!authClient.initError) {
+      return;
     }
-  }, []);
+
+    setAuthState("error");
+    setAuthError(authClient.initError);
+  }, [authClient.initError]);
 
   useEffect(() => {
     if (!supabase) {

@@ -16,26 +16,18 @@ import {
   initialSendTimeFromLocalNow,
   INTEREST_QUICK_SPARKS,
   ONBOARDING_PREFS_DRAFT_KEY,
-  ONBOARDING_QUICK_SPARKS_ROTATION_KEY,
+  ONBOARDING_QUICK_SPARKS_DECK_KEY,
+  ONBOARDING_QUICK_SPARKS_DRAWER_COUNT,
   ONBOARDING_QUICK_SPARKS_URL,
   ONBOARDING_QUICK_SPARKS_VISIBLE_COUNT,
   parseSendTime,
   PREFERRED_NAME_SUGGESTIONS,
-  rotateQuickSparks,
+  shuffleQuickSparks,
   type SubmitState,
   truncateToWordLimit
 } from "@/app/onboarding/onboarding-config";
-import {
-  appendTranscript,
-  buildDeepgramWebSocketUrl,
-  buildDeepgramWebSocketUrlWithoutToken,
-  buildFinalDictationTranscript,
-  downsampleToMono16k,
-  getDeepgramPacketSize,
-  int16ToArrayBuffer,
-  parseDeepgramMessage,
-  updateDeepgramTranscriptState
-} from "@/app/onboarding/deepgram-dictation";
+
+type DictationModule = typeof import("@/app/onboarding/deepgram-dictation");
 
 type DictationState = "idle" | "warming" | "recording" | "stopping";
 
@@ -64,6 +56,8 @@ export type OnboardingController = {
   dictationLevels: number[];
   dictationError: string | null;
   quickSparks: string[];
+  quickSparksDrawer: string[];
+  quickSparksExpanded: boolean;
   setPreferredName: (value: string) => void;
   setTimezone: (value: string) => void;
   setSendHour12: (value: string) => void;
@@ -75,6 +69,8 @@ export type OnboardingController = {
   signOut: () => Promise<void>;
   submitOnboarding: (event: React.FormEvent<HTMLFormElement>) => Promise<void>;
   appendQuickSpark: (spark: string) => void;
+  toggleQuickSparksExpanded: () => void;
+  refreshQuickSparks: () => void;
   startDictation: () => Promise<void>;
   stopDictation: () => Promise<void>;
 };
@@ -91,6 +87,8 @@ export function useOnboardingController(): OnboardingController {
   const [dictationLevels, setDictationLevels] = useState<number[]>(() => Array.from({ length: 12 }, () => 0));
   const [dictationError, setDictationError] = useState<string | null>(null);
   const [quickSparks, setQuickSparks] = useState<string[]>(() => [...INTEREST_QUICK_SPARKS]);
+  const [quickSparksDrawer, setQuickSparksDrawer] = useState<string[]>([]);
+  const [quickSparksExpanded, setQuickSparksExpanded] = useState(false);
   const [preferredName, setPreferredName] = useState("");
   const [fallbackPreferredNameSuggestion] = useState(randomPreferredNameSuggestion);
   const [preferredNameSuggestion, setPreferredNameSuggestion] = useState(fallbackPreferredNameSuggestion);
@@ -107,7 +105,17 @@ export function useOnboardingController(): OnboardingController {
   );
 
   const [brainDumpText, setBrainDumpTextState] = useState("");
-  const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
+  const [authClient] = useState<{ supabase: SupabaseClient | null; initError: string | null }>(() => {
+    try {
+      return { supabase: getBrowserSupabaseClient(), initError: null };
+    } catch {
+      return {
+        supabase: null,
+        initError: "Auth client is not configured. Add Supabase env vars."
+      };
+    }
+  });
+  const supabase = authClient.supabase;
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
@@ -121,6 +129,10 @@ export function useOnboardingController(): OnboardingController {
   const pendingSamplesRef = useRef<number[]>([]);
   const dictationStateRef = useRef<DictationState>("idle");
   const brainDumpTextRef = useRef("");
+  const dictationModuleRef = useRef<DictationModule | null>(null);
+  const quickSparksPoolRef = useRef<string[]>([...INTEREST_QUICK_SPARKS]);
+  const quickSparksUnseenRef = useRef<string[]>([]);
+  const quickSparksSeenRef = useRef<string[]>([]);
 
   const brainDumpWordCount = countWords(brainDumpText);
 
@@ -143,6 +155,16 @@ export function useOnboardingController(): OnboardingController {
 
   function setBrainDumpText(value: string) {
     setBrainDumpTextState(truncateToWordLimit(value, BRAIN_DUMP_WORD_LIMIT));
+  }
+
+  async function getDictationModule(): Promise<DictationModule> {
+    if (dictationModuleRef.current) {
+      return dictationModuleRef.current;
+    }
+
+    const loadedDictationModule = await import("@/app/onboarding/deepgram-dictation");
+    dictationModuleRef.current = loadedDictationModule;
+    return loadedDictationModule;
   }
 
   useEffect(() => {
@@ -259,17 +281,52 @@ export function useOnboardingController(): OnboardingController {
           if (parsed.length === 0) {
             return;
           }
+          quickSparksPoolRef.current = parsed;
+          const allSet = new Set(parsed);
+          const savedDeckRaw = window.localStorage.getItem(ONBOARDING_QUICK_SPARKS_DECK_KEY);
+          let unseen = [] as string[];
+          let seen = [] as string[];
 
-          const rotationRaw = window.localStorage.getItem(ONBOARDING_QUICK_SPARKS_ROTATION_KEY);
-          const rotation = Number.parseInt(rotationRaw ?? "0", 10);
-          const startIndex = Number.isFinite(rotation) ? rotation : 0;
-          const rotated = rotateQuickSparks(parsed, startIndex, ONBOARDING_QUICK_SPARKS_VISIBLE_COUNT);
-          if (rotated.length > 0) {
-            setQuickSparks(rotated);
+          if (savedDeckRaw) {
+            try {
+              const parsedDeck = JSON.parse(savedDeckRaw) as { unseen?: string[]; seen?: string[] };
+              const unseenCandidate = Array.isArray(parsedDeck.unseen) ? parsedDeck.unseen.filter((item) => allSet.has(item)) : [];
+              const seenCandidate = Array.isArray(parsedDeck.seen) ? parsedDeck.seen.filter((item) => allSet.has(item)) : [];
+              const dedupe = new Set<string>();
+              unseen = unseenCandidate.filter((item) => {
+                if (dedupe.has(item)) {
+                  return false;
+                }
+                dedupe.add(item);
+                return true;
+              });
+              seen = seenCandidate.filter((item) => {
+                if (dedupe.has(item)) {
+                  return false;
+                }
+                dedupe.add(item);
+                return true;
+              });
+            } catch {
+              unseen = [];
+              seen = [];
+            }
           }
 
-          const nextIndex = (startIndex + ONBOARDING_QUICK_SPARKS_VISIBLE_COUNT) % parsed.length;
-          window.localStorage.setItem(ONBOARDING_QUICK_SPARKS_ROTATION_KEY, String(nextIndex));
+          if (unseen.length + seen.length < parsed.length) {
+            const existing = new Set([...unseen, ...seen]);
+            const missing = parsed.filter((item) => !existing.has(item));
+            unseen = [...unseen, ...shuffleQuickSparks(missing)];
+          }
+
+          if (unseen.length === 0 && seen.length > 0) {
+            unseen = shuffleQuickSparks(seen);
+            seen = [];
+          }
+
+          quickSparksUnseenRef.current = unseen;
+          quickSparksSeenRef.current = seen;
+          rotateQuickSparksBatch();
         })
         .catch(() => undefined);
     }, 300);
@@ -280,14 +337,66 @@ export function useOnboardingController(): OnboardingController {
     };
   }, []);
 
-  useEffect(() => {
-    try {
-      setSupabase(getBrowserSupabaseClient());
-    } catch {
-      setAuthState("error");
-      setMessage("Auth client is not configured. Add Supabase env vars.");
+  function persistQuickSparksDeck() {
+    window.localStorage.setItem(
+      ONBOARDING_QUICK_SPARKS_DECK_KEY,
+      JSON.stringify({
+        unseen: quickSparksUnseenRef.current,
+        seen: quickSparksSeenRef.current
+      })
+    );
+  }
+
+  function pullQuickSparks(count: number): string[] {
+    const selected: string[] = [];
+    while (selected.length < count && quickSparksPoolRef.current.length > 0) {
+      if (quickSparksUnseenRef.current.length === 0) {
+        if (quickSparksSeenRef.current.length === 0) {
+          break;
+        }
+        quickSparksUnseenRef.current = shuffleQuickSparks(quickSparksSeenRef.current);
+        quickSparksSeenRef.current = [];
+      }
+
+      const next = quickSparksUnseenRef.current.shift();
+      if (!next) {
+        break;
+      }
+      selected.push(next);
+      quickSparksSeenRef.current.push(next);
     }
-  }, []);
+
+    return selected;
+  }
+
+  function rotateQuickSparksBatch() {
+    const requested = ONBOARDING_QUICK_SPARKS_VISIBLE_COUNT + ONBOARDING_QUICK_SPARKS_DRAWER_COUNT;
+    const batch = pullQuickSparks(requested);
+    if (batch.length === 0) {
+      return;
+    }
+
+    setQuickSparks(batch.slice(0, ONBOARDING_QUICK_SPARKS_VISIBLE_COUNT));
+    setQuickSparksDrawer(batch.slice(ONBOARDING_QUICK_SPARKS_VISIBLE_COUNT));
+    persistQuickSparksDeck();
+  }
+
+  function refreshQuickSparks() {
+    rotateQuickSparksBatch();
+  }
+
+  function toggleQuickSparksExpanded() {
+    setQuickSparksExpanded((current) => !current);
+  }
+
+  useEffect(() => {
+    if (!authClient.initError) {
+      return;
+    }
+
+    setAuthState("error");
+    setMessage(authClient.initError);
+  }, [authClient.initError]);
 
   useEffect(() => {
     if (!supabase) {
@@ -501,7 +610,16 @@ export function useOnboardingController(): OnboardingController {
       return;
     }
     const accessToken = tokenBody.access_token;
-    const connectionAttempt = await connectDeepgramWebSocket(accessToken);
+    const dictationModule = await getDictationModule().catch(() => null);
+    if (!dictationModule) {
+      stream.getTracks().forEach((track) => track.stop());
+      setDictationMode("idle");
+      setDictationLevels(Array.from({ length: 12 }, () => 0));
+      setDictationError("Failed to load dictation runtime. Refresh and try again.");
+      return;
+    }
+
+    const connectionAttempt = await connectDeepgramWebSocket(accessToken, dictationModule);
     if (!connectionAttempt.ws) {
       stream.getTracks().forEach((track) => track.stop());
       setDictationMode("idle");
@@ -530,7 +648,7 @@ export function useOnboardingController(): OnboardingController {
     pendingSamplesRef.current = [];
 
     ws.onmessage = (event) => {
-      const parsed = parseDeepgramMessage(String(event.data));
+      const parsed = dictationModule.parseDeepgramMessage(String(event.data));
       if (parsed.kind === "ignore") {
         return;
       }
@@ -540,7 +658,7 @@ export function useOnboardingController(): OnboardingController {
         return;
       }
 
-      const nextTranscriptState = updateDeepgramTranscriptState({
+      const nextTranscriptState = dictationModule.updateDeepgramTranscriptState({
         finalTranscript: finalTranscriptRef.current,
         interimTranscript: interimTranscriptRef.current,
         result: { transcript: parsed.transcript, isFinal: parsed.isFinal }
@@ -565,18 +683,18 @@ export function useOnboardingController(): OnboardingController {
         pending.push(sample);
       }
 
-      const chunkSize = getDeepgramPacketSize(audioContext.sampleRate);
+      const chunkSize = dictationModule.getDeepgramPacketSize(audioContext.sampleRate);
       if (chunkSize <= 0) {
         return;
       }
       while (pending.length >= chunkSize) {
         const oneSecondInput = pending.splice(0, chunkSize);
-        const pcm16 = downsampleToMono16k(Float32Array.from(oneSecondInput), audioContext.sampleRate);
+        const pcm16 = dictationModule.downsampleToMono16k(Float32Array.from(oneSecondInput), audioContext.sampleRate);
         if (pcm16.length === 0) {
           continue;
         }
 
-        ws.send(int16ToArrayBuffer(pcm16));
+        ws.send(dictationModule.int16ToArrayBuffer(pcm16));
       }
     };
 
@@ -646,13 +764,16 @@ export function useOnboardingController(): OnboardingController {
     meterAnimationFrameRef.current = window.requestAnimationFrame(renderMeter);
   }
 
-  async function connectDeepgramWebSocket(accessToken: string): Promise<{ ws: WebSocket | null; reason: string | null }> {
-    const queryAttempt = await attemptWebSocketOpen(buildDeepgramWebSocketUrl(accessToken));
+  async function connectDeepgramWebSocket(
+    accessToken: string,
+    dictationModule: DictationModule
+  ): Promise<{ ws: WebSocket | null; reason: string | null }> {
+    const queryAttempt = await attemptWebSocketOpen(dictationModule.buildDeepgramWebSocketUrl(accessToken));
     if (queryAttempt.ws) {
       return queryAttempt;
     }
 
-    const subprotocolAttempt = await attemptWebSocketOpen(buildDeepgramWebSocketUrlWithoutToken(), [
+    const subprotocolAttempt = await attemptWebSocketOpen(dictationModule.buildDeepgramWebSocketUrlWithoutToken(), [
       "token",
       accessToken
     ]);
@@ -662,7 +783,7 @@ export function useOnboardingController(): OnboardingController {
 
     const clientApiKey = process.env.NEXT_PUBLIC_DEEPGRAM_CLIENT_API_KEY?.trim();
     if (clientApiKey) {
-      const clientKeyAttempt = await attemptWebSocketOpen(buildDeepgramWebSocketUrlWithoutToken(), [
+      const clientKeyAttempt = await attemptWebSocketOpen(dictationModule.buildDeepgramWebSocketUrlWithoutToken(), [
         "token",
         clientApiKey
       ]);
@@ -785,9 +906,19 @@ export function useOnboardingController(): OnboardingController {
     }
 
     const currentBrainDumpText = brainDumpTextRef.current;
-    const nextText = appendTranscript(
+    const dictationModule = dictationModuleRef.current;
+    if (!dictationModule) {
+      pendingSamplesRef.current = [];
+      finalTranscriptRef.current = "";
+      interimTranscriptRef.current = "";
+      setDictationLevels(Array.from({ length: 12 }, () => 0));
+      setDictationMode("idle");
+      return;
+    }
+
+    const nextText = dictationModule.appendTranscript(
       currentBrainDumpText,
-      buildFinalDictationTranscript(finalTranscriptRef.current, interimTranscriptRef.current)
+      dictationModule.buildFinalDictationTranscript(finalTranscriptRef.current, interimTranscriptRef.current)
     );
     if (nextText !== currentBrainDumpText) {
       setBrainDumpText(truncateToWordLimit(nextText, BRAIN_DUMP_WORD_LIMIT));
@@ -869,6 +1000,8 @@ export function useOnboardingController(): OnboardingController {
     dictationLevels,
     dictationError,
     quickSparks,
+    quickSparksDrawer,
+    quickSparksExpanded,
     setPreferredName,
     setTimezone,
     setSendHour12,
@@ -880,6 +1013,8 @@ export function useOnboardingController(): OnboardingController {
     signOut,
     submitOnboarding,
     appendQuickSpark,
+    toggleQuickSparksExpanded,
+    refreshQuickSparks,
     startDictation,
     stopDictation
   };
