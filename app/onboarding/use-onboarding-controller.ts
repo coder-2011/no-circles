@@ -36,6 +36,15 @@ function randomPreferredNameSuggestion(): string {
   return PREFERRED_NAME_SUGGESTIONS[randomIndex] ?? PREFERRED_NAME_SUGGESTIONS[0];
 }
 
+function resolveSiteOrigin(): string {
+  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (configuredSiteUrl && /^https?:\/\//.test(configuredSiteUrl)) {
+    return configuredSiteUrl.replace(/\/+$/, "");
+  }
+
+  return window.location.origin;
+}
+
 export type OnboardingController = {
   authState: AuthState;
   email: string | null;
@@ -472,7 +481,7 @@ export function useOnboardingController(): OnboardingController {
     }
 
     setMessage(null);
-    const redirectTo = `${window.location.origin}/auth/callback?next=/onboarding`;
+    const redirectTo = `${resolveSiteOrigin()}/auth/callback?next=/onboarding`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo }

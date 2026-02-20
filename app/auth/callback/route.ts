@@ -13,8 +13,24 @@ function getSupabaseEnv() {
   return { supabaseUrl, supabaseAnonKey };
 }
 
+function resolvePublicOrigin(request: Request): string {
+  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (configuredSiteUrl && /^https?:\/\//.test(configuredSiteUrl)) {
+    return configuredSiteUrl.replace(/\/+$/, "");
+  }
+
+  const forwardedProto = request.headers.get("x-forwarded-proto");
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  if (forwardedProto && forwardedHost) {
+    return `${forwardedProto}://${forwardedHost}`;
+  }
+
+  return new URL(request.url).origin;
+}
+
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
+  const publicOrigin = resolvePublicOrigin(request);
   const code = requestUrl.searchParams.get("code");
   const nextParam = requestUrl.searchParams.get("next") ?? "/onboarding";
   const redirectTo = nextParam.startsWith("/") ? nextParam : "/onboarding";
@@ -34,15 +50,25 @@ export async function GET(request: Request) {
     }
   });
 
+  const providerError = requestUrl.searchParams.get("error");
+  if (providerError) {
+    return NextResponse.redirect(new URL("/?auth=oauth_error", publicOrigin));
+  }
+
   if (!code) {
-    return NextResponse.redirect(new URL("/?auth=oauth_code_missing", requestUrl.origin));
+    const userLookup = await supabase.auth.getUser();
+    if (userLookup.data.user?.email) {
+      return NextResponse.redirect(new URL(redirectTo, publicOrigin));
+    }
+
+    return NextResponse.redirect(new URL("/?auth=oauth_code_missing", publicOrigin));
   }
 
   const { error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
-    return NextResponse.redirect(new URL("/?auth=oauth_error", requestUrl.origin));
+    return NextResponse.redirect(new URL("/?auth=oauth_error", publicOrigin));
   }
 
-  return NextResponse.redirect(new URL(redirectTo, requestUrl.origin));
+  return NextResponse.redirect(new URL(redirectTo, publicOrigin));
 }

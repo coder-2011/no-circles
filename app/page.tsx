@@ -7,6 +7,32 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 type AuthState = "loading" | "signed_in" | "signed_out" | "error";
 
+function resolveSiteOrigin(): string {
+  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (configuredSiteUrl && /^https?:\/\//.test(configuredSiteUrl)) {
+    return configuredSiteUrl.replace(/\/+$/, "");
+  }
+
+  return window.location.origin;
+}
+
+function getAuthQueryErrorMessage(): string | null {
+  const authCode = new URLSearchParams(window.location.search).get("auth");
+  if (!authCode) return null;
+
+  if (authCode === "required") {
+    return "Please sign in to continue.";
+  }
+  if (authCode === "oauth_code_missing") {
+    return "Sign-in callback was incomplete. Please try again.";
+  }
+  if (authCode === "oauth_error") {
+    return "Sign-in failed. Please try again.";
+  }
+
+  return "Authentication failed. Please try again.";
+}
+
 export default function HomePage() {
   const router = useRouter();
   const [authState, setAuthState] = useState<AuthState>("loading");
@@ -33,6 +59,15 @@ export default function HomePage() {
     setAuthState("error");
     setAuthError(authClient.initError);
   }, [authClient.initError]);
+
+  useEffect(() => {
+    const queryError = getAuthQueryErrorMessage();
+    if (!queryError) {
+      return;
+    }
+
+    setAuthError(queryError);
+  }, []);
 
   useEffect(() => {
     if (!supabase) {
@@ -79,7 +114,7 @@ export default function HomePage() {
     if (!supabase) return;
 
     setAuthError(null);
-    const redirectTo = `${window.location.origin}/auth/callback?next=/onboarding`;
+    const redirectTo = `${resolveSiteOrigin()}/auth/callback?next=/onboarding`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo }
