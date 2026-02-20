@@ -6,7 +6,7 @@ Renders onboarding UI as a presentational component driven by controller props.
 ## Responsibilities
 - display auth/session state banner and signed-out actions
 - render onboarding form fields and compact quick-spark surface
-- show top quick-spark chips by default, with `More/Hide` drawer toggle and `Refresh` control
+- show top quick-spark chips by default, with `More/Hide` drawer toggle and refresh-icon control
 - keep expanded spark list compact via fixed-height scroll container (avoids vertical page growth)
 - wire preferred-name input to Tab completion action from the controller
 - render timezone options from controller so browser-detected timezone can appear even when outside curated list
