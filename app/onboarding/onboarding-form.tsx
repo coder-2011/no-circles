@@ -20,6 +20,14 @@ const BRAIN_DUMP_ALLOWED_KEYS = new Set([
   "Tab",
   "Escape"
 ]);
+const BRAIN_DUMP_PLACEHOLDER = [
+  "Example brain dump (write this in your own style):",
+  "I'm deep into AI engineering + coding workflows with agents.",
+  "I want practical breakdowns: migrations, incident postmortems, reliability tradeoffs, and benchmarks.",
+  "I'm also curious about philosophy of science, behavioral economics, and political history.",
+  "Less hype and trend recaps. More first-hand implementation lessons, mechanisms, and decision frameworks.",
+  "Recency matters a lot for AI tooling and security; less for timeless topics."
+].join("\n");
 
 export function OnboardingForm({ controller }: OnboardingFormProps) {
   const meterBars = controller.dictationLevels;
@@ -136,6 +144,9 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
 
             <label className="block">
               <span className="mb-2 block text-base font-medium text-[#3E4A36]">Interest brain dump</span>
+              <p className="mb-2 text-sm text-[#5E6B54]">
+                This is your raw preference input. Mention what you want more of, less of, and what kind of insight is useful to you.
+              </p>
               <textarea
                 className="h-56 w-full rounded-lg border border-[#C7BA95] bg-[#FFFDF8] px-4 py-3 text-base leading-7 focus:border-[#3D6F49] focus:outline-none"
                 onChange={(event) => controller.setBrainDumpText(event.target.value)}
@@ -156,7 +167,7 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
 
                   event.preventDefault();
                 }}
-                placeholder="Add what you want more of, less of, and what kind of ideas you want to stumble into."
+                placeholder={BRAIN_DUMP_PLACEHOLDER}
                 required
                 value={controller.brainDumpText}
               />
