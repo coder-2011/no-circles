@@ -23,8 +23,8 @@ type GenerateSummariesInput = {
 };
 
 const ANTHROPIC_MESSAGES_API_URL = "https://api.anthropic.com/v1/messages";
-const DEFAULT_TARGET_WORDS = 50;
-const DEFAULT_WORD_RANGE_DELTA = 10;
+const DEFAULT_TARGET_WORDS = 75;
+const DEFAULT_WORD_RANGE_DELTA = 25;
 const MAX_RETRY_COUNT = 1;
 const FALLBACK_SENTENCE =
   "It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions.";

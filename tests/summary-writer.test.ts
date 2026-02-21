@@ -91,6 +91,12 @@ describe("generateNewsletterSummaries", () => {
     expect(requestBody.messages[0]?.content).toContain(
       "Use clear, direct language and prefer simpler words when accuracy is unchanged."
     );
+    expect(requestBody.messages[0]?.content).toContain(
+      "Prioritize concept coverage: include the central mechanisms, claims, findings, or tradeoffs present in the highlights."
+    );
+    expect(requestBody.messages[0]?.content).toContain(
+      "Do not start the summary with meta framing such as 'this article explains/discusses/covers'. Start with concrete concepts directly."
+    );
   });
 
   it("retries once and then falls back to local summary when model is invalid", async () => {
@@ -155,6 +161,38 @@ describe("generateNewsletterSummaries", () => {
     const count = wordCount(result[0].summary);
     expect(count).toBeGreaterThanOrEqual(20);
     expect(count).toBeLessThanOrEqual(30);
+  });
+
+  it("uses default 50-100 word range when no word controls are provided", async () => {
+    process.env.ANTHROPIC_API_KEY = "test-key";
+    process.env.ANTHROPIC_SUMMARY_MODEL = "claude-haiku-4-5";
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: true,
+        json: async () => ({
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({
+                title: "Original A",
+                summary:
+                  "A retrieval architecture redesign replaced monolithic ranking with staged recall, filtering, and reranking passes tuned for latency and relevance goals. The migration surfaced tradeoffs between index freshness, cache hit rates, and serving costs, and teams introduced explicit rollback thresholds, offline replay checks, and live guardrails to stabilize quality during rollout."
+              })
+            }
+          ]
+        })
+      }))
+    );
+
+    const result = await generateNewsletterSummaries({
+      items: [sourceItems[0]]
+    });
+
+    const count = wordCount(result[0].summary);
+    expect(count).toBeGreaterThanOrEqual(50);
+    expect(count).toBeLessThanOrEqual(100);
   });
 
   it("processes one model call per item in order", async () => {

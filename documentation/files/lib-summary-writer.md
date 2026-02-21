@@ -13,11 +13,11 @@ Generates final newsletter summary items for PR8 from discovery candidate inputs
   - `highlights[]`
   - optional `topic`
 - optional word controls:
-  - `targetWords` (default 50)
+  - `targetWords` (default 75)
   - or explicit `minWords` / `maxWords`
 
 Default word range when only target is provided:
-- `targetWords - 10` to `targetWords + 10`
+- `targetWords - 25` to `targetWords + 25` (default `50-100`)
 
 ## Output Contract
 - `NewsletterSummaryItem[]` with final fields only:

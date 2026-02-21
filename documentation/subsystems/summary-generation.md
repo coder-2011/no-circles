@@ -9,7 +9,7 @@ Implements PR8 newsletter-item summary generation from discovery output.
 - Single model call per item with one retry max
 - Output final item contract only: `{ title, url, summary }`
 - Enforce fixed URL passthrough from source candidate
-- Apply soft word-range targeting (default target 50 words, default range 40-60)
+- Apply soft word-range targeting (default target 75 words, default range 50-100)
 
 ## Out of Scope
 - Discovery/ranking changes (PR6)
@@ -39,3 +39,4 @@ Output:
 - Neutral, factual, source-grounded.
 - Mild connective phrasing allowed.
 - No speculative claims beyond provided highlights.
+- Summaries should cover core concepts/mechanisms/findings from highlights, not only meta high-level framing.
