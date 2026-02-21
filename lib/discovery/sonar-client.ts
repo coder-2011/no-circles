@@ -1,5 +1,6 @@
 import type { ExaSearchFn, ExaSearchResult } from "@/lib/discovery/types";
 import { createHash, randomBytes } from "node:crypto";
+import { filterBlockedSearchResults } from "@/lib/discovery/search-blocklists";
 
 const PERPLEXITY_CHAT_COMPLETIONS_URL = "https://api.perplexity.ai/chat/completions";
 const DEFAULT_SONAR_MODEL = "sonar";
@@ -135,6 +136,20 @@ function buildSystemPrompt(numResults: number): string {
     "- Avoid dopamine-bait framing and repetitive hype loops.",
     "- If user input contains soft-downweight intent wording, keep relevance but reduce hype/volume bias.",
     "- If user input contains hard-stop intent wording, return conservative results and avoid broad speculative expansion.",
+    "Reader-value contract (strict):",
+    "- Return links only if a reader can learn at least one transferable idea, mechanism, or evidence-backed insight from the page itself.",
+    "- Prioritize substantive explanatory pages (analysis, case study, postmortem, benchmark, research synthesis, technical deep dive).",
+    "- Deprioritize pure announcements and logistics even when topically relevant.",
+    "Hard rejects (never return):",
+    "- Event pages, seminar/workshop/conference listings, program calendars, registration pages, call-for-papers, job posts, funding announcements, generic institute/about pages, and press-only announcements.",
+    "- Pages whose primary content is dates, venue, speakers, schedules, application details, or organizational boilerplate.",
+    "- If uncertain whether content is substantive, skip it.",
+    "Temporal relevance contract:",
+    "- Apply recency based on topic volatility, not as a blanket rule.",
+    "- For fast-changing domains (tooling, AI engineering workflows, model/API/platform updates, operational incidents, security), prioritize recent sources and deprioritize stale guidance.",
+    "- For slower-changing domains (foundational philosophy, history, timeless life guidance, core theory), allow older authoritative sources when they best answer the topic.",
+    "- For slower-moving domains, freshness is optional but substance is mandatory; prefer durable explainers and research syntheses over event/program pages.",
+    "- If recency materially affects correctness or practical usefulness, treat freshness as a ranking priority.",
     "Rules:",
     `- Return exactly ${numResults} lines when possible.`,
     "- One candidate per line.",
@@ -194,5 +209,6 @@ export const searchSonar: ExaSearchFn = async ({ query, numResults }) => {
 
   const json = (await response.json().catch(() => null)) as unknown;
   const text = extractTextContent(json);
-  return parseSonarResults(text, requestedResults);
+  const parsed = parseSonarResults(text, requestedResults);
+  return filterBlockedSearchResults(parsed);
 };
