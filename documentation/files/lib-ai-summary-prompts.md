@@ -23,6 +23,9 @@ Output:
 - neutral, factual, and source-grounded
 - treat highlights as the only evidence source
 - no speculation, hype, or invented detail
+- assume a curious generalist reader (not a domain specialist)
+- prefer medium sized concrete sentences over compressed abstract clauses
+- split sentences when they carry 2+ technical nouns
 - avoid meta framing (for example `this article explains`)
 - require at least two concrete details; otherwise output `summary = INSUFFICIENT_SOURCE_DETAIL`
 - ban counterfactual/future-projection framing unless explicitly present in highlights
