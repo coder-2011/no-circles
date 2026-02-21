@@ -32,7 +32,7 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
         <p className="text-sm uppercase tracking-[0.18em] text-[#6B775D]">Onboarding</p>
         <h1 className="mt-3 text-4xl font-semibold tracking-tight text-[#2B3125] md:text-5xl">What are you curious about?</h1>
         <p className="mt-3 text-base leading-7 text-[#4B5943]">
-          Leave breadcrumbs for tomorrow-you: obsessions, rabbit holes, and what to skip.
+          Drop requests, rabbit holes, and the topics you have not had the courage to learn yet.
         </p>
 
         <div className="mt-6 rounded-lg border border-[#D8CCAA] bg-[#F4EEDC] px-4 py-3 text-base">
@@ -337,6 +337,9 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
                 </svg>
               </button>
             </div>
+            <p className="text-xs text-[#6B775D]">
+              Billing is at the end of each month. If you do not like it, you do not pay.
+            </p>
           </form>
         ) : null}
 
