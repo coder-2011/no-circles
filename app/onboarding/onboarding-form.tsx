@@ -225,12 +225,12 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
                 </span>
               </div>
               <div className="mt-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#5F6E54]">Quick Sparks</p>
-                <p className="mt-1 text-xs text-[#6B775D]">
+                <p className="text-sm font-semibold uppercase tracking-[0.12em] text-[#5F6E54]">Quick Sparks</p>
+                <p className="mt-1 text-sm text-[#6B775D]">
                   Popular starter interests. Tap any Quick Spark to add it to your brain dump.
                 </p>
               </div>
-              <div className="mt-2 flex items-center gap-2">
+              <div className="mt-3 flex items-center gap-2">
                 <button
                   className="rounded-md border border-[#CDBF98] bg-[#F6EFD9] px-3 py-1.5 text-xs font-semibold text-[#4F5D45] transition hover:bg-[#ECE2C8]"
                   onClick={controller.toggleQuickSparksExpanded}
@@ -238,8 +238,30 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
                 >
                   {controller.quickSparksExpanded ? "Hide" : "More"}
                 </button>
+                <button
+                  aria-label="Refresh quick sparks"
+                  className="group inline-flex h-8 w-8 items-center justify-center rounded-md border border-[#CDBF98] bg-[#F6EFD9] text-[#4F5D45] transition hover:bg-[#ECE2C8]"
+                  onClick={controller.refreshQuickSparks}
+                  type="button"
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="h-4 w-4 transition-transform duration-200 group-hover:rotate-180"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M20 12a8 8 0 1 1-2.34-5.66M20 4v6h-6"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                    />
+                  </svg>
+                </button>
               </div>
-              <div className="mt-2 flex flex-wrap gap-2.5">
+              <div className="mt-4 flex flex-wrap gap-2.5">
                 {controller.quickSparks.map((spark) => (
                   <button
                     className="rounded-full border border-[#CDBF98] bg-[#F6EFD9] px-3.5 py-1.5 text-sm font-medium text-[#4F5D45] transition hover:bg-[#ECE2C8]"
@@ -314,28 +336,6 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
                   Sign out
                 </button>
               </div>
-              <button
-                aria-label="Refresh quick sparks"
-                className="group inline-flex h-11 w-11 items-center justify-center rounded-lg border border-[#CDBF98] bg-[#F6EFD9] text-[#4F5D45] transition hover:bg-[#ECE2C8]"
-                onClick={controller.refreshQuickSparks}
-                type="button"
-              >
-                <svg
-                  aria-hidden="true"
-                  className="h-5 w-5 transition-transform duration-200 group-hover:rotate-180"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M20 12a8 8 0 1 1-2.34-5.66M20 4v6h-6"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                  />
-                </svg>
-              </button>
             </div>
             <div className="rounded-lg border border-[#EBA7A7] bg-[#FDE7E7] px-3 py-2">
               <p className="text-xs font-medium text-[#8F1D1D]">
