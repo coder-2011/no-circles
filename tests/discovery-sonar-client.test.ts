@@ -66,12 +66,14 @@ describe("searchSonar", () => {
     expect(requestBody.temperature).toBe(1.3);
     expect(requestBody.messages[0]?.role).toBe("system");
     expect(requestBody.messages[0]?.content).toContain("[TITLE] || https://full-url");
+    expect(requestBody.messages[0]?.content).toContain("Topic-memory intent contract:");
     expect(requestBody.messages[0]?.content).toContain("Run entropy token:");
     expect(requestBody.messages[0]?.content).toContain("Creativity lenses for this run");
     const tokenLine = (requestBody.messages[0]?.content ?? "")
       .split("\n")
       .find((line) => line.startsWith("Run entropy token: "));
     expect((tokenLine ?? "").length).toBeGreaterThan(50);
+    expect(requestBody.messages[1]?.content).toContain("ACTIVE_INTEREST_TOPIC:");
   });
 
   it("throws when api key is missing", async () => {

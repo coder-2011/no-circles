@@ -41,6 +41,20 @@ Capture high-leverage product ideas that can meaningfully improve content qualit
 - Guardrail:
 - avoid overfitting to one click; use bounded weight updates and decay.
 
+## Diversity Promotion in Every Issue
+- Problem:
+- issues can still feel narrow when many selected links cluster around one subtopic, source ecosystem, or viewpoint.
+- Product goal:
+- enforce visible breadth in each email while preserving user-fit quality.
+- Implementation direction:
+- add a diversity-aware reranker after candidate scoring with explicit constraints:
+- per-issue max items per domain family
+- per-issue max items per dominant topic cluster
+- minimum lane coverage across `core-depth`, `adjacent`, and exploration picks
+- add novelty-distance penalty when multiple items are semantically too similar
+- Quality guardrail:
+- diversity should not inject low-quality links; fallback to fewer items over low-signal filler when constraint satisfaction fails.
+
 ## 2. "Rabbit Hole" Mode (Serialized Anticipation)
 When someone gets interested in a highly technical or niche subject (for example optimizing search algorithms, aerodynamics physics, or the history of the Roman Republic), a single article is never enough.
 

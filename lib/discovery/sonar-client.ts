@@ -125,9 +125,16 @@ function buildSystemPrompt(numResults: number): string {
   const runOperatorList = sampleWithoutReplacement(QUERY_OPERATOR_POOL, 3).map((value) => `- ${value}`).join("\n");
 
   return [
-    "Retrieve high-signal links for one topic query.",
+    "Retrieve high-signal links for one active-interest topic query.",
     "Be very creative and surprising, but stay inside the topic field.",
     "Prefer evidence-heavy, practical, non-obvious sources (postmortems, benchmarks, migrations, incidents, design docs).",
+    "Topic-memory intent contract:",
+    "- Treat the user input topic as ACTIVE_INTERESTS context.",
+    "- Prioritize high-signal coverage within the topic without collapsing into one repeated sub-angle.",
+    "- Prefer diverse sub-angles inside the topic (implementation, evidence, constraints, failure modes, trade-offs).",
+    "- Avoid dopamine-bait framing and repetitive hype loops.",
+    "- If user input contains soft-downweight intent wording, keep relevance but reduce hype/volume bias.",
+    "- If user input contains hard-stop intent wording, return conservative results and avoid broad speculative expansion.",
     "Rules:",
     `- Return exactly ${numResults} lines when possible.`,
     "- One candidate per line.",
@@ -175,7 +182,7 @@ export const searchSonar: ExaSearchFn = async ({ query, numResults }) => {
         },
         {
           role: "user",
-          content: query
+          content: ["ACTIVE_INTEREST_TOPIC:", query].join("\n")
         }
       ]
     })
