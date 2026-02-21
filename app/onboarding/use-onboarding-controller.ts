@@ -38,19 +38,7 @@ function randomPreferredNameSuggestion(): string {
 }
 
 function resolveSiteOrigin(): string {
-  const browserOrigin = window.location.origin;
-  const browserHost = window.location.hostname.toLowerCase();
-  const isLocalHost = browserHost === "localhost" || browserHost === "127.0.0.1" || browserHost === "::1";
-  if (isLocalHost) {
-    return browserOrigin;
-  }
-
-  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  if (configuredSiteUrl && /^https?:\/\//.test(configuredSiteUrl)) {
-    return configuredSiteUrl.replace(/\/+$/, "");
-  }
-
-  return browserOrigin;
+  return window.location.origin;
 }
 
 export type OnboardingController = {
@@ -485,7 +473,10 @@ export function useOnboardingController(): OnboardingController {
     }
 
     setMessage(null);
-    const redirectTo = `${resolveSiteOrigin()}/auth/callback?next=/onboarding`;
+    const callbackUrl = new URL("/auth/callback", resolveSiteOrigin());
+    callbackUrl.searchParams.set("next", "/onboarding");
+    callbackUrl.searchParams.set("callback_origin", window.location.origin);
+    const redirectTo = callbackUrl.toString();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo }
@@ -542,12 +533,9 @@ export function useOnboardingController(): OnboardingController {
 
     if (response.ok) {
       setSubmitState("saved");
-      setMessage("Onboarding saved. You are configured for daily delivery.");
-      setShowCelebration(true);
       window.localStorage.removeItem(BRAIN_DUMP_DRAFT_KEY);
-      window.setTimeout(() => {
-        setShowCelebration(false);
-      }, 1400);
+      window.localStorage.removeItem(ONBOARDING_PREFS_DRAFT_KEY);
+      router.replace("/#top");
       return;
     }
 

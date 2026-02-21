@@ -13,41 +13,50 @@ function getSupabaseEnv() {
   return { supabaseUrl, supabaseAnonKey };
 }
 
-function isLocalHostname(hostname: string): boolean {
-  const normalized = hostname.toLowerCase();
-  return normalized === "localhost" || normalized === "127.0.0.1" || normalized === "::1";
-}
-
 function resolvePublicOrigin(request: Request): string {
+  const requestOrigin = new URL(request.url).origin;
+  const requestHost = new URL(request.url).hostname.toLowerCase();
+  if (requestHost === "localhost" || requestHost === "127.0.0.1" || requestHost === "::1") {
+    return requestOrigin;
+  }
+
+  if (process.env.NODE_ENV !== "production") {
+    return requestOrigin;
+  }
+
   const forwardedProto = request.headers.get("x-forwarded-proto");
   const forwardedHost = request.headers.get("x-forwarded-host");
   if (forwardedProto && forwardedHost) {
     const forwardedOrigin = `${forwardedProto}://${forwardedHost}`;
-    const forwardedHostname = new URL(forwardedOrigin).hostname;
-    if (isLocalHostname(forwardedHostname)) {
-      return forwardedOrigin;
-    }
-
     return forwardedOrigin;
-  }
-
-  const requestOrigin = new URL(request.url).origin;
-  const requestHost = new URL(request.url).hostname;
-  if (isLocalHostname(requestHost)) {
-    return requestOrigin;
-  }
-
-  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  if (configuredSiteUrl && /^https?:\/\//.test(configuredSiteUrl)) {
-    return configuredSiteUrl.replace(/\/+$/, "");
   }
 
   return requestOrigin;
 }
 
+function resolveLocalCallbackOriginOverride(requestUrl: URL): string | null {
+  const callbackOrigin = requestUrl.searchParams.get("callback_origin");
+  if (!callbackOrigin) {
+    return null;
+  }
+
+  try {
+    const parsedOrigin = new URL(callbackOrigin).origin;
+    const callbackHost = new URL(parsedOrigin).hostname.toLowerCase();
+    if (callbackHost === "localhost" || callbackHost === "127.0.0.1" || callbackHost === "::1") {
+      return parsedOrigin;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
-  const publicOrigin = resolvePublicOrigin(request);
+  const callbackOriginOverride = resolveLocalCallbackOriginOverride(requestUrl);
+  const publicOrigin = callbackOriginOverride ?? resolvePublicOrigin(request);
   const code = requestUrl.searchParams.get("code");
   const nextParam = requestUrl.searchParams.get("next") ?? "/onboarding";
   const redirectTo = nextParam.startsWith("/") ? nextParam : "/onboarding";

@@ -11,8 +11,10 @@ Encapsulates onboarding page state, side effects, and action handlers as a reusa
 - persist/remove local draft text in `localStorage` (debounced writes to reduce typing/main-thread pressure)
 - persist onboarding preference draft in `localStorage` (preferred name/timezone/send-time parts)
 - submit onboarding payload to `POST /api/onboarding`
+- on successful save, clear onboarding drafts and redirect to homepage top (`/#top`)
 - on `401` submit response, persist reauth-recovery flag, redirect to Google sign-in, and show draft-recovered message after session restore
-- build OAuth redirect URL with localhost-first origin resolution so local development does not bounce to production when `NEXT_PUBLIC_SITE_URL` is set
+- build OAuth redirect URL from current browser origin (`window.location.origin`) so localhost and production always stay on their active host
+- include `callback_origin` query param in OAuth redirect URL so callback can explicitly preserve localhost final redirect in fallback-heavy environments
 - derive no-permission local defaults:
   - timezone from `Intl.DateTimeFormat().resolvedOptions().timeZone`
   - send time from current local clock
