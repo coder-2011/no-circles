@@ -21,7 +21,8 @@ Required request keys:
 6. Upsert row in `users` keyed by authenticated email.
 7. Persist `preferred_name` to `users.preferred_name`.
 8. Persist processor output to `interest_memory_text`.
-9. Return `{ ok: true, user_id }`.
+9. If this upsert is a first insert (`xmax = 0`), trigger immediate welcome issue send (`5` items, `welcome` variant) in best-effort async mode.
+10. Return `{ ok: true, user_id }`.
 
 ## Error Envelope
 - `400` with `{ ok: false, error_code: "INVALID_PAYLOAD", ... }`

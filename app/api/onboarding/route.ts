@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
+import { sql } from "drizzle-orm";
 import { getAuthenticatedUserEmail } from "@/lib/auth/server-user";
 import { db } from "@/lib/db/client";
 import { users } from "@/lib/db/schema";
 import { formatOnboardingMemory } from "@/lib/memory/processors";
 import { onboardingSchema } from "@/lib/schemas";
+import { sendUserNewsletter } from "@/lib/pipeline/send-user-newsletter";
+import { logError, logWarn } from "@/lib/observability/log";
+
+const WELCOME_ISSUE_ITEM_COUNT = 5;
 
 export async function POST(request: Request) {
   const json = await request.json().catch(() => null);
@@ -80,7 +85,32 @@ export async function POST(request: Request) {
           interestMemoryText
         }
       })
-      .returning({ id: users.id });
+      .returning({
+        id: users.id,
+        wasInserted: sql<boolean>`xmax = 0`
+      });
+
+    if (upsertedUser.wasInserted) {
+      void sendUserNewsletter({
+        userId: upsertedUser.id,
+        runAtUtc: new Date(),
+        targetItemCount: WELCOME_ISSUE_ITEM_COUNT,
+        issueVariant: "welcome"
+      }).then((result) => {
+        if (result.status !== "sent") {
+          logWarn("onboarding", "welcome_issue_not_sent", {
+            user_id: upsertedUser.id,
+            status: result.status,
+            error: result.error ?? null
+          });
+        }
+      }).catch((error) => {
+        logError("onboarding", "welcome_issue_failed", {
+          user_id: upsertedUser.id,
+          error
+        });
+      });
+    }
 
     return NextResponse.json({ ok: true, user_id: upsertedUser.id });
   } catch {

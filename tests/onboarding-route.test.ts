@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const {
   getAuthenticatedUserEmailMock,
   formatOnboardingMemoryMock,
+  sendUserNewsletterMock,
   returningMock,
   onConflictDoUpdateMock,
   valuesMock,
@@ -10,6 +11,7 @@ const {
 } = vi.hoisted(() => {
   const getAuthenticatedUserEmail = vi.fn();
   const formatOnboardingMemory = vi.fn();
+  const sendUserNewsletter = vi.fn(async () => ({ status: "sent", providerMessageId: "msg_1" }));
   const returning = vi.fn();
   const onConflictDoUpdate = vi.fn(() => ({ returning }));
   const values = vi.fn(() => ({ onConflictDoUpdate }));
@@ -18,6 +20,7 @@ const {
   return {
     getAuthenticatedUserEmailMock: getAuthenticatedUserEmail,
     formatOnboardingMemoryMock: formatOnboardingMemory,
+    sendUserNewsletterMock: sendUserNewsletter,
     returningMock: returning,
     onConflictDoUpdateMock: onConflictDoUpdate,
     valuesMock: values,
@@ -31,6 +34,10 @@ vi.mock("@/lib/auth/server-user", () => ({
 
 vi.mock("@/lib/memory/processors", () => ({
   formatOnboardingMemory: formatOnboardingMemoryMock
+}));
+
+vi.mock("@/lib/pipeline/send-user-newsletter", () => ({
+  sendUserNewsletter: sendUserNewsletterMock
 }));
 
 vi.mock("@/lib/db/client", () => ({
@@ -60,6 +67,7 @@ describe("POST /api/onboarding", () => {
     valuesMock.mockClear();
     onConflictDoUpdateMock.mockClear();
     returningMock.mockClear();
+    sendUserNewsletterMock.mockClear();
   });
 
   it("returns 400 on invalid payload", async () => {
@@ -127,7 +135,7 @@ describe("POST /api/onboarding", () => {
 
   it("upserts onboarding payload and returns user id", async () => {
     getAuthenticatedUserEmailMock.mockResolvedValueOnce("naman@example.com");
-    returningMock.mockResolvedValueOnce([{ id: "user-123" }]);
+    returningMock.mockResolvedValueOnce([{ id: "user-123", wasInserted: false }]);
 
     const request = new Request("http://localhost/api/onboarding", {
       method: "POST",
@@ -167,11 +175,12 @@ describe("POST /api/onboarding", () => {
       }
     });
     expect(returningMock).toHaveBeenCalledTimes(1);
+    expect(sendUserNewsletterMock).not.toHaveBeenCalled();
   });
 
   it("ignores payload email and uses authenticated session email", async () => {
     getAuthenticatedUserEmailMock.mockResolvedValueOnce("session-email@example.com");
-    returningMock.mockResolvedValueOnce([{ id: "user-123" }]);
+    returningMock.mockResolvedValueOnce([{ id: "user-123", wasInserted: false }]);
 
     const request = new Request("http://localhost/api/onboarding", {
       method: "POST",
@@ -202,7 +211,7 @@ describe("POST /api/onboarding", () => {
 
   it("persists trimmed preferred_name", async () => {
     getAuthenticatedUserEmailMock.mockResolvedValueOnce("naman@example.com");
-    returningMock.mockResolvedValueOnce([{ id: "user-123" }]);
+    returningMock.mockResolvedValueOnce([{ id: "user-123", wasInserted: false }]);
 
     const request = new Request("http://localhost/api/onboarding", {
       method: "POST",
@@ -253,6 +262,32 @@ describe("POST /api/onboarding", () => {
       ok: false,
       error_code: "INTERNAL_ERROR",
       message: "Failed to persist onboarding data."
+    });
+  });
+
+  it("sends welcome issue for first successful onboarding insert", async () => {
+    getAuthenticatedUserEmailMock.mockResolvedValueOnce("new-user@example.com");
+    returningMock.mockResolvedValueOnce([{ id: "user-new", wasInserted: true }]);
+
+    const request = new Request("http://localhost/api/onboarding", {
+      method: "POST",
+      body: JSON.stringify({
+        preferred_name: "New User",
+        timezone: "America/New_York",
+        send_time_local: "09:30",
+        brain_dump_text: "AI and coding."
+      }),
+      headers: { "content-type": "application/json" }
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(200);
+    expect(sendUserNewsletterMock).toHaveBeenCalledTimes(1);
+    expect(sendUserNewsletterMock).toHaveBeenCalledWith({
+      userId: "user-new",
+      runAtUtc: expect.any(Date),
+      targetItemCount: 5,
+      issueVariant: "welcome"
     });
   });
 
