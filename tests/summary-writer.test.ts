@@ -170,7 +170,7 @@ describe("generateNewsletterSummaries", () => {
               text: JSON.stringify({
                 title: "Original A",
                 summary:
-                  "A retrieval architecture redesign replaced monolithic ranking with staged recall, filtering, and reranking passes tuned for latency and relevance goals. The migration surfaced tradeoffs between index freshness, cache hit rates, and serving costs, and teams introduced explicit rollback thresholds, offline replay checks, and live guardrails to stabilize quality during rollout."
+                  "A retrieval architecture redesign replaced monolithic ranking with staged recall, filtering, and reranking passes tuned for latency and relevance goals. The migration surfaced tradeoffs between index freshness, cache hit rates, and serving costs, and teams introduced explicit rollback thresholds, offline replay checks, and live guardrails to stabilize quality during rollout. Engineers also documented query-level failure modes, measured degradation under load tests, and used phased canary gates tied to latency percentiles and relevance drift thresholds before each broader rollout step safely."
               })
             }
           ]
@@ -187,7 +187,7 @@ describe("generateNewsletterSummaries", () => {
     expect(count).toBeLessThanOrEqual(120);
   });
 
-  it("rejects placeholder-style model summaries and falls back to source-grounded text", async () => {
+  it("rejects placeholder-style model summaries and falls back to deterministic highlight text", async () => {
     process.env.ANTHROPIC_API_KEY = "test-key";
     process.env.ANTHROPIC_SUMMARY_MODEL = "claude-haiku-4-5";
 
@@ -216,7 +216,9 @@ describe("generateNewsletterSummaries", () => {
       maxWords: 40
     });
 
-    expect(result[0].summary).toBe("INSUFFICIENT_SOURCE_DETAIL");
+    expect(result[0].summary).toBe(
+      "The article explains a new retrieval system that reduces latency in production workloads. It compares implementation tradeoffs between recall, latency, and infra cost."
+    );
   });
 
   it("processes one model call per item in order", async () => {
