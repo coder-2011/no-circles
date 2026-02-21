@@ -264,6 +264,12 @@ export default function HomePage() {
             {authState === "signed_in" && email ? `Signed in as ${email}` : "Sign in to save onboarding securely."}
           </p>
           {authError ? <p className="mt-3 text-base text-rose-700">{authError}</p> : null}
+          <div className="mt-6 rounded-lg border border-[#EBA7A7] bg-[#FDE7E7] px-3 py-2">
+            <p className="text-sm font-medium text-[#8F1D1D]">
+              No-Circles is free through mid-March. After that, we plan to introduce a minimal at-cost subscription to
+              cover infrastructure and API usage, with no profit margin.
+            </p>
+          </div>
         </section>
 
         <section className="rounded-3xl border border-[#C9BD9A] bg-[#FBF7EB] p-8 text-[#2D3426] shadow-sm md:p-10">
@@ -284,12 +290,6 @@ export default function HomePage() {
                 </li>
               ))}
             </ol>
-          </div>
-          <div className="mt-6 rounded-lg border border-[#EBA7A7] bg-[#FDE7E7] px-3 py-2">
-            <p className="text-sm font-medium text-[#8F1D1D]">
-              No-Circles is free through mid-March. After that, we plan to introduce a minimal at-cost subscription to
-              cover infrastructure and API usage, with no profit margin.
-            </p>
           </div>
         </section>
       </div>
