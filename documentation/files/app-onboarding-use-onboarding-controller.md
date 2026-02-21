@@ -12,7 +12,7 @@ Encapsulates onboarding page state, side effects, and action handlers as a reusa
 - persist onboarding preference draft in `localStorage` (timezone/send-time parts)
 - submit onboarding payload to `POST /api/onboarding`
 - on successful save, clear onboarding drafts, keep user on onboarding page, show celebratory save state, and display near-term intro/first-email status copy
-- auto-hide celebratory save state after a short timeout (`3000ms`)
+- auto-hide celebratory save state after a short timeout (`3400ms`)
 - on `401` submit response, persist reauth-recovery flag, redirect to Google sign-in, and show draft-recovered message after session restore
 - build OAuth redirect URL from current browser origin (`window.location.origin`) so localhost and production always stay on their active host
 - include `callback_origin` query param in OAuth redirect URL so callback can explicitly preserve localhost final redirect in fallback-heavy environments

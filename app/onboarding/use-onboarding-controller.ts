@@ -36,7 +36,7 @@ function resolveSiteOrigin(): string {
   return window.location.origin;
 }
 
-const CELEBRATION_HIDE_MS = 3000;
+const CELEBRATION_HIDE_MS = 3400;
 
 export type OnboardingController = {
   authState: AuthState;
