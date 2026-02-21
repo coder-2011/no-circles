@@ -12,197 +12,68 @@ type SampleBriefItem = {
   summary: string;
 };
 
-type BriefLibraryItem = SampleBriefItem & {
-  category: string;
-  tags: string[];
-};
-
-const DEFAULT_PREVIEW_ONBOARDING_TEXT = [
-  "I want deep but readable briefs across AI engineering, product strategy, economic history, biology, philosophy, design, and climate adaptation.",
-  "I like implementation details, case studies, postmortems, and policy tradeoffs.",
-  "Please include one or two serendipity picks in culture, cities, and science that still connect back to practical decisions."
-].join(" ");
-
-const BRIEF_LIBRARY: BriefLibraryItem[] = [
+const SAMPLE_DAILY_BRIEF: SampleBriefItem[] = [
   {
     title: "How Teams Actually Evaluate AI Agents in Production",
     url: "https://aws.amazon.com/blogs/machine-learning/evaluating-ai-agents-real-world-lessons-from-building-agentic-systems-at-amazon/",
     summary:
-      "The piece explains why output-only benchmarks miss key failure modes in agent workflows. It outlines practical checks for tool calls, retrieval quality, step reliability, and end-to-end task completion so teams can improve systems before incidents hit users.",
-    category: "ai-systems",
-    tags: ["ai", "agents", "evaluation", "engineering", "production"]
+      "Output-only evals hide where agent systems actually fail. Reliable evaluation tracks tool-call accuracy, retrieval quality, step-by-step execution, and final task success under realistic workloads. The article also emphasizes operational checks such as replay tests, trace inspection, and failure clustering so teams can catch regressions early, not after deployment, and improve both model behavior and orchestration logic."
   },
   {
     title: "What Strong State Capacity Changes in Growth Outcomes",
     url: "https://www.imf.org/en/publications/wp/issues/2025/01/17/state-capacity-and-growth-regimes-560288",
     summary:
-      "Using cross-country data, the paper tracks how economies move between growth regimes over five-year windows. Stronger public institutions correlate with longer periods of stable growth and lower collapse risk, especially when governance quality and policy execution improve together.",
-    category: "economics-policy",
-    tags: ["economics", "policy", "state capacity", "history", "institutions"]
+      "Across many countries, growth tends to move in regimes rather than smooth trends. Stronger administrative capacity helps states sustain expansions and recover faster from shocks because policies are implemented more consistently. The paper links growth durability to execution quality, not only policy design, and shows how weak institutions increase transition risk from stable growth into stagnation or contraction."
   },
   {
     title: "How the Roman Republic Kept Elections While Losing Real Competition",
     url: "https://brewminate.com/elections-without-choice-how-the-roman-republic-was-lost-without-ending-the-vote/",
     summary:
-      "This history piece shows how institutional forms can survive even when accountability weakens underneath them. It traces rule changes and emergency powers that preserved electoral procedure but narrowed actual political choice.",
-    category: "history-politics",
-    tags: ["history", "politics", "rome", "institutions", "power"]
+      "Roman political institutions kept formal voting procedures while substantive competition narrowed over time. Emergency powers, eligibility constraints, and concentrated command shifted real decision authority away from open contestation. The article is useful as an institutional warning: procedural continuity can mask structural power changes, so constitutional health depends on enforcement balance, elite incentives, and credible checks, not ritual alone."
   },
   {
     title: "Designing Buildings for Heat, Flood, and Long-Term Flexibility",
     url: "https://www.mckinsey.com/industries/real-estate/our-insights/climate-risk-and-commercial-real-estate",
     summary:
-      "The brief covers how climate risk is changing real-estate decisions from financing to retrofit priorities. It emphasizes practical adaptation moves such as heat mitigation, flood resilience, and staged upgrades that preserve asset value across changing environmental conditions.",
-    category: "climate-cities",
-    tags: ["climate", "architecture", "cities", "resilience", "infrastructure"]
+      "Climate risk is moving from compliance reporting into core asset strategy. Heat stress, flood exposure, insurance repricing, and retrofit economics now shape acquisition and renovation decisions. The piece explains staged adaptation moves that protect both operations and long-horizon value, including envelope upgrades, cooling resilience, water defenses, and flexible design choices that keep buildings usable under changing environmental baselines."
   },
   {
     title: "What Actually Moves Housing Supply at City Scale",
     url: "https://ternercenter.berkeley.edu/blog/2026-federal-housing-policy-preview/",
     summary:
-      "The piece maps federal and local policy levers that affect housing production, preservation, and financing. It focuses on incremental but meaningful tools and explains where implementation capacity, not just legislation, determines outcomes.",
-    category: "economics-policy",
-    tags: ["housing", "policy", "cities", "economics", "governance"]
+      "Housing output depends on a chain, not one policy lever: zoning path, permitting speed, financing terms, and project risk. The article maps where federal tools help and where local execution still bottlenecks supply. Its key idea is implementation capacity: predictable timelines, administrative throughput, and financing clarity often matter as much as headline legislation for getting units built and preserved."
   },
   {
     title: "Why Autonomous Freight Scales in Narrow Corridors First",
     url: "https://www.mckinsey.com/industries/automotive-and-assembly/our-insights/autonomous-trucking-in-the-united-states",
     summary:
-      "Autonomous trucking adoption is progressing fastest in constrained routes with clearer economics and safety controls. The analysis explains operational bottlenecks, integration costs, and rollout sequencing rather than treating autonomy as a uniform market shift.",
-    category: "transport-systems",
-    tags: ["transport", "autonomy", "operations", "logistics", "systems"]
+      "Commercial autonomy is scaling first where route structure, weather profile, and handoff logistics are tightly controlled. That operating envelope reduces uncertainty in safety validation and unit economics. The analysis highlights integration realities such as depot workflows, remote assistance, and mixed-fleet transition costs, showing why rollout sequencing is a systems problem rather than a single-model performance milestone."
   },
   {
     title: "The New Playbook for Fleet Safety and Compliance",
     url: "https://www.fmcsa.dot.gov/safety/safety-measurement-system-sms",
     summary:
-      "This update explains how fleet operators are being measured and where compliance signals translate into commercial risk. It is useful for teams that need to align dispatch, maintenance, and documentation practices with changing regulatory scrutiny.",
-    category: "transport-systems",
-    tags: ["transport", "safety", "policy", "operations", "compliance"]
-  },
-  {
-    title: "Why Predictive Maintenance Wins Only with Better Operations Data",
-    url: "https://www.mckinsey.com/capabilities/operations/our-insights/predictive-maintenance-3-0",
-    summary:
-      "Predictive maintenance delivers value when sensor data quality, failure taxonomy, and response workflows are aligned. The article focuses on implementation details that separate pilot success from durable operational gains.",
-    category: "operations-data",
-    tags: ["operations", "data", "maintenance", "engineering", "systems"]
-  },
-  {
-    title: "How Cities Balance Electrification Goals with Grid Constraints",
-    url: "https://www.iea.org/reports/global-ev-outlook-2024",
-    summary:
-      "The report connects EV adoption growth with charging infrastructure and power-system realities. It helps planners and operators reason about where electrification is scaling smoothly and where grid, permitting, or cost bottlenecks slow deployment.",
-    category: "climate-cities",
-    tags: ["energy", "climate", "transport", "grid", "policy"]
-  },
-  {
-    title: "A Practical Guide to Building Better Product Experiments",
-    url: "https://www.gov.uk/service-manual/measuring-success/ab-testing",
-    summary:
-      "The guide covers experiment design basics that prevent misleading wins: clear metrics, guardrails, and clean control groups. It is a useful operational refresher for product teams trying to improve decisions with smaller, faster tests.",
-    category: "product-research",
-    tags: ["product", "experiments", "decision making", "research", "analytics"]
+      "Safety scoring now has direct operational and financial consequences for carriers. The update clarifies which behaviors and records drive risk signals, and how documentation quality interacts with enforcement outcomes. Practically, it pushes tighter alignment across dispatch, maintenance, driver coaching, and audit readiness so compliance becomes a daily operating discipline instead of a periodic legal check."
   },
   {
     title: "How Evolution Uses Tradeoffs, Not Perfect Designs",
     url: "https://www.nature.com/scitable/topicpage/adaptation-and-natural-selection-300/",
     summary:
-      "This explainer reframes adaptation as constrained optimization under changing environments. It helps connect evolutionary logic to modern systems thinking: robustness, local optima, and path dependence under limited resources.",
-    category: "science-biology",
-    tags: ["biology", "evolution", "science", "tradeoffs", "learning"]
-  },
-  {
-    title: "What Cognitive Biases Distort Strategic Decisions",
-    url: "https://thedecisionlab.com/biases",
-    summary:
-      "A practical catalog of common decision biases with concrete examples in policy and business settings. It can be used as a checklist when reviewing plans, forecasts, and postmortems to avoid repeated reasoning errors.",
-    category: "psychology",
-    tags: ["psychology", "decision making", "strategy", "bias", "learning"]
+      "Natural selection optimizes fitness in local environments, not universal perfection. Traits that improve one function can impose costs elsewhere, creating durable tradeoffs across energy, resilience, and reproduction. The article uses these constraints to explain why biological systems settle into path-dependent, good-enough designs. It is a strong mental model for engineering and policy: optimization always happens under limits, not ideal conditions."
   },
   {
     title: "Machiavelli Beyond the Cliche: Statecraft Under Constraint",
     url: "https://plato.stanford.edu/entries/machiavelli/",
     summary:
-      "Rather than caricature, this overview presents Machiavelli as a thinker focused on political durability under unstable conditions. It is useful context for readers interested in institutions, leadership, and realism in governance.",
-    category: "philosophy-history",
-    tags: ["philosophy", "history", "politics", "institutions", "statecraft"]
+      "Machiavelli is often reduced to manipulation advice, but the deeper thread is institutional durability under unstable conditions. The entry outlines tensions between civic virtue, coercive capacity, and contingency in state survival. It helps frame leadership as a constraint-management problem: preserving order and legitimacy when incentives, elite conflict, and external threats make clean moral or procedural solutions difficult."
   },
   {
     title: "How Musical Structure Influences Memory and Attention",
     url: "https://www.frontiersin.org/articles/10.3389/fpsyg.2013.00511/full",
     summary:
-      "The paper reviews links between musical structure and cognitive processing, including memory formation and focus. It is a serendipity pick that still ties back to learning systems and human performance design.",
-    category: "culture-science",
-    tags: ["music", "cognition", "science", "culture", "learning"]
-  },
-  {
-    title: "A Better Mental Model for Supply Chain Resilience",
-    url: "https://www.oecd.org/en/topics/resilience.html",
-    summary:
-      "This resource frames resilience as a portfolio of preparedness, flexibility, and recovery capability. It is useful for teams moving from one-off risk fixes to repeatable operating models across uncertain environments.",
-    category: "operations-policy",
-    tags: ["supply chain", "resilience", "operations", "policy", "risk"]
+      "Musical form affects prediction, attention, and memory encoding through repetition, variation, and expectation violation. The paper reviews mechanisms linking structural features to cognitive load and recall performance. Beyond music theory, the takeaway is broadly useful: information design that balances familiarity with surprise can improve retention and engagement without relying on noise or novelty for its own sake."
   }
 ];
-
-function tokenizeOnboardingText(text: string): Set<string> {
-  return new Set(
-    text
-      .toLowerCase()
-      .replace(/[^a-z0-9\s]/g, " ")
-      .split(/\s+/)
-      .map((token) => token.trim())
-      .filter((token) => token.length >= 3)
-  );
-}
-
-function buildPreviewBriefFromOnboardingText(text: string, targetCount = 10): SampleBriefItem[] {
-  const tokens = tokenizeOnboardingText(text);
-  const scored = BRIEF_LIBRARY.map((item, index) => {
-    const searchBlob = `${item.title} ${item.summary} ${item.tags.join(" ")}`.toLowerCase();
-    const matchCount = item.tags.reduce((count, tag) => count + (tokens.has(tag.toLowerCase()) ? 1 : 0), 0);
-    const keywordBonus = [...tokens].some((token) => searchBlob.includes(token)) ? 1 : 0;
-
-    return {
-      item,
-      score: matchCount * 3 + keywordBonus,
-      index
-    };
-  }).sort((a, b) => (b.score === a.score ? a.index - b.index : b.score - a.score));
-
-  const categoryCounts = new Map<string, number>();
-  const selected: SampleBriefItem[] = [];
-
-  for (const entry of scored) {
-    if (selected.length >= targetCount) break;
-    const currentCategoryCount = categoryCounts.get(entry.item.category) ?? 0;
-    if (currentCategoryCount >= 2) continue;
-    selected.push({
-      title: entry.item.title,
-      url: entry.item.url,
-      summary: entry.item.summary
-    });
-    categoryCounts.set(entry.item.category, currentCategoryCount + 1);
-  }
-
-  if (selected.length < targetCount) {
-    for (const entry of scored) {
-      if (selected.length >= targetCount) break;
-      const exists = selected.some((item) => item.url === entry.item.url);
-      if (exists) continue;
-      selected.push({
-        title: entry.item.title,
-        url: entry.item.url,
-        summary: entry.item.summary
-      });
-    }
-  }
-
-  return selected;
-}
-
-const SAMPLE_DAILY_BRIEF: SampleBriefItem[] = buildPreviewBriefFromOnboardingText(DEFAULT_PREVIEW_ONBOARDING_TEXT);
 
 function resolveSiteOrigin(): string {
   const browserOrigin = window.location.origin;

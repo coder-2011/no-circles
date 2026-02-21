@@ -10,7 +10,7 @@ Landing/auth-entry client page for the product.
 4. Resolves OAuth redirect origin with localhost-first logic so local runs stay on `http://localhost:*` even when production site URL env is present.
 5. Supports local sign-out and client-side navigation back to `/`.
 6. Uses wider responsive layout bounds and larger typography/button sizing so primary content occupies more of the viewport.
-7. Renders a populated `Sample Daily Brief` section with ten realistic newsletter items (title + outbound link + neutral summary) selected from a broad curated library.
+7. Renders a populated `Sample Daily Brief` section with ten realistic newsletter items (title + outbound link + neutral summary) as a static, curated exemplar.
 
 ## Why It Exists
 - Provides the single public entrypoint for authentication.
