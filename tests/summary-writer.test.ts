@@ -95,13 +95,19 @@ describe("generateNewsletterSummaries", () => {
       "Cover one to three important ideas, depending on what is needed for clarity."
     );
     expect(requestBody.messages[0]?.content).toContain(
-      "Explain ideas briefly instead of listing many parallel points."
+      "Explain ideas clearly with natural sentence flow instead of listing many parallel points."
+    );
+    expect(requestBody.messages[0]?.content).toContain(
+      "Do not compress into telegraphic or rushed writing."
+    );
+    expect(requestBody.messages[0]?.content).toContain(
+      "Use complete sentences and smooth transitions; clarity is more important than aggressive brevity."
     );
     expect(requestBody.messages[0]?.content).toContain(
       "'the key idea is', 'the main takeaway is', 'the core point is'"
     );
     expect(requestBody.messages[0]?.content).toContain(
-      "Leave some curiosity for the link; do not try to cover every section of the article."
+      "Give enough explanation to be useful on its own, while leaving some depth for the link."
     );
     expect(requestBody.messages[0]?.content).toContain(
       "Do not start the summary with meta framing such as 'this article explains/discusses/covers'. Start with concrete concepts directly."

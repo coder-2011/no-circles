@@ -14,64 +14,64 @@ type SampleBriefItem = {
 
 const SAMPLE_DAILY_BRIEF: SampleBriefItem[] = [
   {
-    title: "Why Retrieval Pipelines Fail in Production Before They Fail in Benchmarks",
+    title: "Production Retrieval Fails Quietly Before Overall Quality Drops",
     url: "https://www.pinecone.io/learn/retrieval-augmented-generation/",
     summary:
-      "Offline accuracy can look great while production answers degrade because retrieval quality drifts first. Monitoring retrieval as its own system, not just final outputs, helps teams catch quality drops early and fix recall, context quality, or ranking before trust breaks."
+      "Retrieval systems can degrade gradually while headline quality metrics still look stable. The practical lesson is to instrument retrieval itself, including recall quality and ranking behavior, rather than only scoring final answers. Teams that monitor those intermediate signals can spot drift early, fix context quality quickly, and avoid long periods of subtle user-facing errors."
   },
   {
-    title: "How Industrial Policy Works When Execution Capacity Is Real",
+    title: "Industrial Policy Works Best When Operational Capacity Is Built First",
     url: "https://www.oecd.org/industry/industrial-policy.htm",
     summary:
-      "Industrial policy succeeds when institutions can execute consistently, not just announce priorities. Programs work better when goals are narrow, milestones are measurable, and agencies can deliver on schedule; otherwise money and policy intent drift apart."
+      "Industrial strategy often fails at execution, not intention. Programs tend to produce better outcomes when governments set narrower priorities, define measurable milestones, and align agencies around delivery timelines. The article emphasizes that budget size alone is not a guarantee; policy impact depends on whether institutions can coordinate implementation with enough speed and accountability."
   },
   {
-    title: "Supply-Chain Resilience Is a Portfolio Problem, Not a Single Fix",
+    title: "Resilient Supply Chains Combine Redundancy with Decision Speed",
     url: "https://www.weforum.org/agenda/2023/01/what-is-supply-chain-resilience/",
     summary:
-      "Resilience is built from multiple safeguards working together, not one silver bullet. Cost efficiency alone can make systems fragile, while visibility, alternatives, and fast decision protocols help operations recover when shocks hit."
+      "Supply-chain resilience is strongest when multiple protections work together: visibility, supplier optionality, and explicit escalation rules. Cutting every buffer for cost efficiency can make networks brittle under stress. The useful point here is balance: organizations recover faster when they pair diversification with clear operational authority to reroute, reprioritize, and communicate quickly."
   },
   {
-    title: "Grid Congestion Is Becoming the Hidden Bottleneck for Clean-Energy Buildout",
+    title: "Grid Capacity, Not Generation Targets, Is Slowing Clean-Energy Rollout",
     url: "https://www.iea.org/reports/electricity-grids-and-secure-energy-transitions",
     summary:
-      "Clean-energy rollout is increasingly limited by grid delivery capacity, not generation ambition. Permitting, transmission planning, and long-lead equipment timelines have to move in sync or projects stall in queues."
+      "In many regions, clean-energy projects are delayed less by generation technology and more by transmission constraints. Long interconnection queues, permitting lag, and equipment lead times can stall deployment for years. The core takeaway is coordination: planning, approvals, and infrastructure procurement must be sequenced together or investment pipelines back up."
   },
   {
-    title: "Housing Production Depends on Permit Throughput More Than Policy Headlines",
+    title: "Housing Supply Rises Faster When Permitting Becomes Predictable",
     url: "https://www.brookings.edu/articles/how-local-governments-can-boost-housing-supply/",
     summary:
-      "Housing outcomes often diverge because city permitting systems run at different speeds. Supply behaves like an execution problem: predictable review timelines and simpler processes can matter as much as headline policy targets."
+      "Cities with similar housing goals can produce very different outcomes because review and permitting pipelines move at different speeds. The article treats housing as an operations challenge: standardized requirements, clearer review windows, and fewer process bottlenecks can materially increase completion rates. Policy direction still matters, but execution rhythm determines how much gets built."
   },
   {
-    title: "Protein Folding Progress Still Leaves the Hard Biology in Dynamics and Context",
+    title: "Protein Folding Models Are Powerful, but Biology Still Depends on Context",
     url: "https://www.nature.com/articles/d41586-024-00380-7",
     summary:
-      "Protein-structure prediction solved a major puzzle, but biology still depends on motion and context inside real cells. Models are powerful for structure, while experiments remain decisive for dynamic behavior and real-world function."
+      "Structure prediction has changed how quickly researchers can reason about proteins, but static structures do not fully explain biological behavior. Function often depends on interactions, conformational dynamics, and cellular environment. The article is useful for setting expectations: model outputs are a major acceleration layer, while experimental work remains essential for causal interpretation."
   },
   {
-    title: "Machiavelli’s Core Insight: Durable Orders Need Both Consent and Coercive Capacity",
+    title: "Machiavelli on Political Durability Under Real-World Instability",
     url: "https://plato.stanford.edu/entries/machiavelli/",
     summary:
-      "Machiavelli’s argument centers on political durability under stress, not just manipulation. Institutions tend to hold when legitimacy and enforcement capacity stay aligned, and weaken when either side breaks."
+      "Machiavelli is often summarized as a strategist of power, but the deeper thread is institutional durability. Orders last when legitimacy, enforcement, and political incentives remain aligned under pressure. When one side drifts, formal structure can remain in place while practical stability weakens, which makes this a useful lens for modern governance and organizational design."
   },
   {
-    title: "Cognitive Bias Debiasing Works Better as Process Design Than Willpower",
+    title: "Debiasing Works Better as System Design Than Individual Willpower",
     url: "https://thedecisionlab.com/biases",
     summary:
-      "Bias mitigation works best when it is built into process, not left to personal discipline in high-pressure moments. The article argues for structural guardrails that catch predictable reasoning errors before they shape decisions."
+      "Bias reduction is more reliable when teams redesign decision workflows instead of expecting people to self-correct in stressful moments. Structured reviews, baseline comparisons, and pre-mortems reduce repeated judgment errors. The practical value is straightforward: high-quality decisions become more repeatable when safeguards are embedded in process rather than treated as optional habits."
   },
   {
-    title: "How Musical Expectation Shapes Attention and Memory Encoding",
+    title: "Musical Expectation Explains Why Some Information Sticks Better",
     url: "https://www.frontiersin.org/articles/10.3389/fpsyg.2013.00511/full",
     summary:
-      "Music guides attention by balancing predictability and surprise. The transferable insight is that people remember information better when structure is clear but still varied enough to keep attention active."
+      "Music shapes attention by balancing predictability and surprise over time. Too much repetition lowers engagement, while too much novelty raises cognitive load. The article connects that balance to memory formation, offering a useful design analogy: information is retained better when structure is clear enough to follow but varied enough to sustain focus."
   },
   {
-    title: "Experimentation Programs Fail When Metrics Are Detached from Decisions",
+    title: "Experimentation Fails When Metrics Drift Away from Real Decisions",
     url: "https://www.gov.uk/service-manual/measuring-success/ab-testing",
     summary:
-      "A/B testing becomes misleading when metrics are easy to move but disconnected from real product choices. Experiments tied to decision quality and guardrails reduce the risk of local wins that degrade long-term outcomes."
+      "A/B testing programs lose value when success metrics are easy to move but weakly tied to actual product decisions. The article emphasizes hypothesis clarity, guardrail metrics, and stopping rules that protect long-term outcomes. Good experimentation is not just about statistical significance; it is about generating evidence that can guide durable product choices."
   }
 ];
 
