@@ -24,11 +24,12 @@ Implements PR3 memory processing and inbound webhook update safety:
 3. Route persists processor output to `users.interest_memory_text`.
 4. Inbound route receives signed Resend webhook and verifies Svix signature from raw body.
 5. Route extracts sender email from `data.from` and text from `data.text`.
-6. Unknown sender or empty text returns `{ ok: true, status: "ignored" }`.
-7. Valid events reserve idempotency key in `processed_webhooks` using provider message id when present (`provider + message:*`), else fallback event id (`provider + event:svix-id`).
-8. If key already exists, route returns `{ ok: true, status: "ignored" }`.
-9. If key is new, route updates `users.interest_memory_text` once and returns `updated`.
-10. Reply memory update path expects model JSON ops, validates via zod, applies deterministic merge rules, and falls back on invalid/unavailable model outputs.
+6. Empty text returns `{ ok: true, status: "ignored" }`.
+7. Unknown sender triggers best-effort guidance auto-reply asking for subscribed-account reply, then returns `{ ok: true, status: "ignored" }`.
+8. Valid events reserve idempotency key in `processed_webhooks` using provider message id when present (`provider + message:*`), else fallback event id (`provider + event:svix-id`).
+9. If key already exists, route returns `{ ok: true, status: "ignored" }`.
+10. If key is new, route updates `users.interest_memory_text` once and returns `updated`.
+11. Reply memory update path expects model JSON ops, validates via zod, applies deterministic merge rules, and falls back on invalid/unavailable model outputs.
 
 ## Operational Notes
 - Memory processor emits lightweight structured logs for model success/failure/schema-invalid/fallback events.

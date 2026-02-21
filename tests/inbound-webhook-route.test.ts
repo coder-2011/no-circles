@@ -4,10 +4,13 @@ const {
   testState,
   selectMock,
   fromMock,
+  innerJoinMock,
   whereMock,
+  orderByMock,
   limitMock,
   transactionMock,
   mergeReplyIntoMemoryMock,
+  sendTransactionalEmailMock,
   getSvixHeadersMock,
   verifyResendWebhookSignatureMock
 } = vi.hoisted(() => {
@@ -18,7 +21,9 @@ const {
         "PERSONALITY:\n- Curious\n\nACTIVE_INTERESTS:\n- AI\n\nSUPPRESSED_INTERESTS:\n-\n\nRECENT_FEEDBACK:\n-"
     } as { id: string; interestMemoryText: string } | null,
     reserveSucceeds: true,
-    reservedWebhookKey: null as string | null
+    reservedWebhookKey: null as string | null,
+    linkedSubscribedEmail: null as string | null,
+    limitCallCount: 0
   };
 
   type TransactionContext = {
@@ -36,9 +41,22 @@ const {
     };
   };
 
-  const limit = vi.fn(async () => (state.user ? [state.user] : []));
-  const where = vi.fn(() => ({ limit }));
-  const from = vi.fn(() => ({ where }));
+  const limit = vi.fn(async () => {
+    state.limitCallCount += 1;
+    if (state.user) {
+      return [state.user];
+    }
+
+    if (state.linkedSubscribedEmail && state.limitCallCount > 1) {
+      return [{ email: state.linkedSubscribedEmail }];
+    }
+
+    return [];
+  });
+  const orderBy = vi.fn(() => ({ limit }));
+  const where = vi.fn(() => ({ limit, orderBy }));
+  const innerJoin = vi.fn(() => ({ where }));
+  const from = vi.fn(() => ({ where, innerJoin }));
   const select = vi.fn(() => ({ from }));
 
   const transaction = vi.fn(async (callback: (tx: TransactionContext) => Promise<"ignored" | "updated">) => {
@@ -67,10 +85,13 @@ const {
     testState: state,
     selectMock: select,
     fromMock: from,
+    innerJoinMock: innerJoin,
     whereMock: where,
+    orderByMock: orderBy,
     limitMock: limit,
     transactionMock: transaction,
     mergeReplyIntoMemoryMock: vi.fn(async () => "PERSONALITY:\n- Updated\n\nACTIVE_INTERESTS:\n- Economics\n\nSUPPRESSED_INTERESTS:\n- Crypto\n\nRECENT_FEEDBACK:\n- Wants less crypto"),
+    sendTransactionalEmailMock: vi.fn(async () => ({ ok: true, providerMessageId: "msg_auto_reply", attempts: 1, error: null })),
     getSvixHeadersMock: vi.fn(() => ({
       svixId: "msg_123",
       svixTimestamp: "1700000000",
@@ -91,6 +112,10 @@ vi.mock("@/lib/memory/processors", () => ({
   mergeReplyIntoMemory: mergeReplyIntoMemoryMock
 }));
 
+vi.mock("@/lib/email/send-newsletter", () => ({
+  sendTransactionalEmail: sendTransactionalEmailMock
+}));
+
 vi.mock("@/lib/webhooks/resend-signature", () => ({
   getSvixHeaders: getSvixHeadersMock,
   verifyResendWebhookSignature: verifyResendWebhookSignatureMock
@@ -108,13 +133,18 @@ describe("POST /api/webhooks/resend/inbound", () => {
     };
     testState.reserveSucceeds = true;
     testState.reservedWebhookKey = null;
+    testState.linkedSubscribedEmail = null;
+    testState.limitCallCount = 0;
 
     selectMock.mockClear();
     fromMock.mockClear();
+    innerJoinMock.mockClear();
     whereMock.mockClear();
+    orderByMock.mockClear();
     limitMock.mockClear();
     transactionMock.mockClear();
     mergeReplyIntoMemoryMock.mockClear();
+    sendTransactionalEmailMock.mockClear();
     getSvixHeadersMock.mockClear();
     verifyResendWebhookSignatureMock.mockClear();
   });
@@ -185,6 +215,35 @@ describe("POST /api/webhooks/resend/inbound", () => {
     expect(mergeReplyIntoMemoryMock).toHaveBeenCalledTimes(1);
     expect(transactionMock).toHaveBeenCalledTimes(1);
     expect(testState.reservedWebhookKey).toBe("message:re_abc123");
+  });
+
+  it("sends helpful auto-reply when sender is unknown", async () => {
+    testState.user = null;
+    testState.linkedSubscribedEmail = "known-user@example.com";
+
+    const response = await POST(
+      new Request("http://localhost/api/webhooks/resend/inbound", {
+        method: "POST",
+        body: JSON.stringify({
+          data: {
+            from: "Alt <alias@example.com>",
+            text: "more ai",
+            headers: { "in-reply-to": "<msg_known_1>" }
+          }
+        })
+      })
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true, status: "ignored" });
+    expect(sendTransactionalEmailMock).toHaveBeenCalledTimes(1);
+    expect(sendTransactionalEmailMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: "alias@example.com",
+        subject: "Use your subscribed email to update No Circles"
+      })
+    );
+    expect(transactionMock).not.toHaveBeenCalled();
   });
 
   it("ignores replay when provider message id repeats even if svix-id changes", async () => {

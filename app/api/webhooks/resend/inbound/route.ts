@@ -1,7 +1,8 @@
-import { eq, sql } from "drizzle-orm";
+import { desc, eq, inArray, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db/client";
-import { processedWebhooks, users } from "@/lib/db/schema";
+import { outboundSendIdempotency, processedWebhooks, users } from "@/lib/db/schema";
+import { sendTransactionalEmail } from "@/lib/email/send-newsletter";
 import { mergeReplyIntoMemory } from "@/lib/memory/processors";
 import { resendInboundWebhookSchema } from "@/lib/schemas";
 import { getSvixHeaders, verifyResendWebhookSignature } from "@/lib/webhooks/resend-signature";
@@ -34,6 +35,90 @@ function resolveMessageId(payload: (typeof resendInboundWebhookSchema)["_output"
     toNonEmptyString(data.id) ??
     headerMessageId
   );
+}
+
+function getHeaderCaseInsensitive(headers: Record<string, string> | undefined, key: string): string | null {
+  if (!headers) {
+    return null;
+  }
+
+  const lookup = key.toLowerCase();
+  for (const [headerKey, value] of Object.entries(headers)) {
+    if (headerKey.toLowerCase() !== lookup) {
+      continue;
+    }
+
+    const normalized = toNonEmptyString(value);
+    if (normalized) {
+      return normalized;
+    }
+  }
+
+  return null;
+}
+
+function normalizeMessageToken(value: string): string {
+  return value.replace(/[<>]/g, "").trim();
+}
+
+function collectThreadMessageIds(headers: Record<string, string> | undefined): string[] {
+  const inReplyTo = getHeaderCaseInsensitive(headers, "in-reply-to");
+  const references = getHeaderCaseInsensitive(headers, "references");
+
+  const values = [inReplyTo, references].filter((value): value is string => Boolean(value));
+  const tokens = values
+    .flatMap((value) => value.split(/\s+/))
+    .map((token) => normalizeMessageToken(token))
+    .filter((token) => token.length > 0);
+
+  return [...new Set(tokens)];
+}
+
+async function resolveSubscribedEmailForThread(headers: Record<string, string> | undefined): Promise<string | null> {
+  const threadMessageIds = collectThreadMessageIds(headers);
+  if (threadMessageIds.length === 0) {
+    return null;
+  }
+
+  const rows = await db
+    .select({
+      email: users.email
+    })
+    .from(outboundSendIdempotency)
+    .innerJoin(users, eq(outboundSendIdempotency.userId, users.id))
+    .where(inArray(outboundSendIdempotency.providerMessageId, threadMessageIds))
+    .orderBy(desc(outboundSendIdempotency.updatedAt))
+    .limit(1);
+
+  return rows[0]?.email ?? null;
+}
+
+async function sendWrongAccountAutoReply(args: { to: string; subscribedEmail: string | null }) {
+  const subscribedLine = args.subscribedEmail
+    ? `Please reply from your subscribed email address: ${args.subscribedEmail}.`
+    : "Please reply from the same email address you used to sign up for No Circles.";
+
+  const text = [
+    "We got your reply, but it came from an email address that is not linked to your No Circles account.",
+    subscribedLine,
+    "If this was intentional, update your account email first and then reply again."
+  ].join("\n\n");
+
+  const html = [
+    "<div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 640px; margin: 0 auto; padding: 24px;\">",
+    "<h2 style=\"margin-top: 0;\">Reply From Your Subscribed Email</h2>",
+    "<p style=\"line-height: 1.5;\">We got your reply, but it came from an email address that is not linked to your No Circles account.</p>",
+    `<p style=\"line-height: 1.5;\">${subscribedLine}</p>`,
+    "<p style=\"line-height: 1.5; color: #555;\">If this was intentional, update your account email first and then reply again.</p>",
+    "</div>"
+  ].join("\n");
+
+  await sendTransactionalEmail({
+    to: args.to,
+    subject: "Use your subscribed email to update No Circles",
+    html,
+    text
+  });
 }
 
 export async function POST(request: Request) {
@@ -104,6 +189,8 @@ export async function POST(request: Request) {
       .limit(1);
 
     if (!user) {
+      const subscribedEmail = await resolveSubscribedEmailForThread(parsedPayload.data.data.headers).catch(() => null);
+      await sendWrongAccountAutoReply({ to: senderEmail, subscribedEmail }).catch(() => undefined);
       return NextResponse.json({ ok: true, status: "ignored" });
     }
 

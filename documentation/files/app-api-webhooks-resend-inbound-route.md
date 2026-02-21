@@ -18,13 +18,14 @@ Processes inbound email replies from Resend and updates user memory exactly once
 4. Extract sender email from `data.from` (supports `Name <email>` format).
 5. Ignore empty reply text.
 6. Look up user by sender email.
-7. Generate updated memory via reply processor.
-8. In a DB transaction:
+7. If sender is unknown, send best-effort guidance auto-reply asking the user to reply from their subscribed email (using thread headers when available to suggest address), then return `ignored`.
+8. Generate updated memory via reply processor.
+9. In a DB transaction:
    - reserve idempotency key in `processed_webhooks` using `provider + message-id` when available
    - fallback to `provider + svix-id` only when provider message id is missing
    - skip when already processed
    - update `users.interest_memory_text` when newly reserved
-9. Return `updated` or `ignored`.
+10. Return `updated` or `ignored`.
 
 ## Responses
 - `200 { ok: true, status: "updated", user_id }`
