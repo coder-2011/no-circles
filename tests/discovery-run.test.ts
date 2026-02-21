@@ -609,4 +609,85 @@ describe("runDiscovery", () => {
     expect(firstCallArgs.alreadySelected).toEqual([]);
     expect(secondCallArgs.alreadySelected).toEqual([{ topic: "AI engineering", title: "AI Title 1" }]);
   });
+
+  it("builds full cumulative selector context across ten topics", async () => {
+    const topics = [
+      "topic 1",
+      "topic 2",
+      "topic 3",
+      "topic 4",
+      "topic 5",
+      "topic 6",
+      "topic 7",
+      "topic 8",
+      "topic 9",
+      "topic 10"
+    ];
+
+    const memoryTenTopics = [
+      "PERSONALITY:",
+      "- practical",
+      "",
+      "ACTIVE_INTERESTS:",
+      ...topics.map((topic) => `- ${topic}`),
+      "",
+      "SUPPRESSED_INTERESTS:",
+      "-",
+      "",
+      "RECENT_FEEDBACK:",
+      "- less hype"
+    ].join("\n");
+
+    const exaSearch = vi.fn(async ({ query }: { query: string; numResults: number }) => {
+      const matchedTopic = topics.find((topic) => query.startsWith(topic));
+      if (!matchedTopic) {
+        throw new Error(`unexpected_topic_query:${query}`);
+      }
+
+      return [
+        {
+          url: `https://example.com/${matchedTopic.replace(/\s+/g, "-")}/primary`,
+          title: `${matchedTopic} primary`,
+          highlights: ["x"],
+          score: 0.9
+        },
+        {
+          url: `https://example.com/${matchedTopic.replace(/\s+/g, "-")}/secondary`,
+          title: `${matchedTopic} secondary`,
+          highlights: ["x"],
+          score: 0.85
+        }
+      ];
+    });
+
+    const linkSelector = vi.fn(async () => 0);
+
+    const result = await runDiscovery(
+      {
+        interestMemoryText: memoryTenTopics,
+        targetCount: 10,
+        maxRetries: 1,
+        maxTopics: 10,
+        perTopicResults: 2
+      },
+      { exaSearch, linkSelector }
+    );
+
+    expect(result.candidates).toHaveLength(10);
+    expect(linkSelector).toHaveBeenCalledTimes(10);
+
+    for (let callIndex = 0; callIndex < 10; callIndex += 1) {
+      const callArgs = linkSelector.mock.calls[callIndex]?.[0] as {
+        topic: string;
+        alreadySelected: Array<{ topic: string; title: string }>;
+      };
+      const expectedAlreadySelected = topics.slice(0, callIndex).map((topic) => ({
+        topic,
+        title: `${topic} primary`
+      }));
+
+      expect(callArgs.topic).toBe(topics[callIndex]);
+      expect(callArgs.alreadySelected).toEqual(expectedAlreadySelected);
+    }
+  });
 });
