@@ -97,6 +97,15 @@ describe("generateNewsletterSummaries", () => {
     expect(requestBody.messages[0]?.content).toContain(
       "Do not start the summary with meta framing such as 'this article explains/discusses/covers'. Start with concrete concepts directly."
     );
+    expect(requestBody.messages[0]?.content).toContain(
+      "Avoid redundant phrasing and repeated ideas (for example contrast pairs that restate the same point)."
+    );
+    expect(requestBody.messages[0]?.content).toContain(
+      "Merge overlapping concepts into one precise phrase when possible, but keep grammatical flow natural."
+    );
+    expect(requestBody.messages[0]?.content).toContain(
+      "Do not remove words that are necessary for correctness, nuance, or readability."
+    );
   });
 
   it("retries once and then falls back to local summary when model is invalid", async () => {
