@@ -12,7 +12,7 @@ Runs one Anthropic model call per topic to select the best candidate link from S
 3. Sends topic, user memory snippet, progressive issue context (`alreadySelected` as topic/title pairs from prior topic selections), and numbered candidate list with short URL excerpt text when available.
 4. Selector prompt uses a concise contract: prioritize exact topic fit + evidence density (mechanisms, named systems, quantitative outcomes, incident details, reproducible steps), apply hard rejects for low-signal SEO-like and logistics-first pages, then abstain with `NULL` if nothing passes quality bar.
 5. Selector prompt enforces reader-value gate: prefer candidates with transferable mechanisms/findings/tradeoffs from excerpt text (not keyword density).
-6. Selector prompt explicitly avoids title-only bias (impressive wording without excerpt substance) and applies a lightweight diversity tie-break only when two candidates are similarly strong.
+6. Selector prompt explicitly avoids title-only bias (impressive wording without excerpt substance) and applies generalized diversity guardrails so closely related topics are only treated as distinct when they add a clearly different lens; otherwise broader coverage is preferred when quality is comparable.
 7. Expects strict JSON output: `{"selected_index": <1-based integer or "NULL">, "rationale": "<short text>"}`.
 8. Parses JSON output first and retains integer-text fallback parsing for compatibility.
 9. Returns zero-based selected index or `null`.
