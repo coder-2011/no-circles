@@ -49,6 +49,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/app-globals-css.md`
 - `files/app-layout.md`
 - `files/app-not-found.md`
+- `files/app-celebration-sandbox-page.md`
 - `files/app-onboarding-page.md`
 - `files/app-onboarding-onboarding-config.md`
 - `files/app-onboarding-use-onboarding-controller.md`

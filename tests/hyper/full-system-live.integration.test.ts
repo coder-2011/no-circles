@@ -5,14 +5,20 @@ import { generateNewsletterSummaries } from "@/lib/summary/writer";
 import { buildRunId, toPrettyJson, writeHyperLog } from "@/tests/hyper/logging";
 
 const BRAIN_DUMP = [
-  "Okay so brain dump, messy version: I care a lot about AI engineering + coding with agents (what works in prod, what breaks, why).",
-  "I want practical deep dives: migrations, incident postmortems, benchmarks, architecture tradeoffs, reliability constraints, and cost/perf tradeoffs in real systems.",
-  "I’m also into distributed systems + software architecture + data engineering, but please not generic SEO explainers or fluffy trend recaps.",
-  "Outside pure eng: philosophy of science, political history, behavioral economics, evolutionary biology, and science-driven writing all interest me.",
-  "I like pieces that teach mechanisms and decision frameworks, not just event announcements, conference pages, institutional boilerplate, or admin updates.",
-  "Recency matters a lot for AI tools/APIs/platform workflows and security incidents; less so for timeless domains where best explainers may be older.",
-  "Tone preference: neutral, evidence-first, concrete, with uncertainty when needed. Less hype. More first-hand detail, failure modes, constraints, and what changed in practice.",
-  "If possible include a little serendipity but keep it adjacent to my interests and high-signal."
+  "Messy but real brain dump: I want a genuinely mixed daily brief, not mostly tech.",
+  "Give me strong pieces across AI/software, global politics/history, economics and business strategy, climate/energy, biology and medicine, psychology, design/architecture, and arts/literature.",
+  "I still care about engineering depth (postmortems, system tradeoffs, reliability lessons), but cap pure engineering to a minority of the issue.",
+  "For policy/history, prioritize concrete analyses of institutions, geopolitical shifts, governance experiments, and second-order effects.",
+  "For science, include mechanistic explainers and major results in biology, neuroscience, physics, and public health; avoid press-release fluff.",
+  "For economics/business, I want market structure, incentives, labor/productivity, industrial policy, and company strategy with evidence.",
+  "For arts/culture, include architecture, film, music, literature, and cultural history when there is deep context and clear learning value.",
+  "I like synthesis and transfer: what lessons from one domain can improve decisions in another.",
+  "Please avoid logistics pages (events, conference schedules, registration, job posts, generic department pages, vendor landing pages).",
+  "Prefer authoritative primary or high-trust secondary sources: major research institutions, established publications, official datasets, and serious analysis outlets.",
+  "Avoid press releases, generic listicles, AI-generated roundups, thin aggregation blogs, and pages dominated by navigation text.",
+  "Tone: neutral, high-signal, specific, evidence-first, with uncertainty called out where needed.",
+  "Recency should be adaptive: fast-moving domains can be fresh; timeless topics can use older but authoritative sources.",
+  "Add a little serendipity each day, but keep everything substantive."
 ].join(" ");
 
 function missingLiveEnv(): string[] {
