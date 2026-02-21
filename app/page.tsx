@@ -17,7 +17,7 @@ const SAMPLE_DAILY_BRIEF: SampleBriefItem[] = [
     title: "Why Retrieval Pipelines Fail in Production Before They Fail in Benchmarks",
     url: "https://www.pinecone.io/learn/retrieval-augmented-generation/",
     summary:
-      "Offline accuracy can look great while production answers degrade because retrieval quality drifts first. The key idea is to monitor retrieval as its own system, not just final outputs, so teams can catch quality drops early and fix recall, context quality, or ranking before trust breaks."
+      "Offline accuracy can look great while production answers degrade because retrieval quality drifts first. Monitoring retrieval as its own system, not just final outputs, helps teams catch quality drops early and fix recall, context quality, or ranking before trust breaks."
   },
   {
     title: "How Industrial Policy Works When Execution Capacity Is Real",
@@ -29,31 +29,31 @@ const SAMPLE_DAILY_BRIEF: SampleBriefItem[] = [
     title: "Supply-Chain Resilience Is a Portfolio Problem, Not a Single Fix",
     url: "https://www.weforum.org/agenda/2023/01/what-is-supply-chain-resilience/",
     summary:
-      "Resilience is built from multiple safeguards working together, not one silver bullet. The article’s core point is that cost efficiency alone makes systems fragile, while visibility, alternatives, and fast decision protocols help operations recover when shocks hit."
+      "Resilience is built from multiple safeguards working together, not one silver bullet. Cost efficiency alone can make systems fragile, while visibility, alternatives, and fast decision protocols help operations recover when shocks hit."
   },
   {
     title: "Grid Congestion Is Becoming the Hidden Bottleneck for Clean-Energy Buildout",
     url: "https://www.iea.org/reports/electricity-grids-and-secure-energy-transitions",
     summary:
-      "Clean-energy rollout is increasingly limited by grid delivery capacity, not generation ambition. The main takeaway is coordination: permitting, transmission planning, and long-lead equipment timelines have to move in sync or projects stall in queues."
+      "Clean-energy rollout is increasingly limited by grid delivery capacity, not generation ambition. Permitting, transmission planning, and long-lead equipment timelines have to move in sync or projects stall in queues."
   },
   {
     title: "Housing Production Depends on Permit Throughput More Than Policy Headlines",
     url: "https://www.brookings.edu/articles/how-local-governments-can-boost-housing-supply/",
     summary:
-      "Housing outcomes often diverge because city permitting systems run at different speeds. The article’s central claim is that supply is an execution problem: predictable review timelines and simpler processes can matter as much as headline policy targets."
+      "Housing outcomes often diverge because city permitting systems run at different speeds. Supply behaves like an execution problem: predictable review timelines and simpler processes can matter as much as headline policy targets."
   },
   {
     title: "Protein Folding Progress Still Leaves the Hard Biology in Dynamics and Context",
     url: "https://www.nature.com/articles/d41586-024-00380-7",
     summary:
-      "Protein-structure prediction solved a major puzzle, but biology still depends on motion and context inside real cells. The useful point is where models stop being enough and experiments still carry the decisive evidence."
+      "Protein-structure prediction solved a major puzzle, but biology still depends on motion and context inside real cells. Models are powerful for structure, while experiments remain decisive for dynamic behavior and real-world function."
   },
   {
     title: "Machiavelli’s Core Insight: Durable Orders Need Both Consent and Coercive Capacity",
     url: "https://plato.stanford.edu/entries/machiavelli/",
     summary:
-      "Machiavelli’s core lesson is about political durability under stress, not just manipulation. Institutions tend to hold when legitimacy and enforcement capacity stay aligned, and weaken when either side breaks."
+      "Machiavelli’s argument centers on political durability under stress, not just manipulation. Institutions tend to hold when legitimacy and enforcement capacity stay aligned, and weaken when either side breaks."
   },
   {
     title: "Cognitive Bias Debiasing Works Better as Process Design Than Willpower",
@@ -71,7 +71,7 @@ const SAMPLE_DAILY_BRIEF: SampleBriefItem[] = [
     title: "Experimentation Programs Fail When Metrics Are Detached from Decisions",
     url: "https://www.gov.uk/service-manual/measuring-success/ab-testing",
     summary:
-      "A/B testing becomes misleading when metrics are easy to move but disconnected from real product choices. The main idea is to tie experiments to decision-quality and guardrails, so local wins do not degrade long-term outcomes."
+      "A/B testing becomes misleading when metrics are easy to move but disconnected from real product choices. Experiments tied to decision quality and guardrails reduce the risk of local wins that degrade long-term outcomes."
   }
 ];
 

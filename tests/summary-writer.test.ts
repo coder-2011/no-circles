@@ -92,10 +92,13 @@ describe("generateNewsletterSummaries", () => {
       "Use clear, direct language and prefer simpler words when accuracy is unchanged."
     );
     expect(requestBody.messages[0]?.content).toContain(
-      "Focus on one main idea. Include up to two supporting points only when they make the main idea clearer."
+      "Cover one to three important ideas, depending on what is needed for clarity."
     );
     expect(requestBody.messages[0]?.content).toContain(
-      "Explain the idea briefly instead of listing many parallel points."
+      "Explain ideas briefly instead of listing many parallel points."
+    );
+    expect(requestBody.messages[0]?.content).toContain(
+      "'the key idea is', 'the main takeaway is', 'the core point is'"
     );
     expect(requestBody.messages[0]?.content).toContain(
       "Leave some curiosity for the link; do not try to cover every section of the article."
