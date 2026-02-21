@@ -14,6 +14,12 @@ const { sendUserNewsletterMock } = vi.hoisted(() => {
   return { sendUserNewsletterMock: sendUserNewsletter };
 });
 
+const { logWarnMock, logInfoMock, logErrorMock } = vi.hoisted(() => ({
+  logWarnMock: vi.fn(),
+  logInfoMock: vi.fn(),
+  logErrorMock: vi.fn()
+}));
+
 vi.mock("@/lib/db/client", () => ({
   db: {
     execute: executeMock
@@ -24,13 +30,22 @@ vi.mock("@/lib/pipeline/send-user-newsletter", () => ({
   sendUserNewsletter: sendUserNewsletterMock
 }));
 
-import { POST } from "@/app/api/cron/generate-next/route";
+vi.mock("@/lib/observability/log", () => ({
+  logWarn: logWarnMock,
+  logInfo: logInfoMock,
+  logError: logErrorMock
+}));
+
+import { GET, POST } from "@/app/api/cron/generate-next/route";
 
 describe("POST /api/cron/generate-next", () => {
   beforeEach(() => {
     process.env.CRON_SECRET = "cron-secret";
     executeMock.mockClear();
     sendUserNewsletterMock.mockClear();
+    logWarnMock.mockClear();
+    logInfoMock.mockClear();
+    logErrorMock.mockClear();
   });
 
   it("rejects unauthorized requests", async () => {
@@ -49,6 +64,11 @@ describe("POST /api/cron/generate-next", () => {
       message: "Unauthorized."
     });
     expect(executeMock).not.toHaveBeenCalled();
+    expect(logWarnMock).toHaveBeenCalledWith(
+      "cron_generate_next",
+      "unauthorized",
+      expect.objectContaining({ reason: "missing_authorization_header" })
+    );
   });
 
   it("rejects requests when bearer token is incorrect", async () => {
@@ -70,6 +90,11 @@ describe("POST /api/cron/generate-next", () => {
       message: "Unauthorized."
     });
     expect(executeMock).not.toHaveBeenCalled();
+    expect(logWarnMock).toHaveBeenCalledWith(
+      "cron_generate_next",
+      "unauthorized",
+      expect.objectContaining({ reason: "invalid_bearer_token" })
+    );
   });
 
   it("rejects requests when CRON_SECRET is missing", async () => {
@@ -93,6 +118,11 @@ describe("POST /api/cron/generate-next", () => {
       message: "Unauthorized."
     });
     expect(executeMock).not.toHaveBeenCalled();
+    expect(logWarnMock).toHaveBeenCalledWith(
+      "cron_generate_next",
+      "unauthorized",
+      expect.objectContaining({ reason: "missing_secret" })
+    );
   });
 
   it("returns no_due_user when selector returns no rows", async () => {
@@ -209,6 +239,11 @@ describe("POST /api/cron/generate-next", () => {
       message: "Invalid cron payload."
     });
     expect(executeMock).not.toHaveBeenCalled();
+    expect(logWarnMock).toHaveBeenCalledWith(
+      "cron_generate_next",
+      "invalid_payload",
+      expect.objectContaining({ route: "POST /api/cron/generate-next" })
+    );
   });
 
   it("returns 400 when batch_size exceeds validation bounds", async () => {
@@ -270,5 +305,20 @@ describe("POST /api/cron/generate-next", () => {
       error_code: "INTERNAL_ERROR",
       message: "Failed to select due user."
     });
+  });
+
+  it("returns 405 for GET requests", async () => {
+    const response = await GET();
+    expect(response.status).toBe(405);
+    expect(await response.json()).toEqual({
+      ok: false,
+      error_code: "METHOD_NOT_ALLOWED",
+      message: "Method not allowed."
+    });
+    expect(logWarnMock).toHaveBeenCalledWith(
+      "cron_generate_next",
+      "method_not_allowed",
+      expect.objectContaining({ method: "GET" })
+    );
   });
 });

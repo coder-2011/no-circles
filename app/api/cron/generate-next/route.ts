@@ -19,6 +19,10 @@ type CronPipelineResult = {
   error: string | null;
 };
 
+type CronAuthorizationResult =
+  | { ok: true }
+  | { ok: false; reason: "missing_secret" | "missing_authorization_header" | "invalid_bearer_token" };
+
 async function runWithConcurrency<T, R>(
   items: readonly T[],
   concurrency: number,
@@ -45,25 +49,33 @@ async function runWithConcurrency<T, R>(
   return results;
 }
 
-function isAuthorized(request: Request): boolean {
+function authorizeRequest(request: Request): CronAuthorizationResult {
   const secret = process.env.CRON_SECRET;
 
   if (!secret) {
-    return false;
+    return { ok: false, reason: "missing_secret" };
   }
 
   const authHeader = request.headers.get("authorization");
 
   if (!authHeader) {
-    return false;
+    return { ok: false, reason: "missing_authorization_header" };
   }
 
-  return authHeader === `Bearer ${secret}`;
+  if (authHeader !== `Bearer ${secret}`) {
+    return { ok: false, reason: "invalid_bearer_token" };
+  }
+
+  return { ok: true };
 }
 
 export async function POST(request: Request) {
-  if (!isAuthorized(request)) {
-    logWarn("cron_generate_next", "unauthorized", { route: CRON_ROUTE });
+  const authResult = authorizeRequest(request);
+  if (!authResult.ok) {
+    logWarn("cron_generate_next", "unauthorized", {
+      route: CRON_ROUTE,
+      reason: authResult.reason
+    });
     return NextResponse.json(
       { ok: false, error_code: "UNAUTHORIZED", message: "Unauthorized." },
       { status: 401 }
@@ -74,6 +86,7 @@ export async function POST(request: Request) {
   const parsed = cronGenerateNextSchema.safeParse(json);
 
   if (!parsed.success) {
+    logWarn("cron_generate_next", "invalid_payload", { route: CRON_ROUTE });
     return NextResponse.json(
       { ok: false, error_code: "INVALID_PAYLOAD", message: "Invalid cron payload." },
       { status: 400 }
@@ -200,4 +213,12 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
+}
+
+export async function GET() {
+  logWarn("cron_generate_next", "method_not_allowed", { route: CRON_ROUTE, method: "GET" });
+  return NextResponse.json(
+    { ok: false, error_code: "METHOD_NOT_ALLOWED", message: "Method not allowed." },
+    { status: 405 }
+  );
 }

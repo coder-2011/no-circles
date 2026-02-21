@@ -4,10 +4,12 @@ import { db } from "@/lib/db/client";
 import { outboundSendIdempotency, processedWebhooks, users } from "@/lib/db/schema";
 import { sendTransactionalEmail } from "@/lib/email/send-newsletter";
 import { mergeReplyIntoMemory } from "@/lib/memory/processors";
+import { logError, logInfo, logWarn } from "@/lib/observability/log";
 import { resendInboundWebhookSchema } from "@/lib/schemas";
 import { getSvixHeaders, verifyResendWebhookSignature } from "@/lib/webhooks/resend-signature";
 
 const PROVIDER = "resend";
+const INBOUND_ROUTE = "POST /api/webhooks/resend/inbound";
 
 function extractSenderEmail(fromField: string): string | null {
   const match = fromField.match(/<([^>]+)>/);
@@ -125,6 +127,7 @@ export async function POST(request: Request) {
   const webhookSecret = process.env.RESEND_WEBHOOK_SECRET;
 
   if (!webhookSecret) {
+    logError("webhook_inbound", "missing_webhook_secret", { route: INBOUND_ROUTE });
     return NextResponse.json(
       { ok: false, error_code: "INTERNAL_ERROR", message: "Missing webhook secret configuration." },
       { status: 500 }
@@ -133,6 +136,7 @@ export async function POST(request: Request) {
 
   const signatureHeaders = getSvixHeaders(request);
   if (!signatureHeaders) {
+    logWarn("webhook_inbound", "missing_signature_headers", { route: INBOUND_ROUTE });
     return NextResponse.json(
       { ok: false, error_code: "INVALID_SIGNATURE", message: "Missing webhook signature headers." },
       { status: 401 }
@@ -142,6 +146,10 @@ export async function POST(request: Request) {
   const rawBody = await request.text();
 
   if (!verifyResendWebhookSignature(rawBody, signatureHeaders, webhookSecret)) {
+    logWarn("webhook_inbound", "invalid_signature", {
+      route: INBOUND_ROUTE,
+      svix_id: signatureHeaders.svixId
+    });
     return NextResponse.json(
       { ok: false, error_code: "INVALID_SIGNATURE", message: "Invalid webhook signature." },
       { status: 401 }
@@ -157,6 +165,10 @@ export async function POST(request: Request) {
   })();
 
   if (!parsedJson) {
+    logWarn("webhook_inbound", "invalid_payload_json", {
+      route: INBOUND_ROUTE,
+      svix_id: signatureHeaders.svixId
+    });
     return NextResponse.json(
       { ok: false, error_code: "INVALID_PAYLOAD", message: "Invalid inbound payload." },
       { status: 400 }
@@ -165,6 +177,10 @@ export async function POST(request: Request) {
 
   const parsedPayload = resendInboundWebhookSchema.safeParse(parsedJson);
   if (!parsedPayload.success) {
+    logWarn("webhook_inbound", "invalid_payload_schema", {
+      route: INBOUND_ROUTE,
+      svix_id: signatureHeaders.svixId
+    });
     return NextResponse.json(
       { ok: false, error_code: "INVALID_PAYLOAD", message: "Invalid inbound payload." },
       { status: 400 }
@@ -173,11 +189,20 @@ export async function POST(request: Request) {
 
   const senderEmail = extractSenderEmail(parsedPayload.data.data.from);
   if (!senderEmail) {
+    logInfo("webhook_inbound", "ignored_invalid_sender", {
+      route: INBOUND_ROUTE,
+      svix_id: signatureHeaders.svixId
+    });
     return NextResponse.json({ ok: true, status: "ignored" });
   }
 
   const inboundReplyText = parsedPayload.data.data.text.trim();
   if (!inboundReplyText) {
+    logInfo("webhook_inbound", "ignored_empty_text", {
+      route: INBOUND_ROUTE,
+      svix_id: signatureHeaders.svixId,
+      sender_email: senderEmail
+    });
     return NextResponse.json({ ok: true, status: "ignored" });
   }
 
@@ -191,6 +216,11 @@ export async function POST(request: Request) {
     if (!user) {
       const subscribedEmail = await resolveSubscribedEmailForThread(parsedPayload.data.data.headers).catch(() => null);
       await sendWrongAccountAutoReply({ to: senderEmail, subscribedEmail }).catch(() => undefined);
+      logInfo("webhook_inbound", "ignored_unknown_sender", {
+        route: INBOUND_ROUTE,
+        svix_id: signatureHeaders.svixId,
+        sender_email: senderEmail
+      });
       return NextResponse.json({ ok: true, status: "ignored" });
     }
 
@@ -225,14 +255,38 @@ export async function POST(request: Request) {
     });
 
     if (status === "ignored") {
+      logInfo("webhook_inbound", "ignored_replay", {
+        route: INBOUND_ROUTE,
+        svix_id: signatureHeaders.svixId,
+        user_id: user.id,
+        dedupe_key: dedupeKey
+      });
       return NextResponse.json({ ok: true, status: "ignored" });
     }
 
+    logInfo("webhook_inbound", "updated", {
+      route: INBOUND_ROUTE,
+      svix_id: signatureHeaders.svixId,
+      user_id: user.id
+    });
     return NextResponse.json({ ok: true, status: "updated", user_id: user.id });
-  } catch {
+  } catch (error) {
+    logError("webhook_inbound", "error", {
+      route: INBOUND_ROUTE,
+      svix_id: signatureHeaders.svixId,
+      error
+    });
     return NextResponse.json(
       { ok: false, error_code: "INTERNAL_ERROR", message: "Failed to process inbound webhook." },
       { status: 500 }
     );
   }
+}
+
+export async function GET() {
+  logWarn("webhook_inbound", "method_not_allowed", { route: INBOUND_ROUTE, method: "GET" });
+  return NextResponse.json(
+    { ok: false, error_code: "METHOD_NOT_ALLOWED", message: "Method not allowed." },
+    { status: 405 }
+  );
 }

@@ -26,6 +26,17 @@ Processes inbound email replies from Resend and updates user memory exactly once
    - skip when already processed
    - update `users.interest_memory_text` when newly reserved
 10. Return `updated` or `ignored`.
+11. `GET` returns `405 METHOD_NOT_ALLOWED` (route is not browser-navigable for processing).
+
+## Security Logging
+- Emits structured security events for:
+  - missing signature headers
+  - invalid signatures
+  - invalid payload JSON/schema
+  - replay ignores
+  - unknown sender ignores
+  - successful updates
+  - internal processing errors
 
 ## Responses
 - `200 { ok: true, status: "updated", user_id }`

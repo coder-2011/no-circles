@@ -25,6 +25,7 @@ HTTP wrapper around DB-owned selector function plus PR9 single-user send runtime
 9. Returns batch response:
    - `{ ok: true, status: "processed_batch", requested_batch_size, claimed_user_count, counts, user_results }`
 10. Returns `500 INTERNAL_ERROR` when batch selection fails.
+11. `GET` returns `405 METHOD_NOT_ALLOWED` (no browser-triggerable send execution).
 
 ## Logging
-- logs `unauthorized`, `selected_batch`, `no_due_user`, per-user `insufficient_content`/`send_failed`, and fatal `error` events for cron observability.
+- logs `unauthorized` (with failure reason), `invalid_payload`, `selected_batch`, `no_due_user`, per-user `insufficient_content`/`send_failed`, `method_not_allowed`, and fatal `error` events for cron observability.

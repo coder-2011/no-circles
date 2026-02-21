@@ -12,7 +12,10 @@ const {
   mergeReplyIntoMemoryMock,
   sendTransactionalEmailMock,
   getSvixHeadersMock,
-  verifyResendWebhookSignatureMock
+  verifyResendWebhookSignatureMock,
+  logInfoMock,
+  logWarnMock,
+  logErrorMock
 } = vi.hoisted(() => {
   const state = {
     user: {
@@ -97,7 +100,10 @@ const {
       svixTimestamp: "1700000000",
       svixSignature: "v1,signature"
     })),
-    verifyResendWebhookSignatureMock: vi.fn(() => true)
+    verifyResendWebhookSignatureMock: vi.fn(() => true),
+    logInfoMock: vi.fn(),
+    logWarnMock: vi.fn(),
+    logErrorMock: vi.fn()
   };
 });
 
@@ -121,7 +127,13 @@ vi.mock("@/lib/webhooks/resend-signature", () => ({
   verifyResendWebhookSignature: verifyResendWebhookSignatureMock
 }));
 
-import { POST } from "@/app/api/webhooks/resend/inbound/route";
+vi.mock("@/lib/observability/log", () => ({
+  logInfo: logInfoMock,
+  logWarn: logWarnMock,
+  logError: logErrorMock
+}));
+
+import { GET, POST } from "@/app/api/webhooks/resend/inbound/route";
 
 describe("POST /api/webhooks/resend/inbound", () => {
   beforeEach(() => {
@@ -147,6 +159,9 @@ describe("POST /api/webhooks/resend/inbound", () => {
     sendTransactionalEmailMock.mockClear();
     getSvixHeadersMock.mockClear();
     verifyResendWebhookSignatureMock.mockClear();
+    logInfoMock.mockClear();
+    logWarnMock.mockClear();
+    logErrorMock.mockClear();
   });
 
   it("returns 401 for invalid signature", async () => {
@@ -162,6 +177,34 @@ describe("POST /api/webhooks/resend/inbound", () => {
     expect(response.status).toBe(401);
     const body = await response.json();
     expect(body.error_code).toBe("INVALID_SIGNATURE");
+    expect(logWarnMock).toHaveBeenCalledWith(
+      "webhook_inbound",
+      "invalid_signature",
+      expect.objectContaining({ route: "POST /api/webhooks/resend/inbound", svix_id: "msg_123" })
+    );
+  });
+
+  it("returns 401 when signature headers are missing", async () => {
+    getSvixHeadersMock.mockReturnValueOnce(null);
+
+    const response = await POST(
+      new Request("http://localhost/api/webhooks/resend/inbound", {
+        method: "POST",
+        body: JSON.stringify({ data: { from: "Naman <naman@example.com>", text: "more AI" } })
+      })
+    );
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({
+      ok: false,
+      error_code: "INVALID_SIGNATURE",
+      message: "Missing webhook signature headers."
+    });
+    expect(logWarnMock).toHaveBeenCalledWith(
+      "webhook_inbound",
+      "missing_signature_headers",
+      expect.objectContaining({ route: "POST /api/webhooks/resend/inbound" })
+    );
   });
 
   it("returns ignored for replayed webhook id", async () => {
@@ -179,6 +222,11 @@ describe("POST /api/webhooks/resend/inbound", () => {
     expect(body).toEqual({ ok: true, status: "ignored" });
     expect(mergeReplyIntoMemoryMock).not.toHaveBeenCalled();
     expect(testState.reservedWebhookKey).toBe("event:msg_123");
+    expect(logInfoMock).toHaveBeenCalledWith(
+      "webhook_inbound",
+      "ignored_replay",
+      expect.objectContaining({ dedupe_key: "event:msg_123", user_id: "user-1" })
+    );
   });
 
   it("returns ignored for empty text", async () => {
@@ -193,6 +241,11 @@ describe("POST /api/webhooks/resend/inbound", () => {
     const body = await response.json();
     expect(body).toEqual({ ok: true, status: "ignored" });
     expect(transactionMock).not.toHaveBeenCalled();
+    expect(logInfoMock).toHaveBeenCalledWith(
+      "webhook_inbound",
+      "ignored_empty_text",
+      expect.objectContaining({ sender_email: "naman@example.com" })
+    );
   });
 
   it("updates memory once for valid event", async () => {
@@ -215,6 +268,11 @@ describe("POST /api/webhooks/resend/inbound", () => {
     expect(mergeReplyIntoMemoryMock).toHaveBeenCalledTimes(1);
     expect(transactionMock).toHaveBeenCalledTimes(1);
     expect(testState.reservedWebhookKey).toBe("message:re_abc123");
+    expect(logInfoMock).toHaveBeenCalledWith(
+      "webhook_inbound",
+      "updated",
+      expect.objectContaining({ user_id: "user-1" })
+    );
   });
 
   it("sends helpful auto-reply when sender is unknown", async () => {
@@ -244,6 +302,11 @@ describe("POST /api/webhooks/resend/inbound", () => {
       })
     );
     expect(transactionMock).not.toHaveBeenCalled();
+    expect(logInfoMock).toHaveBeenCalledWith(
+      "webhook_inbound",
+      "ignored_unknown_sender",
+      expect.objectContaining({ sender_email: "alias@example.com" })
+    );
   });
 
   it("ignores replay when provider message id repeats even if svix-id changes", async () => {
@@ -295,5 +358,20 @@ describe("POST /api/webhooks/resend/inbound", () => {
     expect(await second.json()).toEqual({ ok: true, status: "ignored" });
     expect(testState.reservedWebhookKey).toBe("message:re_same_message_id");
     expect(mergeReplyIntoMemoryMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns 405 for GET requests", async () => {
+    const response = await GET();
+    expect(response.status).toBe(405);
+    expect(await response.json()).toEqual({
+      ok: false,
+      error_code: "METHOD_NOT_ALLOWED",
+      message: "Method not allowed."
+    });
+    expect(logWarnMock).toHaveBeenCalledWith(
+      "webhook_inbound",
+      "method_not_allowed",
+      expect.objectContaining({ method: "GET" })
+    );
   });
 });
