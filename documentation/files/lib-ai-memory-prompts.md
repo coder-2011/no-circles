@@ -16,3 +16,6 @@ Contains memory prompt builders for onboarding formatting and reply-driven memor
   - broad category labels are allowed when user intent is broad
   - project/paper-level specifics are mapped to stable categories
   - broad labels add an inferred familiarity signal in memory text unless user states advanced depth.
+- Reply prompt includes hard section-ownership boundaries to prevent topic duplication across `PERSONALITY`, `ACTIVE_INTERESTS`, and `SUPPRESSED_INTERESTS`.
+- Reply prompt differentiates soft downweight language (`less/reduce`) from hard-stop language (`no/stop/scrap`) so soft requests do not force suppression.
+- Reply prompt includes explicit hierarchical cascade guidance for hard-stop parent topics (for example `scrap philosophy` also applies to `philosophy of physics`).
