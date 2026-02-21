@@ -70,6 +70,7 @@ This system is a website-first, email-delivered personalized newsletter product.
    - transforms `brain_dump_text` into canonical memory text via onboarding processor
    - stores send-time settings and identity fields
 4. User is marked ready for daily generation.
+5. On first successful onboarding insert, system attempts immediate welcome issue send (short first issue) and then continues normal daily schedule.
 
 ### 2) Daily Newsletter Generation Flow
 1. Supabase `pg_cron` executes `net.http_post(...)` every minute to call `POST /api/cron/generate-next` with `CRON_SECRET`.
@@ -87,6 +88,7 @@ This system is a website-first, email-delivered personalized newsletter product.
 4. Parsed intent is merged into `users.interest_memory_text` with canonical memory validation and fallback.
 5. If the user does not reply, nothing is updated (system continues from existing memory).
 6. Suppression duration for topics is inferred from user language and model judgment (not a rigid fixed-duration rule).
+7. Unknown-sender replies receive a guidance auto-reply and are ignored for memory mutation.
 
 ### 4) Idempotency and Duplicate Handling
 - Cron flow must be idempotent to prevent duplicate sends if a scheduled trigger runs twice.
@@ -126,6 +128,7 @@ V1 intentionally excludes a manual regenerate endpoint.
 - **Behavior**:
   - calls `public.claim_due_users_batch(run_at_utc, 5, batch_size)` in Postgres
   - function computes due users from `timezone`, `send_time_local`, and `last_issue_sent_at`
+  - function opens eligibility 3 minutes before configured local send time (`send_time_local_minute - 3`, clamped at local `00:00`)
   - function excludes users already sent on their current local day
   - function selects up to `batch_size` users deterministically (`last_issue_sent_at` asc nulls first, then `id` asc)
   - runs bounded-concurrency send pipeline for each claimed user
