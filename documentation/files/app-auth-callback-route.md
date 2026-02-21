@@ -10,5 +10,6 @@ Handles OAuth callback code exchange and writes Supabase session cookies for ser
 ## Behavior
 1. Creates Supabase server client with request cookies.
 2. Exchanges `code` for a session when present.
-3. Redirects to `next` path on success.
-4. Redirects to `/?auth=oauth_error` on code-exchange failure.
+3. Resolves redirect origin with localhost-first policy (uses request origin for `localhost/127.0.0.1/::1`, otherwise uses configured public site URL when valid).
+4. Redirects to `next` path on success.
+5. Redirects to `/?auth=oauth_error` on code-exchange failure.

@@ -85,6 +85,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/tailwind-config.md`
 - `files/tests-onboarding.md`
 - `files/tests-onboarding-route.md`
+- `files/tests-auth-callback-route.md`
 - `files/tests-onboarding-deepgram-dictation.md`
 - `files/tests-deepgram-token-route.md`
 - `files/tests-inbound-webhook-route.md`

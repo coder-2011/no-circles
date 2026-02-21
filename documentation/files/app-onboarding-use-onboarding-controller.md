@@ -12,6 +12,7 @@ Encapsulates onboarding page state, side effects, and action handlers as a reusa
 - persist onboarding preference draft in `localStorage` (preferred name/timezone/send-time parts)
 - submit onboarding payload to `POST /api/onboarding`
 - on `401` submit response, persist reauth-recovery flag, redirect to Google sign-in, and show draft-recovered message after session restore
+- build OAuth redirect URL with localhost-first origin resolution so local development does not bounce to production when `NEXT_PUBLIC_SITE_URL` is set
 - derive no-permission local defaults:
   - timezone from `Intl.DateTimeFormat().resolvedOptions().timeZone`
   - send time from current local clock

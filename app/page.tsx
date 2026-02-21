@@ -12,76 +12,212 @@ type SampleBriefItem = {
   summary: string;
 };
 
-const SAMPLE_DAILY_BRIEF: SampleBriefItem[] = [
+type BriefLibraryItem = SampleBriefItem & {
+  category: string;
+  tags: string[];
+};
+
+const DEFAULT_PREVIEW_ONBOARDING_TEXT = [
+  "I want deep but readable briefs across AI engineering, product strategy, economic history, biology, philosophy, design, and climate adaptation.",
+  "I like implementation details, case studies, postmortems, and policy tradeoffs.",
+  "Please include one or two serendipity picks in culture, cities, and science that still connect back to practical decisions."
+].join(" ");
+
+const BRIEF_LIBRARY: BriefLibraryItem[] = [
   {
-    title: "Agentic System Black-Box Evaluation Tradeoffs",
+    title: "How Teams Actually Evaluate AI Agents in Production",
     url: "https://aws.amazon.com/blogs/machine-learning/evaluating-ai-agents-real-world-lessons-from-building-agentic-systems-at-amazon/",
     summary:
-      "Agentic AI systems need evaluation beyond single-model benchmarks. Traditional methods treat agent systems as black boxes and only score final outputs. Amazon's framework adds workflow-level evaluation and library instrumentation to track tool-use accuracy, multi-step reasoning, memory retrieval, and task completion reliability."
+      "The piece explains why output-only benchmarks miss key failure modes in agent workflows. It outlines practical checks for tool calls, retrieval quality, step reliability, and end-to-end task completion so teams can improve systems before incidents hit users.",
+    category: "ai-systems",
+    tags: ["ai", "agents", "evaluation", "engineering", "production"]
   },
   {
-    title: "State Capacity and Growth Regimes: IMF Lessons from 108 Developing Economies",
+    title: "What Strong State Capacity Changes in Growth Outcomes",
     url: "https://www.imf.org/en/publications/wp/issues/2025/01/17/state-capacity-and-growth-regimes-560288",
     summary:
-      "Using data from 108 developing economies, researchers classify five-year growth regimes and model transitions with a Markov framework. Stronger state capacity helps countries sustain growth and avoid collapses, while institutional quality and democratic structure interact with those outcomes over time."
+      "Using cross-country data, the paper tracks how economies move between growth regimes over five-year windows. Stronger public institutions correlate with longer periods of stable growth and lower collapse risk, especially when governance quality and policy execution improve together.",
+    category: "economics-policy",
+    tags: ["economics", "policy", "state capacity", "history", "institutions"]
   },
   {
-    title: "Sulla's Dictatorship Reforms: Temporary Fixes, Permanent Power Shift",
+    title: "How the Roman Republic Kept Elections While Losing Real Competition",
     url: "https://brewminate.com/elections-without-choice-how-the-roman-republic-was-lost-without-ending-the-vote/",
     summary:
-      "The piece shows how the Roman Republic preserved election rituals while hollowing out competitive political constraint. Emergency rules, eligibility limits, and centralized authority maintained legal appearance but reduced real contestation, illustrating how constitutional forms can survive after substantive accountability weakens."
+      "This history piece shows how institutional forms can survive even when accountability weakens underneath them. It traces rule changes and emergency powers that preserved electoral procedure but narrowed actual political choice.",
+    category: "history-politics",
+    tags: ["history", "politics", "rome", "institutions", "power"]
   },
   {
-    title: "Gensler Climate-Ready Multifamily Incident Lessons",
-    url: "https://www.gensler.com/publications/design-forecast/2026",
+    title: "Designing Buildings for Heat, Flood, and Long-Term Flexibility",
+    url: "https://www.mckinsey.com/industries/real-estate/our-insights/climate-risk-and-commercial-real-estate",
     summary:
-      "Gensler's 2026 forecast highlights design priorities across regions and sectors, with emphasis on resilience, adaptation, and mixed-use urban performance. The report frames architecture decisions as operational systems questions: climate response, human movement, and long-horizon flexibility rather than standalone aesthetics."
+      "The brief covers how climate risk is changing real-estate decisions from financing to retrofit priorities. It emphasizes practical adaptation moves such as heat mitigation, flood resilience, and staged upgrades that preserve asset value across changing environmental conditions.",
+    category: "climate-cities",
+    tags: ["climate", "architecture", "cities", "resilience", "infrastructure"]
   },
   {
-    title: "2026 Federal Housing Budget Deal Postmortem",
+    title: "What Actually Moves Housing Supply at City Scale",
     url: "https://ternercenter.berkeley.edu/blog/2026-federal-housing-policy-preview/",
     summary:
-      "The FY 2026 U.S. housing outlook keeps key federal housing programs funded despite earlier expectations of steeper reductions. Parallel bipartisan legislative tracks continue around public housing preservation, accessory dwelling unit financing, and multifamily policy tools, signaling incremental but meaningful policy continuity."
+      "The piece maps federal and local policy levers that affect housing production, preservation, and financing. It focuses on incremental but meaningful tools and explains where implementation capacity, not just legislation, determines outcomes.",
+    category: "economics-policy",
+    tags: ["housing", "policy", "cities", "economics", "governance"]
   },
   {
-    title: "Heavy-Duty Autonomous Truck Rollout Postmortem",
-    url: "https://meadhunt.com/6-trends-transportation-2026/",
+    title: "Why Autonomous Freight Scales in Narrow Corridors First",
+    url: "https://www.mckinsey.com/industries/automotive-and-assembly/our-insights/autonomous-trucking-in-the-united-states",
     summary:
-      "Autonomous transport has moved from pilots into selective deployment across freight, mining, ports, and logistics corridors. Adoption remains uneven due to regulation, integration cost, and infrastructure readiness, but commercial use cases are becoming more concrete as operational benchmarks improve."
+      "Autonomous trucking adoption is progressing fastest in constrained routes with clearer economics and safety controls. The analysis explains operational bottlenecks, integration costs, and rollout sequencing rather than treating autonomy as a uniform market shift.",
+    category: "transport-systems",
+    tags: ["transport", "autonomy", "operations", "logistics", "systems"]
   },
   {
-    title: "FMCSA Safety Measurement System Update",
-    url: "https://mynatsa.org/charting-the-course-the-2026-transportation-industry-outlook/",
+    title: "The New Playbook for Fleet Safety and Compliance",
+    url: "https://www.fmcsa.dot.gov/safety/safety-measurement-system-sms",
     summary:
-      "The U.S. transport outlook for 2026 ties carrier performance to tighter safety compliance, digitized documentation, and improved cybersecurity posture. Operators face simultaneous pressure from regulation and market volatility, making operational discipline and risk management central to margin protection."
+      "This update explains how fleet operators are being measured and where compliance signals translate into commercial risk. It is useful for teams that need to align dispatch, maintenance, and documentation practices with changing regulatory scrutiny.",
+    category: "transport-systems",
+    tags: ["transport", "safety", "policy", "operations", "compliance"]
   },
   {
-    title: "2026 Transportation and Logistics Trends Impacting Commercial Fleets",
-    url: "https://www.assetworks.com/fleet/blog/2026-transportation-and-logistics-trends-impacting-commercial-fleets/",
+    title: "Why Predictive Maintenance Wins Only with Better Operations Data",
+    url: "https://www.mckinsey.com/capabilities/operations/our-insights/predictive-maintenance-3-0",
     summary:
-      "Fleet operators are adapting to stricter emissions standards, broader electrification pressure, and higher expectations around predictive maintenance. Regionalized supply-chain strategy and data-driven fleet operations are converging, with reliability and total-cost control becoming the primary competitive levers."
+      "Predictive maintenance delivers value when sensor data quality, failure taxonomy, and response workflows are aligned. The article focuses on implementation details that separate pilot success from durable operational gains.",
+    category: "operations-data",
+    tags: ["operations", "data", "maintenance", "engineering", "systems"]
   },
   {
-    title: "Transportation Trends for 2026: Technology, Sustainability, and Urban Air Mobility",
-    url: "https://www.webfx.com/industries/professional-services/transportation-and-logistics/trends/",
+    title: "How Cities Balance Electrification Goals with Grid Constraints",
+    url: "https://www.iea.org/reports/global-ev-outlook-2024",
     summary:
-      "The trend brief maps telematics, electrification, MaaS, and urban air mobility as converging vectors in transport modernization. It highlights how sustainability mandates and digital infrastructure increasingly shape strategic planning, with EV adoption trajectories becoming core assumptions in fleet forecasting."
+      "The report connects EV adoption growth with charging infrastructure and power-system realities. It helps planners and operators reason about where electrification is scaling smoothly and where grid, permitting, or cost bottlenecks slow deployment.",
+    category: "climate-cities",
+    tags: ["energy", "climate", "transport", "grid", "policy"]
   },
   {
-    title: "LLM-as-Judge Production Pipeline Benchmarks",
-    url: "https://www.prompts.ai/blog/llm-evaluation-companies",
+    title: "A Practical Guide to Building Better Product Experiments",
+    url: "https://www.gov.uk/service-manual/measuring-success/ab-testing",
     summary:
-      "A survey of LLM-evaluation platforms compares strengths across CI integration, workflow debugging, compliance monitoring, and production observability. The key operational point is that model quality alone is insufficient; evaluation infrastructure and governance discipline determine whether agentic systems stay reliable at scale."
+      "The guide covers experiment design basics that prevent misleading wins: clear metrics, guardrails, and clean control groups. It is a useful operational refresher for product teams trying to improve decisions with smaller, faster tests.",
+    category: "product-research",
+    tags: ["product", "experiments", "decision making", "research", "analytics"]
+  },
+  {
+    title: "How Evolution Uses Tradeoffs, Not Perfect Designs",
+    url: "https://www.nature.com/scitable/topicpage/adaptation-and-natural-selection-300/",
+    summary:
+      "This explainer reframes adaptation as constrained optimization under changing environments. It helps connect evolutionary logic to modern systems thinking: robustness, local optima, and path dependence under limited resources.",
+    category: "science-biology",
+    tags: ["biology", "evolution", "science", "tradeoffs", "learning"]
+  },
+  {
+    title: "What Cognitive Biases Distort Strategic Decisions",
+    url: "https://thedecisionlab.com/biases",
+    summary:
+      "A practical catalog of common decision biases with concrete examples in policy and business settings. It can be used as a checklist when reviewing plans, forecasts, and postmortems to avoid repeated reasoning errors.",
+    category: "psychology",
+    tags: ["psychology", "decision making", "strategy", "bias", "learning"]
+  },
+  {
+    title: "Machiavelli Beyond the Cliche: Statecraft Under Constraint",
+    url: "https://plato.stanford.edu/entries/machiavelli/",
+    summary:
+      "Rather than caricature, this overview presents Machiavelli as a thinker focused on political durability under unstable conditions. It is useful context for readers interested in institutions, leadership, and realism in governance.",
+    category: "philosophy-history",
+    tags: ["philosophy", "history", "politics", "institutions", "statecraft"]
+  },
+  {
+    title: "How Musical Structure Influences Memory and Attention",
+    url: "https://www.frontiersin.org/articles/10.3389/fpsyg.2013.00511/full",
+    summary:
+      "The paper reviews links between musical structure and cognitive processing, including memory formation and focus. It is a serendipity pick that still ties back to learning systems and human performance design.",
+    category: "culture-science",
+    tags: ["music", "cognition", "science", "culture", "learning"]
+  },
+  {
+    title: "A Better Mental Model for Supply Chain Resilience",
+    url: "https://www.oecd.org/en/topics/resilience.html",
+    summary:
+      "This resource frames resilience as a portfolio of preparedness, flexibility, and recovery capability. It is useful for teams moving from one-off risk fixes to repeatable operating models across uncertain environments.",
+    category: "operations-policy",
+    tags: ["supply chain", "resilience", "operations", "policy", "risk"]
   }
 ];
 
+function tokenizeOnboardingText(text: string): Set<string> {
+  return new Set(
+    text
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, " ")
+      .split(/\s+/)
+      .map((token) => token.trim())
+      .filter((token) => token.length >= 3)
+  );
+}
+
+function buildPreviewBriefFromOnboardingText(text: string, targetCount = 10): SampleBriefItem[] {
+  const tokens = tokenizeOnboardingText(text);
+  const scored = BRIEF_LIBRARY.map((item, index) => {
+    const searchBlob = `${item.title} ${item.summary} ${item.tags.join(" ")}`.toLowerCase();
+    const matchCount = item.tags.reduce((count, tag) => count + (tokens.has(tag.toLowerCase()) ? 1 : 0), 0);
+    const keywordBonus = [...tokens].some((token) => searchBlob.includes(token)) ? 1 : 0;
+
+    return {
+      item,
+      score: matchCount * 3 + keywordBonus,
+      index
+    };
+  }).sort((a, b) => (b.score === a.score ? a.index - b.index : b.score - a.score));
+
+  const categoryCounts = new Map<string, number>();
+  const selected: SampleBriefItem[] = [];
+
+  for (const entry of scored) {
+    if (selected.length >= targetCount) break;
+    const currentCategoryCount = categoryCounts.get(entry.item.category) ?? 0;
+    if (currentCategoryCount >= 2) continue;
+    selected.push({
+      title: entry.item.title,
+      url: entry.item.url,
+      summary: entry.item.summary
+    });
+    categoryCounts.set(entry.item.category, currentCategoryCount + 1);
+  }
+
+  if (selected.length < targetCount) {
+    for (const entry of scored) {
+      if (selected.length >= targetCount) break;
+      const exists = selected.some((item) => item.url === entry.item.url);
+      if (exists) continue;
+      selected.push({
+        title: entry.item.title,
+        url: entry.item.url,
+        summary: entry.item.summary
+      });
+    }
+  }
+
+  return selected;
+}
+
+const SAMPLE_DAILY_BRIEF: SampleBriefItem[] = buildPreviewBriefFromOnboardingText(DEFAULT_PREVIEW_ONBOARDING_TEXT);
+
 function resolveSiteOrigin(): string {
+  const browserOrigin = window.location.origin;
+  const browserHost = window.location.hostname.toLowerCase();
+  const isLocalHost = browserHost === "localhost" || browserHost === "127.0.0.1" || browserHost === "::1";
+  if (isLocalHost) {
+    return browserOrigin;
+  }
+
   const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
   if (configuredSiteUrl && /^https?:\/\//.test(configuredSiteUrl)) {
     return configuredSiteUrl.replace(/\/+$/, "");
   }
 
-  return window.location.origin;
+  return browserOrigin;
 }
 
 function getAuthQueryErrorMessage(): string | null {
@@ -286,9 +422,6 @@ export default function HomePage() {
                 </li>
               ))}
             </ol>
-            <p className="text-sm leading-6 text-[#5D6A52]">
-              Reply to tune tomorrow&apos;s issue: for example, &quot;more policy implementation, less transport ops&quot;.
-            </p>
           </div>
         </section>
       </div>

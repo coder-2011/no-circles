@@ -337,9 +337,12 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
                 </svg>
               </button>
             </div>
-            <p className="text-xs text-[#6B775D]">
-              Billing is at the end of each month. If you do not like it, you do not pay.
-            </p>
+            <div className="rounded-lg border border-[#EBA7A7] bg-[#FDE7E7] px-3 py-2">
+              <p className="text-xs font-medium text-[#8F1D1D]">
+                Oh, and by the way, it&apos;s $5 a month. You don&apos;t have to pay for now. You have to pay in two
+                weeks. The invoice comes and if you don&apos;t want to pay, then it&apos;s fine. Nothing happens.
+              </p>
+            </div>
           </form>
         ) : null}
 

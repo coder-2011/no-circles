@@ -38,12 +38,19 @@ function randomPreferredNameSuggestion(): string {
 }
 
 function resolveSiteOrigin(): string {
+  const browserOrigin = window.location.origin;
+  const browserHost = window.location.hostname.toLowerCase();
+  const isLocalHost = browserHost === "localhost" || browserHost === "127.0.0.1" || browserHost === "::1";
+  if (isLocalHost) {
+    return browserOrigin;
+  }
+
   const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
   if (configuredSiteUrl && /^https?:\/\//.test(configuredSiteUrl)) {
     return configuredSiteUrl.replace(/\/+$/, "");
   }
 
-  return window.location.origin;
+  return browserOrigin;
 }
 
 export type OnboardingController = {
