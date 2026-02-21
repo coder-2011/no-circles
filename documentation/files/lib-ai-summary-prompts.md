@@ -22,5 +22,7 @@ Output:
 ## Prompt Policy
 - neutral, factual, source-grounded
 - mild connective phrasing allowed
-- keep original title unless minor clarity edit is needed
+- preserve original title wording by default; edit only when title clarity is insufficient
+- when title edits are needed, keep edits minimal and avoid trailing generic format labels (for example `article`, `postmortem`, `post`, `thread`, `report`) unless essential to meaning
+- prefer clear, direct language and simpler word choices when accuracy is unchanged
 - no markdown/code fences in output

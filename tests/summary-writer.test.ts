@@ -41,24 +41,23 @@ describe("generateNewsletterSummaries", () => {
     process.env.ANTHROPIC_API_KEY = "test-key";
     process.env.ANTHROPIC_SUMMARY_MODEL = "claude-haiku-4-5";
 
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async () => ({
-        ok: true,
-        json: async () => ({
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify({
-                title: "Refined A",
-                summary:
-                  "This article explains a lower-latency retrieval approach, compares implementation tradeoffs, and shows how teams balanced recall quality against serving cost in production." // 23 words
-              })
-            }
-          ]
-        })
-      }))
-    );
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify({
+              title: "Refined A",
+              summary:
+                "This article explains a lower-latency retrieval approach, compares implementation tradeoffs, and shows how teams balanced recall quality against serving cost in production." // 23 words
+            })
+          }
+        ]
+      })
+    }));
+
+    vi.stubGlobal("fetch", fetchMock);
 
     const result = await generateNewsletterSummaries({
       items: [sourceItems[0]],
@@ -74,6 +73,24 @@ describe("generateNewsletterSummaries", () => {
     expect(Object.keys(result[0]).sort()).toEqual(["summary", "title", "url"]);
     expect(wordCount(result[0].summary)).toBeGreaterThanOrEqual(40);
     expect(wordCount(result[0].summary)).toBeLessThanOrEqual(60);
+
+    const [, requestInit] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const requestBody = JSON.parse(String(requestInit.body)) as {
+      model: string;
+      max_tokens: number;
+      temperature: number;
+      messages: Array<{ role: string; content: string }>;
+    };
+    expect(requestBody.messages[0]?.content).toContain("Title policy: preserve the original title wording as much as possible.");
+    expect(requestBody.messages[0]?.content).toContain(
+      "Only edit the title when the original is unclear, vague, or fails to communicate the main idea."
+    );
+    expect(requestBody.messages[0]?.content).toContain(
+      "Do not end titles with trailing generic format labels (for example: article, postmortem, post, thread, report) unless required for meaning."
+    );
+    expect(requestBody.messages[0]?.content).toContain(
+      "Use clear, direct language and prefer simpler words when accuracy is unchanged."
+    );
   });
 
   it("retries once and then falls back to local summary when model is invalid", async () => {
@@ -84,7 +101,9 @@ describe("generateNewsletterSummaries", () => {
       .fn()
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ content: [{ type: "text", text: "not json" }] })
+        json: async () => ({
+          content: [{ type: "text", text: "not json" }]
+        })
       })
       .mockResolvedValueOnce({
         ok: false,
