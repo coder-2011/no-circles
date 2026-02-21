@@ -92,7 +92,13 @@ describe("generateNewsletterSummaries", () => {
       "Use clear, direct language and prefer simpler words when accuracy is unchanged."
     );
     expect(requestBody.messages[0]?.content).toContain(
-      "Prioritize concept coverage: include the central mechanisms, claims, findings, or tradeoffs present in the highlights."
+      "Focus on one main idea. Include up to two supporting points only when they make the main idea clearer."
+    );
+    expect(requestBody.messages[0]?.content).toContain(
+      "Explain the idea briefly instead of listing many parallel points."
+    );
+    expect(requestBody.messages[0]?.content).toContain(
+      "Leave some curiosity for the link; do not try to cover every section of the article."
     );
     expect(requestBody.messages[0]?.content).toContain(
       "Do not start the summary with meta framing such as 'this article explains/discusses/covers'. Start with concrete concepts directly."

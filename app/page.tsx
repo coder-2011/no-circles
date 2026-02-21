@@ -14,64 +14,64 @@ type SampleBriefItem = {
 
 const SAMPLE_DAILY_BRIEF: SampleBriefItem[] = [
   {
-    title: "How Teams Actually Evaluate AI Agents in Production",
-    url: "https://aws.amazon.com/blogs/machine-learning/evaluating-ai-agents-real-world-lessons-from-building-agentic-systems-at-amazon/",
+    title: "Why Retrieval Pipelines Fail in Production Before They Fail in Benchmarks",
+    url: "https://www.pinecone.io/learn/retrieval-augmented-generation/",
     summary:
-      "Output-only evals hide where agent systems actually fail. Reliable evaluation tracks tool-call accuracy, retrieval quality, step-by-step execution, and final task success under realistic workloads. The article also emphasizes operational checks such as replay tests, trace inspection, and failure clustering so teams can catch regressions early, not after deployment, and improve both model behavior and orchestration logic."
+      "Offline accuracy can look great while production answers degrade because retrieval quality drifts first. The key idea is to monitor retrieval as its own system, not just final outputs, so teams can catch quality drops early and fix recall, context quality, or ranking before trust breaks."
   },
   {
-    title: "What Strong State Capacity Changes in Growth Outcomes",
-    url: "https://www.imf.org/en/publications/wp/issues/2025/01/17/state-capacity-and-growth-regimes-560288",
+    title: "How Industrial Policy Works When Execution Capacity Is Real",
+    url: "https://www.oecd.org/industry/industrial-policy.htm",
     summary:
-      "Across many countries, growth tends to move in regimes rather than smooth trends. Stronger administrative capacity helps states sustain expansions and recover faster from shocks because policies are implemented more consistently. The paper links growth durability to execution quality, not only policy design, and shows how weak institutions increase transition risk from stable growth into stagnation or contraction."
+      "Industrial policy succeeds when institutions can execute consistently, not just announce priorities. Programs work better when goals are narrow, milestones are measurable, and agencies can deliver on schedule; otherwise money and policy intent drift apart."
   },
   {
-    title: "How the Roman Republic Kept Elections While Losing Real Competition",
-    url: "https://brewminate.com/elections-without-choice-how-the-roman-republic-was-lost-without-ending-the-vote/",
+    title: "Supply-Chain Resilience Is a Portfolio Problem, Not a Single Fix",
+    url: "https://www.weforum.org/agenda/2023/01/what-is-supply-chain-resilience/",
     summary:
-      "Roman political institutions kept formal voting procedures while substantive competition narrowed over time. Emergency powers, eligibility constraints, and concentrated command shifted real decision authority away from open contestation. The article is useful as an institutional warning: procedural continuity can mask structural power changes, so constitutional health depends on enforcement balance, elite incentives, and credible checks, not ritual alone."
+      "Resilience is built from multiple safeguards working together, not one silver bullet. The article’s core point is that cost efficiency alone makes systems fragile, while visibility, alternatives, and fast decision protocols help operations recover when shocks hit."
   },
   {
-    title: "Designing Buildings for Heat, Flood, and Long-Term Flexibility",
-    url: "https://www.mckinsey.com/industries/real-estate/our-insights/climate-risk-and-commercial-real-estate",
+    title: "Grid Congestion Is Becoming the Hidden Bottleneck for Clean-Energy Buildout",
+    url: "https://www.iea.org/reports/electricity-grids-and-secure-energy-transitions",
     summary:
-      "Climate risk is moving from compliance reporting into core asset strategy. Heat stress, flood exposure, insurance repricing, and retrofit economics now shape acquisition and renovation decisions. The piece explains staged adaptation moves that protect both operations and long-horizon value, including envelope upgrades, cooling resilience, water defenses, and flexible design choices that keep buildings usable under changing environmental baselines."
+      "Clean-energy rollout is increasingly limited by grid delivery capacity, not generation ambition. The main takeaway is coordination: permitting, transmission planning, and long-lead equipment timelines have to move in sync or projects stall in queues."
   },
   {
-    title: "What Actually Moves Housing Supply at City Scale",
-    url: "https://ternercenter.berkeley.edu/blog/2026-federal-housing-policy-preview/",
+    title: "Housing Production Depends on Permit Throughput More Than Policy Headlines",
+    url: "https://www.brookings.edu/articles/how-local-governments-can-boost-housing-supply/",
     summary:
-      "Housing output depends on a chain, not one policy lever: zoning path, permitting speed, financing terms, and project risk. The article maps where federal tools help and where local execution still bottlenecks supply. Its key idea is implementation capacity: predictable timelines, administrative throughput, and financing clarity often matter as much as headline legislation for getting units built and preserved."
+      "Housing outcomes often diverge because city permitting systems run at different speeds. The article’s central claim is that supply is an execution problem: predictable review timelines and simpler processes can matter as much as headline policy targets."
   },
   {
-    title: "Why Autonomous Freight Scales in Narrow Corridors First",
-    url: "https://www.mckinsey.com/industries/automotive-and-assembly/our-insights/autonomous-trucking-in-the-united-states",
+    title: "Protein Folding Progress Still Leaves the Hard Biology in Dynamics and Context",
+    url: "https://www.nature.com/articles/d41586-024-00380-7",
     summary:
-      "Commercial autonomy is scaling first where route structure, weather profile, and handoff logistics are tightly controlled. That operating envelope reduces uncertainty in safety validation and unit economics. The analysis highlights integration realities such as depot workflows, remote assistance, and mixed-fleet transition costs, showing why rollout sequencing is a systems problem rather than a single-model performance milestone."
+      "Protein-structure prediction solved a major puzzle, but biology still depends on motion and context inside real cells. The useful point is where models stop being enough and experiments still carry the decisive evidence."
   },
   {
-    title: "The New Playbook for Fleet Safety and Compliance",
-    url: "https://www.fmcsa.dot.gov/safety/safety-measurement-system-sms",
-    summary:
-      "Safety scoring now has direct operational and financial consequences for carriers. The update clarifies which behaviors and records drive risk signals, and how documentation quality interacts with enforcement outcomes. Practically, it pushes tighter alignment across dispatch, maintenance, driver coaching, and audit readiness so compliance becomes a daily operating discipline instead of a periodic legal check."
-  },
-  {
-    title: "How Evolution Uses Tradeoffs, Not Perfect Designs",
-    url: "https://www.nature.com/scitable/topicpage/adaptation-and-natural-selection-300/",
-    summary:
-      "Natural selection optimizes fitness in local environments, not universal perfection. Traits that improve one function can impose costs elsewhere, creating durable tradeoffs across energy, resilience, and reproduction. The article uses these constraints to explain why biological systems settle into path-dependent, good-enough designs. It is a strong mental model for engineering and policy: optimization always happens under limits, not ideal conditions."
-  },
-  {
-    title: "Machiavelli Beyond the Cliche: Statecraft Under Constraint",
+    title: "Machiavelli’s Core Insight: Durable Orders Need Both Consent and Coercive Capacity",
     url: "https://plato.stanford.edu/entries/machiavelli/",
     summary:
-      "Machiavelli is often reduced to manipulation advice, but the deeper thread is institutional durability under unstable conditions. The entry outlines tensions between civic virtue, coercive capacity, and contingency in state survival. It helps frame leadership as a constraint-management problem: preserving order and legitimacy when incentives, elite conflict, and external threats make clean moral or procedural solutions difficult."
+      "Machiavelli’s core lesson is about political durability under stress, not just manipulation. Institutions tend to hold when legitimacy and enforcement capacity stay aligned, and weaken when either side breaks."
   },
   {
-    title: "How Musical Structure Influences Memory and Attention",
+    title: "Cognitive Bias Debiasing Works Better as Process Design Than Willpower",
+    url: "https://thedecisionlab.com/biases",
+    summary:
+      "Bias mitigation works best when it is built into process, not left to personal discipline in high-pressure moments. The article argues for structural guardrails that catch predictable reasoning errors before they shape decisions."
+  },
+  {
+    title: "How Musical Expectation Shapes Attention and Memory Encoding",
     url: "https://www.frontiersin.org/articles/10.3389/fpsyg.2013.00511/full",
     summary:
-      "Musical form affects prediction, attention, and memory encoding through repetition, variation, and expectation violation. The paper reviews mechanisms linking structural features to cognitive load and recall performance. Beyond music theory, the takeaway is broadly useful: information design that balances familiarity with surprise can improve retention and engagement without relying on noise or novelty for its own sake."
+      "Music guides attention by balancing predictability and surprise. The transferable insight is that people remember information better when structure is clear but still varied enough to keep attention active."
+  },
+  {
+    title: "Experimentation Programs Fail When Metrics Are Detached from Decisions",
+    url: "https://www.gov.uk/service-manual/measuring-success/ab-testing",
+    summary:
+      "A/B testing becomes misleading when metrics are easy to move but disconnected from real product choices. The main idea is to tie experiments to decision-quality and guardrails, so local wins do not degrade long-term outcomes."
   }
 ];
 
