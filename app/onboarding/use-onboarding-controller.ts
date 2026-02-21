@@ -16,6 +16,7 @@ import {
   initialSendTimeFromLocalNow,
   INTEREST_QUICK_SPARKS,
   ONBOARDING_PREFS_DRAFT_KEY,
+  ONBOARDING_REAUTH_RECOVERY_KEY,
   ONBOARDING_QUICK_SPARKS_DECK_KEY,
   ONBOARDING_QUICK_SPARKS_DRAWER_COUNT,
   ONBOARDING_QUICK_SPARKS_URL,
@@ -457,6 +458,10 @@ export function useOnboardingController(): OnboardingController {
       if (sessionEmail) {
         setEmail(sessionEmail);
         setAuthState("signed_in");
+        if (window.localStorage.getItem(ONBOARDING_REAUTH_RECOVERY_KEY) === "1") {
+          window.localStorage.removeItem(ONBOARDING_REAUTH_RECOVERY_KEY);
+          setMessage("Session restored. Your onboarding draft was recovered.");
+        }
       } else {
         setAuthState("signed_out");
       }
@@ -541,8 +546,10 @@ export function useOnboardingController(): OnboardingController {
 
     setSubmitState("error");
     if (response.status === 401) {
-      setMessage("Your session expired. Sign in again.");
+      setMessage("Your session expired. Redirecting to sign in...");
       setAuthState("signed_out");
+      window.localStorage.setItem(ONBOARDING_REAUTH_RECOVERY_KEY, "1");
+      void signInWithGoogle();
       return;
     }
 

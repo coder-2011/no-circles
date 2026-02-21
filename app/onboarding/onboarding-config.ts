@@ -4,6 +4,7 @@ export type SubmitState = "idle" | "saving" | "saved" | "error";
 export const BRAIN_DUMP_WORD_LIMIT = 1000;
 export const BRAIN_DUMP_DRAFT_KEY = "onboarding_brain_dump_draft_v1";
 export const ONBOARDING_PREFS_DRAFT_KEY = "onboarding_prefs_draft_v1";
+export const ONBOARDING_REAUTH_RECOVERY_KEY = "onboarding_reauth_recovery_v1";
 export const ONBOARDING_QUICK_SPARKS_URL = "/onboarding-quick-sparks.txt";
 export const ONBOARDING_QUICK_SPARKS_DECK_KEY = "onboarding_quick_sparks_deck_v1";
 export const ONBOARDING_QUICK_SPARKS_VISIBLE_COUNT = 7;
