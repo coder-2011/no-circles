@@ -20,14 +20,20 @@ const BRAIN_DUMP_ALLOWED_KEYS = new Set([
   "Tab",
   "Escape"
 ]);
-const BRAIN_DUMP_PLACEHOLDER = [
-  "Example brain dump (write this in your own style):",
-  "I'm deep into AI engineering + coding workflows with agents.",
-  "I want practical breakdowns: migrations, incident postmortems, reliability tradeoffs, and benchmarks.",
-  "I'm also curious about philosophy of science, behavioral economics, and political history.",
-  "Less hype and trend recaps. More first-hand implementation lessons, mechanisms, and decision frameworks.",
-  "Recency matters a lot for AI tooling and security; less for timeless topics."
-].join("\n");
+const CELEBRATION_PARTICLES = [
+  { left: "6%", delay: "0ms", duration: "1950ms", size: 7, color: "#34D399" },
+  { left: "13%", delay: "140ms", duration: "2100ms", size: 8, color: "#22C55E" },
+  { left: "21%", delay: "80ms", duration: "1880ms", size: 6, color: "#10B981" },
+  { left: "29%", delay: "220ms", duration: "2240ms", size: 9, color: "#F59E0B" },
+  { left: "37%", delay: "40ms", duration: "2000ms", size: 6, color: "#34D399" },
+  { left: "45%", delay: "260ms", duration: "2180ms", size: 8, color: "#16A34A" },
+  { left: "53%", delay: "100ms", duration: "2050ms", size: 7, color: "#2DD4BF" },
+  { left: "61%", delay: "320ms", duration: "2320ms", size: 8, color: "#38BDF8" },
+  { left: "69%", delay: "180ms", duration: "2020ms", size: 6, color: "#34D399" },
+  { left: "77%", delay: "50ms", duration: "2140ms", size: 9, color: "#10B981" },
+  { left: "85%", delay: "240ms", duration: "2200ms", size: 7, color: "#FBBF24" },
+  { left: "93%", delay: "120ms", duration: "1930ms", size: 6, color: "#86EFAC" }
+] as const;
 
 export function OnboardingForm({ controller }: OnboardingFormProps) {
   const meterBars = controller.dictationLevels;
@@ -36,7 +42,28 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
 
   return (
     <main className="min-h-screen bg-[#F3ECD8] px-6 py-10 text-[#2D3426] md:px-10 md:py-12">
-      <div className="mx-auto w-full max-w-6xl rounded-3xl border border-[#C9BD9A] bg-[#FAF5E8] p-8 shadow-sm md:p-10">
+      <div className="relative mx-auto w-full max-w-6xl overflow-hidden rounded-3xl border border-[#C9BD9A] bg-[#FAF5E8] p-8 shadow-sm md:p-10">
+        {controller.showCelebration ? (
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+            {CELEBRATION_PARTICLES.map((particle, index) => (
+              <span
+                className="absolute top-[-18px] rounded-sm opacity-90"
+                key={index}
+                style={{
+                  left: particle.left,
+                  width: `${particle.size}px`,
+                  height: `${particle.size * 1.4}px`,
+                  backgroundColor: particle.color,
+                  animationName: "onboarding-confetti-fall",
+                  animationDuration: particle.duration,
+                  animationDelay: particle.delay,
+                  animationTimingFunction: "cubic-bezier(0.2, 0.72, 0.2, 1)",
+                  animationFillMode: "forwards"
+                }}
+              />
+            ))}
+          </div>
+        ) : null}
         <p className="text-sm uppercase tracking-[0.18em] text-[#6B775D]">Onboarding</p>
         <h1 className="mt-3 text-4xl font-semibold tracking-tight text-[#2B3125] md:text-5xl">What are you curious about?</h1>
         <p className="mt-3 text-base leading-7 text-[#4B5943]">
@@ -73,19 +100,6 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
 
         {controller.authState === "signed_in" ? (
           <form className="mt-8 space-y-6" onSubmit={controller.submitOnboarding}>
-            <label className="block">
-              <span className="mb-2 block text-base font-medium text-[#3E4A36]">Preferred name</span>
-              <input
-                className="w-full rounded-lg border border-[#C7BA95] bg-[#FFFDF8] px-4 py-3 text-base focus:border-[#3D6F49] focus:outline-none"
-                onChange={(event) => controller.setPreferredName(event.target.value)}
-                onKeyDown={controller.completePreferredNameOnTab}
-                placeholder={controller.preferredNameSuggestion}
-                required
-                value={controller.preferredName}
-              />
-              <span className="mt-2 block text-sm text-[#6B775D]">Press Tab to accept the suggested name.</span>
-            </label>
-
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="block">
                 <span className="mb-2 block text-base font-medium text-[#3E4A36]">Timezone</span>
@@ -144,10 +158,11 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
 
             <label className="block">
               <span className="mb-2 block text-base font-medium text-[#3E4A36]">Interest brain dump</span>
-              <p className="mb-2 text-sm text-[#5E6B54]">
+              <p className="mb-2 text-base leading-7 text-[#5E6B54]">
                 This is your raw preference input. Mention what you want more of, less of, and what kind of insight is useful to you.
               </p>
               <textarea
+                autoFocus
                 className="h-56 w-full rounded-lg border border-[#C7BA95] bg-[#FFFDF8] px-4 py-3 text-base leading-7 focus:border-[#3D6F49] focus:outline-none"
                 onChange={(event) => controller.setBrainDumpText(event.target.value)}
                 onKeyDown={(event) => {
@@ -167,7 +182,7 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
 
                   event.preventDefault();
                 }}
-                placeholder={BRAIN_DUMP_PLACEHOLDER}
+                placeholder=""
                 required
                 value={controller.brainDumpText}
               />
@@ -369,6 +384,21 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
           </p>
         ) : null}
       </div>
+      <style jsx>{`
+        @keyframes onboarding-confetti-fall {
+          0% {
+            transform: translate3d(0, -8px, 0) rotate(0deg);
+            opacity: 0;
+          }
+          10% {
+            opacity: 0.95;
+          }
+          100% {
+            transform: translate3d(0, 105vh, 0) rotate(520deg);
+            opacity: 0;
+          }
+        }
+      `}</style>
     </main>
   );
 }

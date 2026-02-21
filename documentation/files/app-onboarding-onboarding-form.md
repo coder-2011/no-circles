@@ -8,11 +8,12 @@ Renders onboarding UI as a presentational component driven by controller props.
 - render onboarding form fields and compact quick-spark surface
 - show top quick-spark chips by default, with `More/Hide` drawer toggle and refresh-icon control
 - keep expanded spark list compact via fixed-height scroll container (avoids vertical page growth)
-- wire preferred-name input to Tab completion action from the controller
+- omit manual preferred-name editing in UI (controller submits OAuth/session-derived preferred name)
 - render timezone options from controller so browser-detected timezone can appear even when outside curated list
 - render minimal dictation controls (`Dictate` / `Stop dictation`) for brain-dump voice input
-- show concise brain-dump guidance text plus a concrete multiline placeholder example so users understand what quality input looks like
-- render save/sign-out controls and success indicator
+- show larger brain-dump guidance text and intentionally no example placeholder text
+- autofocus the brain-dump textarea on load
+- render save/sign-out controls, save badge, and lightweight slower-fall confetti celebration (multi-color particle variation) when onboarding save succeeds
 - render post-save pricing callout box below controls clarifying free access through mid-March and later minimal at-cost billing (no profit margin)
 - show submit success/error message panel
 

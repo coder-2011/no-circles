@@ -90,6 +90,39 @@ export function getPreferredNameFromEmail(email: string | null): string | null {
   return `${firstName} ${lastName}`;
 }
 
+function sanitizePreferredName(value: string): string | null {
+  const trimmed = value.trim().replace(/\s+/g, " ");
+  if (!trimmed) {
+    return null;
+  }
+
+  return trimmed.slice(0, 120);
+}
+
+export function getPreferredNameFromOAuthProfile(userMetadata: unknown): string | null {
+  if (!userMetadata || typeof userMetadata !== "object") {
+    return null;
+  }
+
+  const metadata = userMetadata as Record<string, unknown>;
+  const fullName = typeof metadata.full_name === "string" ? sanitizePreferredName(metadata.full_name) : null;
+  if (fullName) {
+    return fullName;
+  }
+
+  const name = typeof metadata.name === "string" ? sanitizePreferredName(metadata.name) : null;
+  if (name) {
+    return name;
+  }
+
+  const givenName = typeof metadata.given_name === "string" ? sanitizePreferredName(metadata.given_name) : null;
+  if (givenName) {
+    return givenName;
+  }
+
+  return null;
+}
+
 export function getDetectedTimezone(): string {
   const detected = Intl.DateTimeFormat().resolvedOptions().timeZone;
   return detected?.trim() || "America/New_York";

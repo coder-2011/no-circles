@@ -12,6 +12,7 @@ import {
   countWords,
   type AuthState,
   getDetectedTimezone,
+  getPreferredNameFromOAuthProfile,
   getPreferredNameFromEmail,
   initialSendTimeFromLocalNow,
   INTEREST_QUICK_SPARKS,
@@ -22,7 +23,6 @@ import {
   ONBOARDING_QUICK_SPARKS_URL,
   ONBOARDING_QUICK_SPARKS_VISIBLE_COUNT,
   parseSendTime,
-  PREFERRED_NAME_SUGGESTIONS,
   shuffleQuickSparks,
   type SubmitState,
   truncateToWordLimit
@@ -32,14 +32,11 @@ type DictationModule = typeof import("@/app/onboarding/deepgram-dictation");
 
 type DictationState = "idle" | "warming" | "recording" | "stopping";
 
-function randomPreferredNameSuggestion(): string {
-  const randomIndex = Math.floor(Math.random() * PREFERRED_NAME_SUGGESTIONS.length);
-  return PREFERRED_NAME_SUGGESTIONS[randomIndex] ?? PREFERRED_NAME_SUGGESTIONS[0];
-}
-
 function resolveSiteOrigin(): string {
   return window.location.origin;
 }
+
+const CELEBRATION_HIDE_MS = 3000;
 
 export type OnboardingController = {
   authState: AuthState;
@@ -47,8 +44,6 @@ export type OnboardingController = {
   submitState: SubmitState;
   message: string | null;
   showCelebration: boolean;
-  preferredName: string;
-  preferredNameSuggestion: string;
   timezone: string;
   timezoneOptions: string[];
   sendHour12: string;
@@ -63,13 +58,11 @@ export type OnboardingController = {
   quickSparks: string[];
   quickSparksDrawer: string[];
   quickSparksExpanded: boolean;
-  setPreferredName: (value: string) => void;
   setTimezone: (value: string) => void;
   setSendHour12: (value: string) => void;
   setSendMinute: (value: string) => void;
   setSendMeridiem: (value: "AM" | "PM") => void;
   setBrainDumpText: (value: string) => void;
-  completePreferredNameOnTab: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   submitOnboarding: (event: React.FormEvent<HTMLFormElement>) => Promise<void>;
@@ -95,8 +88,6 @@ export function useOnboardingController(): OnboardingController {
   const [quickSparksDrawer, setQuickSparksDrawer] = useState<string[]>([]);
   const [quickSparksExpanded, setQuickSparksExpanded] = useState(false);
   const [preferredName, setPreferredName] = useState("");
-  const [fallbackPreferredNameSuggestion] = useState(randomPreferredNameSuggestion);
-  const [preferredNameSuggestion, setPreferredNameSuggestion] = useState(fallbackPreferredNameSuggestion);
   const [timezone, setTimezone] = useState(getDetectedTimezone);
   const timezoneOptions = useMemo(() => buildTimezoneOptions(timezone), [timezone]);
 
@@ -173,16 +164,6 @@ export function useOnboardingController(): OnboardingController {
   }
 
   useEffect(() => {
-    const inferredName = getPreferredNameFromEmail(email);
-    if (inferredName) {
-      setPreferredNameSuggestion(inferredName);
-      return;
-    }
-
-    setPreferredNameSuggestion(fallbackPreferredNameSuggestion);
-  }, [email, fallbackPreferredNameSuggestion]);
-
-  useEffect(() => {
     const savedPrefs = window.localStorage.getItem(ONBOARDING_PREFS_DRAFT_KEY);
     if (!savedPrefs) {
       return;
@@ -190,7 +171,6 @@ export function useOnboardingController(): OnboardingController {
 
     let parsed:
       | {
-          preferredName?: string;
           timezone?: string;
           sendHour12?: string;
           sendMinute?: string;
@@ -199,7 +179,6 @@ export function useOnboardingController(): OnboardingController {
       | null = null;
     try {
       parsed = JSON.parse(savedPrefs) as {
-        preferredName?: string;
         timezone?: string;
         sendHour12?: string;
         sendMinute?: string;
@@ -214,9 +193,6 @@ export function useOnboardingController(): OnboardingController {
       return;
     }
 
-    if (typeof parsed.preferredName === "string") {
-      setPreferredName(parsed.preferredName);
-    }
     if (typeof parsed.timezone === "string" && parsed.timezone.trim()) {
       setTimezone(parsed.timezone);
     }
@@ -256,7 +232,6 @@ export function useOnboardingController(): OnboardingController {
       window.localStorage.setItem(
         ONBOARDING_PREFS_DRAFT_KEY,
         JSON.stringify({
-          preferredName,
           timezone,
           sendHour12,
           sendMinute,
@@ -266,7 +241,7 @@ export function useOnboardingController(): OnboardingController {
     }, 250);
 
     return () => window.clearTimeout(timeout);
-  }, [preferredName, timezone, sendHour12, sendMinute, sendMeridiem]);
+  }, [timezone, sendHour12, sendMinute, sendMeridiem]);
 
   useEffect(() => {
     let mounted = true;
@@ -452,6 +427,9 @@ export function useOnboardingController(): OnboardingController {
       const sessionEmail = data.session?.user?.email;
       if (sessionEmail) {
         setEmail(sessionEmail);
+        const metadataName = getPreferredNameFromOAuthProfile(data.session?.user?.user_metadata);
+        const inferredEmailName = getPreferredNameFromEmail(sessionEmail);
+        setPreferredName(metadataName ?? inferredEmailName ?? "Reader");
         setAuthState("signed_in");
         if (window.localStorage.getItem(ONBOARDING_REAUTH_RECOVERY_KEY) === "1") {
           window.localStorage.removeItem(ONBOARDING_REAUTH_RECOVERY_KEY);
@@ -514,12 +492,18 @@ export function useOnboardingController(): OnboardingController {
       setMessage(`Interest brain dump must be ${BRAIN_DUMP_WORD_LIMIT} words or fewer.`);
       return;
     }
+    const resolvedPreferredName = preferredName.trim();
+    if (!resolvedPreferredName) {
+      setSubmitState("error");
+      setMessage("Could not determine your preferred name from your account. Please sign in again.");
+      return;
+    }
 
     const response = await fetch("/api/onboarding", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        preferred_name: preferredName,
+        preferred_name: resolvedPreferredName,
         timezone,
         send_time_local: sendTime,
         brain_dump_text: brainDumpText
@@ -533,9 +517,10 @@ export function useOnboardingController(): OnboardingController {
 
     if (response.ok) {
       setSubmitState("saved");
+      setShowCelebration(true);
+      setMessage("Preferences saved. Your intro email is coming soon, and your first full brief will arrive shortly.");
       window.localStorage.removeItem(BRAIN_DUMP_DRAFT_KEY);
       window.localStorage.removeItem(ONBOARDING_PREFS_DRAFT_KEY);
-      router.replace("/#top");
       return;
     }
 
@@ -569,31 +554,17 @@ export function useOnboardingController(): OnboardingController {
     });
   }
 
-  function completePreferredNameOnTab(event: React.KeyboardEvent<HTMLInputElement>) {
-    if (event.key !== "Tab") {
+  useEffect(() => {
+    if (!showCelebration) {
       return;
     }
 
-    const suggestion = preferredNameSuggestion.trim();
-    if (!suggestion) {
-      return;
-    }
+    const timeout = window.setTimeout(() => {
+      setShowCelebration(false);
+    }, CELEBRATION_HIDE_MS);
 
-    const typed = preferredName.trim();
-    if (!typed) {
-      setPreferredName(suggestion);
-      return;
-    }
-
-    const typedLower = typed.toLowerCase();
-    const suggestionLower = suggestion.toLowerCase();
-    if (!suggestionLower.startsWith(typedLower) || typedLower === suggestionLower) {
-      return;
-    }
-
-    event.preventDefault();
-    setPreferredName(suggestion);
-  }
+    return () => window.clearTimeout(timeout);
+  }, [showCelebration]);
 
   async function startDictation() {
     if (dictationStateRef.current !== "idle") {
@@ -1018,8 +989,6 @@ export function useOnboardingController(): OnboardingController {
     submitState,
     message,
     showCelebration,
-    preferredName,
-    preferredNameSuggestion,
     timezone,
     timezoneOptions,
     sendHour12,
@@ -1034,13 +1003,11 @@ export function useOnboardingController(): OnboardingController {
     quickSparks,
     quickSparksDrawer,
     quickSparksExpanded,
-    setPreferredName,
     setTimezone,
     setSendHour12,
     setSendMinute,
     setSendMeridiem,
     setBrainDumpText,
-    completePreferredNameOnTab,
     signInWithGoogle,
     signOut,
     submitOnboarding,

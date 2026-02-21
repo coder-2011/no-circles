@@ -21,6 +21,7 @@ Holds onboarding constants and small pure utilities used by the page controller 
   - `parseSendTime`
   - `buildSendTime`
   - `getPreferredNameFromEmail` for lightweight suggested-name inference
+  - `getPreferredNameFromOAuthProfile` for persisted preferred-name inference from OAuth profile metadata
   - `getDetectedTimezone` + `buildTimezoneOptions` for browser timezone defaults
   - `initialSendTimeFromLocalNow` for no-permission local send-time default
   - `shuffleQuickSparks` for non-repeating deck batching

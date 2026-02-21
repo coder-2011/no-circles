@@ -5,13 +5,14 @@ Encapsulates onboarding page state, side effects, and action handlers as a reusa
 
 ## Responsibilities
 - initialize and expose onboarding form state
-- derive preferred-name suggestion from signed-in email when local-part clearly matches first/last pattern; otherwise fall back to curated famous-name placeholder
+- derive persisted preferred name from signed-in OAuth profile metadata (`full_name`/`name`/`given_name`) with email local-part fallback
 - resolve auth/session status through Supabase browser client
 - redirect signed-out users
 - persist/remove local draft text in `localStorage` (debounced writes to reduce typing/main-thread pressure)
-- persist onboarding preference draft in `localStorage` (preferred name/timezone/send-time parts)
+- persist onboarding preference draft in `localStorage` (timezone/send-time parts)
 - submit onboarding payload to `POST /api/onboarding`
-- on successful save, clear onboarding drafts and redirect to homepage top (`/#top`)
+- on successful save, clear onboarding drafts, keep user on onboarding page, show celebratory save state, and display near-term intro/first-email status copy
+- auto-hide celebratory save state after a short timeout (`3000ms`)
 - on `401` submit response, persist reauth-recovery flag, redirect to Google sign-in, and show draft-recovered message after session restore
 - build OAuth redirect URL from current browser origin (`window.location.origin`) so localhost and production always stay on their active host
 - include `callback_origin` query param in OAuth redirect URL so callback can explicitly preserve localhost final redirect in fallback-heavy environments
@@ -24,7 +25,6 @@ Encapsulates onboarding page state, side effects, and action handlers as a reusa
   - submit
   - quick-spark append
   - quick-spark deck controls (`More/Hide`, `Refresh`)
-  - preferred-name Tab completion toward current suggestion
   - Deepgram dictation start/stop for brain-dump voice input
 
 ## Notes
