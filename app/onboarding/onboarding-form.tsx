@@ -272,28 +272,6 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
                 >
                   {controller.quickSparksExpanded ? "Hide" : "More"}
                 </button>
-                <button
-                  aria-label="Refresh quick sparks"
-                  className="group inline-flex h-10 w-10 items-center justify-center rounded-md border border-[#CDBF98] bg-[#F6EFD9] text-[#4F5D45] transition hover:bg-[#ECE2C8]"
-                  onClick={controller.refreshQuickSparks}
-                  type="button"
-                >
-                  <svg
-                    aria-hidden="true"
-                    className="h-5 w-5 transition-transform duration-200 group-hover:rotate-180"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M20 12a8 8 0 1 1-2.34-5.66M20 4v6h-6"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                    />
-                  </svg>
-                </button>
               </div>
               <div className="mt-4 flex flex-wrap gap-2.5">
                 {controller.quickSparks.map((spark) => (
@@ -323,6 +301,30 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
                   </div>
                 </div>
               ) : null}
+              <div className="mt-3 flex justify-end">
+                <button
+                  aria-label="Refresh quick sparks"
+                  className="group inline-flex h-10 w-10 items-center justify-center rounded-md border border-[#CDBF98] bg-[#F6EFD9] text-[#4F5D45] transition hover:bg-[#ECE2C8]"
+                  onClick={controller.refreshQuickSparks}
+                  type="button"
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="h-5 w-5 transition-transform duration-200 group-hover:rotate-180"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M20 12a8 8 0 1 1-2.34-5.66M20 4v6h-6"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                    />
+                  </svg>
+                </button>
+              </div>
               <span className="mt-1 block text-xs text-[#6B775D]">
                 {controller.dictationState === "warming" && "Preparing microphone..."}
                 {controller.dictationState === "recording" && "Listening..."}
