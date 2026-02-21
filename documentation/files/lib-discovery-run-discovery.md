@@ -27,6 +27,7 @@ Optional dependency hook:
 4. Optional URL excerpt stage (`requireUrlExcerpt`):
    - fetches local excerpt (default 1500 chars) per candidate URL
    - drops candidates when excerpt extraction fails
+   - drops candidates when excerpt is navigation-heavy or not-found/metadata-like
 5. Run Haiku selector per topic (when topic has >1 candidate) and reorder candidates so selected link is ranked first.
    - selector receives progressive per-issue context (`alreadySelected`) so tie-breaking can prefer non-redundant angles across topics while preserving quality/relevance.
    - selector failures are warning-only.
@@ -76,6 +77,7 @@ Default `perTopicResults` is `7` (attempts 2+ increase by `+2` each).
 - `EXA_TOPIC_FAILURE:<topic>:<reason>` (legacy code preserved; includes Sonar failures)
 - `TOPIC_SELECTOR_FAILURE:<topic>:<reason>`
 - `CANDIDATE_EXTRACTION_FAILED:<topic>:<url>`
+- `CANDIDATE_LOW_SIGNAL_EXCERPT:<topic>:<url>`
 - `TOPIC_NO_EXTRACTED_CANDIDATES:<topic>`
 - `EARLY_STOP_TRIGGERED_ATTEMPT_<n>`
 - `LOW_SIGNAL_FILTERED_<n>`

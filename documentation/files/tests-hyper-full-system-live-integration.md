@@ -12,8 +12,8 @@ Runs full live smoke path from onboarding brain dump through discovery and summa
 If any required env var is missing, test is auto-skipped.
 
 ## Flow
-1. Build onboarding memory from synthetic brain dump.
-2. Run live Exa discovery for target 10 candidates.
+1. Build onboarding memory from a diverse synthetic brain dump spanning technical + non-technical interests.
+2. Run live discovery for target 10 candidates with production-like constraints (`maxRetries: 1`, `requireUrlExcerpt: true`).
 3. Run live Claude summary generation for all candidates.
 4. Persist human-readable trace files.
 

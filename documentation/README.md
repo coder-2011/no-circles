@@ -110,6 +110,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/lib-discovery-exa-contents.md`
 - `files/lib-discovery-url-excerpt.md`
 - `files/lib-discovery-sonar-client.md`
+- `files/lib-discovery-search-blocklists.md`
 - `files/lib-discovery-haiku-link-selector.md`
 - `files/lib-discovery-run-discovery.md`
 - `files/lib-summary-writer.md`

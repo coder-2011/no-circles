@@ -33,6 +33,25 @@ const DEFAULT_MAX_PER_DOMAIN = 3;
 const DEFAULT_BACKFILL_MAX_TOPIC_SHARE = 0.4;
 const RECENCY_OPERATORS = ["last 7 days", "last 30 days", "last 90 days", "last 12 months", "since previous year"] as const;
 const DISCOVERY_DEBUG = process.env.DISCOVERY_DEBUG === "1";
+const LOW_SIGNAL_EXCERPT_PATTERNS = [
+  /post not found/i,
+  /page not found/i,
+  /doesn['’]t exist or has been moved/i,
+  /about press copyright contact us creators advertise developers terms privacy policy/i,
+  /jump to content/i,
+  /toggle navigation/i,
+  /all rights reserved/i
+] as const;
+const LOW_SIGNAL_EXCERPT_NAV_TERMS = [
+  "sign in",
+  "sign up",
+  "privacy policy",
+  "terms",
+  "copyright",
+  "menu",
+  "subscribe",
+  "contact us"
+] as const;
 
 function logDiscoveryDebug(event: string, details: Record<string, unknown>) {
   if (!DISCOVERY_DEBUG) return;
@@ -45,6 +64,24 @@ function hasRequiredItemFields(candidate: DiscoveryCandidate): boolean {
 
 function normalizeLine(value: string): string {
   return value.replace(/\s+/g, " ").trim();
+}
+
+function isLowSignalExcerpt(excerpt: string): boolean {
+  const normalized = normalizeLine(excerpt).toLowerCase();
+  if (!normalized) return true;
+
+  if (LOW_SIGNAL_EXCERPT_PATTERNS.some((pattern) => pattern.test(normalized))) {
+    return true;
+  }
+
+  let navSignals = 0;
+  for (const token of LOW_SIGNAL_EXCERPT_NAV_TERMS) {
+    if (normalized.includes(token)) {
+      navSignals += 1;
+    }
+  }
+
+  return navSignals >= 5;
 }
 
 function hasRecencyOperator(query: string): boolean {
@@ -188,6 +225,10 @@ export async function runDiscovery(
 
             if (!excerpt) {
               warnings.push(`CANDIDATE_EXTRACTION_FAILED:${topic.topic}:${rawResult.url}`);
+              continue;
+            }
+            if (isLowSignalExcerpt(excerpt)) {
+              warnings.push(`CANDIDATE_LOW_SIGNAL_EXCERPT:${topic.topic}:${rawResult.url}`);
               continue;
             }
 

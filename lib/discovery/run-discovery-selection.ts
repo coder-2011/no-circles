@@ -14,7 +14,8 @@ const ATTEMPT_POLICIES = [
 ] as const;
 const KNOWN_LOW_SIGNAL_DOMAINS = new Set([
   "goodreads.com", "studylib.net", "itbooks.ir", "barnesandnoble.com", "books.google.com", "bookshop.org", "scribd.com",
-  "issuu.com", "coursehero.com", "academia.edu", "pdfdrive.com", "z-lib.org", "papyruspub.com", "faiusr.com"
+  "issuu.com", "coursehero.com", "academia.edu", "pdfdrive.com", "z-lib.org", "papyruspub.com", "faiusr.com",
+  "wikipedia.org", "youtube.com", "youtu.be"
 ]);
 const LOW_SIGNAL_PATH_PREFIXES = ["/tag/", "/tags/", "/category/", "/categories/", "/topics/", "/topic/"];
 const LOW_SIGNAL_EXACT_PATHS = new Set([
@@ -166,6 +167,7 @@ function normalizedEntropy(counts: Map<string, number>, total: number): number {
 function isLikelyLowSignalCandidate(candidate: DiscoveryCandidate): boolean {
   const domain = candidate.sourceDomain?.toLowerCase() ?? "";
   const normalizedUrl = candidate.url.toLowerCase();
+  const normalizedTitle = candidate.title?.toLowerCase() ?? "";
   let pathname = "";
   try {
     pathname = new URL(candidate.canonicalUrl).pathname.toLowerCase().replace(/\/+$/, "") || "/";
@@ -174,7 +176,11 @@ function isLikelyLowSignalCandidate(candidate: DiscoveryCandidate): boolean {
   }
 
   if (KNOWN_LOW_SIGNAL_DOMAINS.has(domain)) return true;
+  if (domain.endsWith(".wikipedia.org")) return true;
+  if (domain.endsWith(".youtube.com")) return true;
   if (domain.endsWith(".papyruspub.com") || domain.endsWith(".faiusr.com")) return true;
+  if (normalizedTitle.includes("post not found")) return true;
+  if (normalizedTitle.includes("page not found")) return true;
   if (normalizedUrl.endsWith(".pdf") && !domain.endsWith(".edu") && !domain.endsWith(".gov")) return true;
   if (LOW_SIGNAL_EXACT_PATHS.has(pathname)) return true;
   if (LOW_SIGNAL_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return true;

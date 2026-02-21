@@ -5,15 +5,17 @@ import { generateNewsletterSummaries } from "@/lib/summary/writer";
 import { buildRunId, toPrettyJson, writeHyperLog } from "@/tests/hyper/logging";
 
 const INITIAL_BRAIN_DUMP = [
-  "I am focused on AI engineering, systems design, and software architecture.",
-  "I prefer concrete implementation guidance over broad thought pieces.",
-  "I also enjoy data engineering and technical product strategy."
+  "Messy brain dump version: I’m deep into AI engineering and coding workflows with agents, especially what actually works in production.",
+  "I care about distributed systems, systems design, software architecture, data engineering, observability, incident response, and migration tradeoffs.",
+  "I like practical pieces with concrete mechanisms and decision frameworks, not fluffy trend talk or generic intros.",
+  "Secondary interests (keep but lighter): philosophy of science, political history, behavioral economics, evolutionary biology, and science writing.",
+  "Please mix fast-moving recent technical updates with slower timeless explainers where recency is less important but insight quality is high."
 ].join(" ");
 
 const REPLY_UPDATE = [
-  "Pause software architecture and product strategy for now.",
-  "I want much more distributed systems, databases, and observability.",
-  "Keep it practical and implementation focused."
+  "Less broad architecture commentary for now; give me much more distributed systems internals, databases, observability, and failure analysis.",
+  "Please prioritize implementation-level depth, tradeoffs, and what changed in real deployments.",
+  "Keep behavioral econ and history as occasional discovery side-quests, not the main feed."
 ].join(" ");
 
 function missingLiveEnv(): string[] {
@@ -28,9 +30,10 @@ async function discoverAndSummarize(memory: string) {
   const discovery = await runDiscovery({
     interestMemoryText: memory,
     targetCount: 10,
-    maxRetries: 3,
+    maxRetries: 1,
     maxTopics: 10,
-    perTopicResults: 4
+    perTopicResults: 4,
+    requireUrlExcerpt: true
   });
 
   const summaries = await generateNewsletterSummaries({
@@ -40,7 +43,7 @@ async function discoverAndSummarize(memory: string) {
       highlights: candidate.highlights,
       topic: candidate.topic
     })),
-    targetWords: 50
+    targetWords: 100
   });
 
   return { discovery, summaries };

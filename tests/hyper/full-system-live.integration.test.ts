@@ -5,10 +5,14 @@ import { generateNewsletterSummaries } from "@/lib/summary/writer";
 import { buildRunId, toPrettyJson, writeHyperLog } from "@/tests/hyper/logging";
 
 const BRAIN_DUMP = [
-  "I care about AI engineering, distributed systems, software architecture, and data engineering.",
-  "I like practical implementation details, migration tradeoffs, and operational lessons.",
-  "I want less hype and more concrete examples from production environments.",
-  "I also like product strategy and behavioral economics when they connect to engineering decisions."
+  "Okay so brain dump, messy version: I care a lot about AI engineering + coding with agents (what works in prod, what breaks, why).",
+  "I want practical deep dives: migrations, incident postmortems, benchmarks, architecture tradeoffs, reliability constraints, and cost/perf tradeoffs in real systems.",
+  "I’m also into distributed systems + software architecture + data engineering, but please not generic SEO explainers or fluffy trend recaps.",
+  "Outside pure eng: philosophy of science, political history, behavioral economics, evolutionary biology, and science-driven writing all interest me.",
+  "I like pieces that teach mechanisms and decision frameworks, not just event announcements, conference pages, institutional boilerplate, or admin updates.",
+  "Recency matters a lot for AI tools/APIs/platform workflows and security incidents; less so for timeless domains where best explainers may be older.",
+  "Tone preference: neutral, evidence-first, concrete, with uncertainty when needed. Less hype. More first-hand detail, failure modes, constraints, and what changed in practice.",
+  "If possible include a little serendipity but keep it adjacent to my interests and high-signal."
 ].join(" ");
 
 function missingLiveEnv(): string[] {
@@ -29,9 +33,10 @@ describe("hyper integration: full system live smoke", () => {
       const discovery = await runDiscovery({
         interestMemoryText,
         targetCount: 10,
-        maxRetries: 3,
+        maxRetries: 1,
         maxTopics: 10,
-        perTopicResults: 4
+        perTopicResults: 4,
+        requireUrlExcerpt: true
       });
 
       const summaries = await generateNewsletterSummaries({
@@ -41,7 +46,7 @@ describe("hyper integration: full system live smoke", () => {
           highlights: candidate.highlights,
           topic: candidate.topic
         })),
-        targetWords: 50
+        targetWords: 100
       });
 
       await writeHyperLog({

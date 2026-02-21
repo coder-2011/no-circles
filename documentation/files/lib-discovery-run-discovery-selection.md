@@ -9,7 +9,7 @@ Holds pure helper logic used by discovery orchestration so `run-discovery.ts` st
 - Soft-suppression filtering and domain-cap selection helpers.
 - Quality filtering:
   - required `title` + `highlight`
-  - low-signal source/domain rejection
+  - low-signal source/domain rejection (includes generic wiki/video domains and known mirrors)
   - low-signal hub/index/tag path rejection
   - minimum score rejection for scored candidates.
 - Strict one-winner-per-topic selection using weighted topic-local score.

@@ -313,7 +313,7 @@ export async function sendUserNewsletter(
         highlights: candidate.highlights,
         topic: candidate.topic
       })),
-      targetWords: 50
+      targetWords: 100
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "SUMMARY_FAILED";

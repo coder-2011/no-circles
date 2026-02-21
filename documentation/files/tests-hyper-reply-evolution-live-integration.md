@@ -12,11 +12,15 @@ Evaluates how reply-driven memory updates change the next discovery + summary ou
 If any required env var is missing, test is auto-skipped.
 
 ## Flow
-1. Build initial memory from synthetic brain dump.
+1. Build initial memory from a deliberately messy, diverse synthetic brain dump (technical + non-technical interests).
 2. Run discovery + summary and capture baseline outputs.
 3. Apply synthetic reply update to memory.
 4. Run discovery + summary again.
 5. Persist before/after traces for side-by-side inspection.
+
+Runtime knobs:
+- discovery: `maxRetries=1`, `requireUrlExcerpt=true`, `targetCount=10`
+- summary target: `targetWords=100`
 
 ## Artifacts
 Writes per-run traces to:

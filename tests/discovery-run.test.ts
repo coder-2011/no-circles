@@ -398,6 +398,38 @@ describe("runDiscovery", () => {
     expect(result.warnings.some((warning) => warning.startsWith("LOW_SIGNAL_FILTERED_"))).toBe(true);
   });
 
+  it("filters wikipedia and youtube candidates as low-signal sources", async () => {
+    const exaSearch = vi.fn(async ({ query }: { query: string; numResults: number }) => {
+      if (query.startsWith("AI engineering")) {
+        return [
+          { url: "https://en.wikipedia.org/wiki/Retrieval-augmented_generation", title: "wiki rag", highlights: ["x"], score: 0.9 },
+          { url: "https://example.com/ai-good", title: "good ai", highlights: ["x"], score: 0.82 }
+        ];
+      }
+
+      return [
+        { url: "https://www.youtube.com/watch?v=abc123", title: "video", highlights: ["y"], score: 0.88 },
+        { url: "https://example.com/dist-good", title: "good dist", highlights: ["y"], score: 0.81 }
+      ];
+    });
+
+    const result = await runDiscovery(
+      {
+        interestMemoryText: memory,
+        targetCount: 2,
+        maxRetries: 1,
+        maxTopics: 2,
+        perTopicResults: 2
+      },
+      { exaSearch }
+    );
+
+    expect(result.candidates).toHaveLength(2);
+    expect(result.candidates.every((candidate) => candidate.sourceDomain !== "wikipedia.org")).toBe(true);
+    expect(result.candidates.every((candidate) => candidate.sourceDomain !== "youtube.com")).toBe(true);
+    expect(result.warnings.some((warning) => warning.startsWith("LOW_SIGNAL_FILTERED_"))).toBe(true);
+  });
+
   it("filters index/hub-style pages before selecting winners", async () => {
     const exaSearch = vi.fn(async ({ query }: { query: string; numResults: number }) => {
       if (query.startsWith("AI engineering")) {
@@ -424,6 +456,35 @@ describe("runDiscovery", () => {
     expect(result.candidates).toHaveLength(2);
     expect(result.candidates.every((candidate) => !candidate.canonicalUrl.endsWith("/resources"))).toBe(true);
     expect(result.warnings.some((warning) => warning.startsWith("LOW_SIGNAL_FILTERED_"))).toBe(true);
+  });
+
+  it("drops extracted candidates when excerpt content is navigation-heavy or not-found text", async () => {
+    const exaSearch = vi.fn(async () => [
+      { url: "https://example.com/not-found", title: "missing", highlights: ["x"], score: 0.9 },
+      { url: "https://example.com/good", title: "good", highlights: ["x"], score: 0.88 }
+    ]);
+    const excerptExtractor = vi.fn(async ({ url }: { url: string }) => {
+      if (url.includes("not-found")) {
+        return "Post not found. Sign in. Sign up. Privacy policy. Terms. Contact us. Menu.";
+      }
+      return "A concrete incident write-up explains rollback sequencing, error budgets, and failure-domain isolation in production.";
+    });
+
+    const result = await runDiscovery(
+      {
+        interestMemoryText: memory,
+        targetCount: 1,
+        maxRetries: 1,
+        maxTopics: 1,
+        perTopicResults: 2,
+        requireUrlExcerpt: true
+      },
+      { exaSearch, excerptExtractor }
+    );
+
+    expect(result.candidates).toHaveLength(1);
+    expect(result.candidates[0]?.canonicalUrl).toBe("https://example.com/good");
+    expect(result.warnings.some((warning) => warning.startsWith("CANDIDATE_LOW_SIGNAL_EXCERPT:"))).toBe(true);
   });
 
   it("uses top-2 mean highlight score when Exa score is unavailable", async () => {
