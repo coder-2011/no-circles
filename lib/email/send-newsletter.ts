@@ -8,6 +8,14 @@ type SendNewsletterArgs = {
   idempotencyKey: string;
 };
 
+type SendEmailArgs = {
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+  headers?: Record<string, string>;
+};
+
 export type SendNewsletterResult = {
   ok: boolean;
   providerMessageId: string | null;
@@ -34,7 +42,7 @@ function getReplyToAddress(): string | undefined {
   return value && value.length > 0 ? value : undefined;
 }
 
-export async function sendNewsletter(args: SendNewsletterArgs): Promise<SendNewsletterResult> {
+async function sendEmail(args: SendEmailArgs): Promise<SendNewsletterResult> {
   const resend = getResendClient();
 
   let lastError = "UNKNOWN_SEND_ERROR";
@@ -47,9 +55,7 @@ export async function sendNewsletter(args: SendNewsletterArgs): Promise<SendNews
         html: args.html,
         text: args.text,
         replyTo: getReplyToAddress(),
-        headers: {
-          "x-newsletter-idempotency-key": args.idempotencyKey
-        }
+        headers: args.headers
       });
 
       if (response.error) {
@@ -73,4 +79,20 @@ export async function sendNewsletter(args: SendNewsletterArgs): Promise<SendNews
     attempts: MAX_SEND_ATTEMPTS,
     error: lastError
   };
+}
+
+export async function sendNewsletter(args: SendNewsletterArgs): Promise<SendNewsletterResult> {
+  return sendEmail({
+    to: args.to,
+    subject: args.subject,
+    html: args.html,
+    text: args.text,
+    headers: {
+      "x-newsletter-idempotency-key": args.idempotencyKey
+    }
+  });
+}
+
+export async function sendTransactionalEmail(args: Omit<SendEmailArgs, "headers">): Promise<SendNewsletterResult> {
+  return sendEmail(args);
 }

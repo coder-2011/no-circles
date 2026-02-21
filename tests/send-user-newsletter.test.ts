@@ -237,4 +237,41 @@ describe("sendUserNewsletter", () => {
     expect(result.status).toBe("insufficient_content");
     expect(result.error).toBe("INSUFFICIENT_EXA_HIGHLIGHTS");
   });
+
+  it("supports welcome variant with configurable target item count", async () => {
+    const renderNewsletterFn = vi.fn(() => ({
+      subject: "Welcome to No Circles - your first issue",
+      html: "<p>welcome</p>",
+      text: "welcome"
+    }));
+
+    const result = await sendUserNewsletter(
+      {
+        userId: user.id,
+        runAtUtc: new Date("2026-02-16T18:00:00.000Z"),
+        targetItemCount: 5,
+        issueVariant: "welcome"
+      },
+      {
+        loadUserFn: async () => user,
+        runDiscoveryFn: async () =>
+          makeDiscoveryResult(Array.from({ length: 5 }).map((_, index) => `https://example.com/welcome-${index + 1}`)),
+        getFinalHighlightsByUrlFn,
+        generateSummariesFn: async ({ items }) => items.map((item) => ({ title: item.title, summary: "summary", url: item.url })),
+        reserveIdempotencyFn: async () => ({ outcome: "claimed", status: "processing", providerMessageId: null }),
+        renderNewsletterFn,
+        sendNewsletterFn: async () => ({ ok: true, providerMessageId: "msg_welcome", attempts: 1, error: null }),
+        persistSendSuccessFn: async () => undefined
+      }
+    );
+
+    expect(result.status).toBe("sent");
+    expect(result.itemCount).toBe(5);
+    expect(renderNewsletterFn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        variant: "welcome",
+        items: expect.any(Array)
+      })
+    );
+  });
 });

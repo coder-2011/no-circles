@@ -5,7 +5,7 @@ Implements real one-user-per-tick delivery runtime after scheduler selection.
 
 ## Responsibilities
 - apply Bloom anti-repeat gating on discovery candidates (`canonicalUrl`)
-- enforce exactly-10 send policy
+- enforce target-count send policy (default `10`, welcome flow uses `5`)
 - render and send newsletter via Resend with retry-once behavior
 - update delivery state and Bloom state after successful send
 - guard duplicates with outbound idempotency key (per user per local date)
@@ -13,6 +13,7 @@ Implements real one-user-per-tick delivery runtime after scheduler selection.
 ## Contracts
 - input from scheduler: selected `user_id`
 - summary item contract preserved: `{ title, summary, url }`
+- render variants supported: `daily` and `welcome`
 - cron route status mapping: `sent`, `insufficient_content`, `send_failed`, `no_due_user`, `internal_error`
 - idempotency reserve outcomes:
   - `claimed` / `retryable_failed_claimed` -> send proceeds

@@ -12,3 +12,6 @@ Sends rendered newsletter email via Resend with immediate retry-once semantics.
 - includes outbound idempotency header (`x-newsletter-idempotency-key`)
 - retry policy: max 2 attempts total (1 retry)
 - returns normalized provider result (`ok`, `providerMessageId`, `attempts`, `error`)
+
+## Additional API
+- exposes `sendTransactionalEmail(...)` for non-newsletter helper sends without the idempotency header (for example wrong-account guidance auto-replies).

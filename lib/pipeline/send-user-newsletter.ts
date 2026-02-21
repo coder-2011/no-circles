@@ -61,7 +61,7 @@ type SendPipelineDeps = {
   }) => Promise<void>;
 };
 
-const TARGET_ITEM_COUNT = 10;
+const DEFAULT_TARGET_ITEM_COUNT = 10;
 
 function logPipeline(event: string, details: Record<string, unknown>) {
   logInfo("send_pipeline", event, details);
@@ -91,7 +91,12 @@ async function loadUser(userId: string): Promise<PipelineUser | null> {
 }
 
 export async function sendUserNewsletter(
-  args: { userId: string; runAtUtc: Date },
+  args: {
+    userId: string;
+    runAtUtc: Date;
+    targetItemCount?: number;
+    issueVariant?: "daily" | "welcome";
+  },
   deps: SendPipelineDeps = {}
 ): Promise<SendUserNewsletterResult> {
   const runDiscoveryFn = deps.runDiscoveryFn ?? runDiscovery;
@@ -103,6 +108,8 @@ export async function sendUserNewsletter(
   const loadUserFn = deps.loadUserFn ?? loadUser;
   const reserveIdempotencyFn = deps.reserveIdempotencyFn ?? reserveOutboundSendIdempotency;
   const markIdempotencyFailedFn = deps.markIdempotencyFailedFn ?? markOutboundSendIdempotencyFailed;
+  const targetItemCount = args.targetItemCount ?? DEFAULT_TARGET_ITEM_COUNT;
+  const issueVariant = args.issueVariant ?? "daily";
   const persistSendSuccessFn =
     deps.persistSendSuccessFn ??
     (async (params) => {
@@ -164,7 +171,7 @@ export async function sendUserNewsletter(
     discovery = await runDiscoveryFn(
       {
         interestMemoryText: user.interestMemoryText,
-        targetCount: TARGET_ITEM_COUNT,
+        targetCount: targetItemCount,
         maxRetries: 1,
         perTopicResults: 7,
         requireUrlExcerpt: true
@@ -187,7 +194,7 @@ export async function sendUserNewsletter(
     };
   }
 
-  if (discovery.candidates.length < TARGET_ITEM_COUNT) {
+  if (discovery.candidates.length < targetItemCount) {
     return {
       status: "insufficient_content",
       userId: user.id,
@@ -198,7 +205,7 @@ export async function sendUserNewsletter(
     };
   }
 
-  const selectedCandidates = discovery.candidates.slice(0, TARGET_ITEM_COUNT);
+  const selectedCandidates = discovery.candidates.slice(0, targetItemCount);
 
   let highlightsByUrl: Map<string, string[]>;
   try {
@@ -242,7 +249,7 @@ export async function sendUserNewsletter(
     })
     .filter((candidate): candidate is CandidateWithHighlights => candidate !== null);
 
-  if (candidatesWithHighlights.length < TARGET_ITEM_COUNT) {
+  if (candidatesWithHighlights.length < targetItemCount) {
     return {
       status: "insufficient_content",
       userId: user.id,
@@ -280,7 +287,7 @@ export async function sendUserNewsletter(
         status: "sent",
         userId: user.id,
         runAtUtc: args.runAtUtc.toISOString(),
-        itemCount: TARGET_ITEM_COUNT,
+        itemCount: targetItemCount,
         idempotencyKey,
         providerMessageId: reserveResult.providerMessageId
       };
@@ -322,10 +329,10 @@ export async function sendUserNewsletter(
     };
   }
 
-  if (summaries.length !== TARGET_ITEM_COUNT) {
+  if (summaries.length !== targetItemCount) {
     await markIdempotencyFailedFn({
       idempotencyKey,
-      reason: `SUMMARY_COUNT_MISMATCH:${summaries.length}/${TARGET_ITEM_COUNT}`
+      reason: `SUMMARY_COUNT_MISMATCH:${summaries.length}/${targetItemCount}`
     });
 
     return {
@@ -342,7 +349,8 @@ export async function sendUserNewsletter(
     preferredName: user.preferredName,
     timezone: user.timezone,
     runAtUtc: args.runAtUtc,
-    items: summaries
+    items: summaries,
+    variant: issueVariant
   });
 
   const sendResult = await sendNewsletterFn({
@@ -368,7 +376,7 @@ export async function sendUserNewsletter(
       status: "send_failed",
       userId: user.id,
       runAtUtc: args.runAtUtc.toISOString(),
-      itemCount: TARGET_ITEM_COUNT,
+      itemCount: targetItemCount,
       idempotencyKey,
       error: reason
     };
@@ -400,7 +408,7 @@ export async function sendUserNewsletter(
       status: "send_failed",
       userId: user.id,
       runAtUtc: args.runAtUtc.toISOString(),
-      itemCount: TARGET_ITEM_COUNT,
+      itemCount: targetItemCount,
       idempotencyKey,
       providerMessageId: sendResult.providerMessageId,
       error: message
@@ -410,7 +418,8 @@ export async function sendUserNewsletter(
   logPipeline("sent", {
     user_id: user.id,
     run_at_utc: args.runAtUtc.toISOString(),
-    item_count: TARGET_ITEM_COUNT,
+    item_count: targetItemCount,
+    issue_variant: issueVariant,
     provider_message_id: sendResult.providerMessageId,
     bloom_count_estimate: bloomAfterSend.count
   });
@@ -419,7 +428,7 @@ export async function sendUserNewsletter(
     status: "sent",
     userId: user.id,
     runAtUtc: args.runAtUtc.toISOString(),
-    itemCount: TARGET_ITEM_COUNT,
+    itemCount: targetItemCount,
     idempotencyKey,
     providerMessageId: sendResult.providerMessageId
   };
