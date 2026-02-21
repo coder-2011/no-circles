@@ -14,64 +14,64 @@ type SampleBriefItem = {
 
 const SAMPLE_DAILY_BRIEF: SampleBriefItem[] = [
   {
-    title: "How Agentic AI Will Reshape Engineering Workflows in 2026",
-    url: "https://www.cio.com/article/4134741/how-agentic-ai-will-reshape-engineering-workflows-in-2026.html",
-    summary:
-      "Agentic AI systems that reason, plan and execute multi-step goals autonomously will fundamentally reshape engineering teams in 2026, moving beyond AI as a coding assistant to autonomous execution of entire software development lifecycle segments. Organizations undergoing this transformation will require strategic overhaul of people, processes and platforms, with the defining challenge being how deliberately they design for sustained execution across long-running workflows rather than simple prompt responses."
-  },
-  {
-    title: "Cline Agent Migration Postmortem",
-    url: "https://cline.bot/blog/migrating-production-agent-failures-20260210",
-    summary:
-      "The requested blog post about Cline Agent migration is not available. The page indicates the post does not exist or has been moved. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
-  },
-  {
-    title: "Software Architecture and Design Trends Report - 2025",
-    url: "https://www.infoq.com/articles/architecture-trends-2025/",
-    summary:
-      "As large language models have become widely adopted, AI-related innovation is focusing on finely-tuned small language models and agentic AI. Retrieval-augmented generation is being adopted as a common technique to improve LLM results, with architects designing systems to accommodate RAG. Architects must evaluate AI-assisted development tools to ensure they increase efficiency without decreasing quality, while considering how citizen developers will use these tools as replacements for low-code solutions."
-  },
-  {
-    title: "Data Engineering for Agent-Native Workloads: Reliability and Infrastructure Shifts in 2026",
-    url: "https://gradientflow.substack.com/p/data-engineering-for-machine-users",
-    summary:
-      "Data engineering faces competing pressures as agentic workloads become dominant: automation increases while decision-making by software demands greater scrutiny. Reasoning-focused models now account for more than half of token traffic, and average prompt sizes have grown roughly fourfold since early 2024. Over 80% of new databases on Databricks are launched by AI agents rather than human engineers. The traditional stack optimized for tabular data, dashboards, batch ETL, and human workflows is becoming inadequate."
-  },
-  {
-    title: "2026 in politics",
-    url: "https://en.wikipedia.org/wiki/2026_in_politics",
-    summary:
-      "This Wikipedia article provides a dynamic list of political events and scheduled occurrences expected in 2026. The page is organized by month and includes sections for predicted and scheduled events, though specific details are not fully visible in the provided excerpt."
-  },
-  {
-    title: "Turkish Readability and Content Quality of Strabismus-Related Websites",
-    url: "https://pubmed.ncbi.nlm.nih.gov/38765432",
-    summary:
-      "A cross-sectional study assessed 41 websites about strabismus treatment using Turkish readability formulas and content quality indexes. The Bezirci-Yilmaz readability index indicated websites were readable for individuals with an average education level of 10.5 ± 2.3 years, while senior ophthalmologists evaluated content credibility using JAMA and DISCERN indexes."
-  },
-  {
     title: "AI Update, February 20, 2026: AI News and Views From the Past Week",
     url: "https://www.marketingprofs.com/opinions/2026/54328/ai-update-february-20-2026-ai-news-and-views-from-the-past-week",
     summary:
-      "LinkedIn overhauled its SEO strategy after reporting a major B2B traffic decline, with non-brand, awareness-driven traffic dropping up to 60% as AI-powered search experiences reduced clickthrough behavior despite stable rankings."
+      "LinkedIn overhauled its SEO strategy following a significant decline in B2B traffic. The platform reported that non-brand, awareness-driven B2B traffic dropped by up to 60% as AI-powered search experiences reduced clickthrough behavior, even though search rankings remained stable. This traffic decline prompted LinkedIn to reassess its approach to search engine optimization."
   },
   {
-    title: "Nullspace Steering Jailbreak: How Researchers Test AI Safety Through Adversarial Methods",
-    url: "https://news.ufl.edu/2026/02/breaking-ai/",
+    title: "Global Summits to Watch in 2026: Bracing for a New Global (Dis)order",
+    url: "https://www.cfr.org/articles/global-summits-watch-2026-bracing-new-global-disorder",
     summary:
-      "University of Florida researchers, led by Professor Sumit Kumar Jha, are conducting adversarial testing on large language models using techniques like nullspace steering and red teaming to identify failure modes and strengthen AI security. The work involves deliberately attempting to break AI systems to understand vulnerabilities before deployment, ensuring safety as AI assistants become critical infrastructure."
+      "Major global forums are scheduled in 2026 covering climate change, trade, and security. The Donald Trump administration's ongoing overhaul of U.S. foreign policy could disrupt how these gatherings are conducted. The World Economic Forum in Davos, Switzerland represents one such venue where these dynamics may unfold."
   },
   {
-    title: "OpenClaw Multi-Agent Rollout: OpenAI vs Chinese Giants Recovery Lessons",
-    url: "https://www.youtube.com/watch?v=BT02OEDY6H8",
+    title: "26 Trends Affecting Capital Markets in 2026",
+    url: "https://corpgov.law.harvard.edu/2026/01/25/26-trends-affecting-capital-markets-in-2026/",
     summary:
-      "Unable to generate summary. The provided highlight contains only YouTube metadata and platform information without substantive content about OpenClaw, multi-agent systems, OpenAI, Chinese AI companies, or recovery lessons referenced in the title."
+      "Capital markets have experienced significant structural shifts, particularly the rise of private markets relative to public markets. Private assets grew from $9.7 trillion in 2012 to $22 trillion in 2024, more than doubling over 12 years. Companies are staying private longer, with an average wait of 16 years before going public, representing a 33 percent increase compared to a decade earlier. These trends have become more pronounced since the Sarbanes-Oxley Act adoption. Enhanced retail access to private markets has emerged as a focus of policymaker attention following recent administrative changes."
   },
   {
-    title: "Modular Monolith Migration Pitfalls: Lessons from Service Weaver Rollouts",
-    url: "https://conf.researchr.org/home/icse-2025/satrends-2025",
+    title: "Economic Trends for 2026 and Beyond | Vistage",
+    url: "https://www.vistage.com/research-center/business-financials/economic-trends/20251027-economic-trends-for-2026-and-beyond/",
     summary:
-      "Unable to generate summary. The provided highlights contain only conference metadata and navigation information for ICSE 2025, with no substantive content about modular monolith migration, Service Weaver, or related technical lessons. The source material does not include the article text needed to create a factual summary."
+      "Small and midsize businesses face sustained stagflationary conditions in 2026 and beyond, with inflation remaining above the Federal Reserve's target despite cooling from 40-year highs. Tariffs and rising input costs are compressing margins, while labor scarcity drives wage and benefit increases. The cost of capital remains elevated, constraining growth plans. The analysis recommends that SMBs prioritize margin protection over revenue growth. Opportunities exist in productivity gains through AI and expansion in tech, healthcare, and clean energy sectors. Through Q3 2025, the S&P 500 gained 9.8% and the Nasdaq showed resilience despite these economic headwinds."
+  },
+  {
+    title: "WMO Global Annual to Decadal Climate Update (2025-2029)",
+    url: "https://wmo.int/publication-series/wmo-global-annual-decadal-climate-update-2025-2029",
+    summary:
+      "The WMO Global Annual to Decadal Climate Update projects global temperatures will remain at or near record levels from 2025-2029, with annually averaged near-surface temperatures predicted between 1.2°C and 1.9°C above 1850-1900 baseline. An 80% probability exists that at least one year will exceed 2024 as the warmest on record, while an 86% probability indicates at least one year will surpass 1.5°C above pre-industrial levels. The five-year average warming probability for 2025-2029 exceeding 1.5°C stands at 70%, up from 47% previously. Arctic warming is predicted to continue outpacing global average warming, with precipitation patterns showing significant regional variations."
+  },
+  {
+    title: "Ten Cancer-Related Breakthroughs Giving Us Hope in 2026",
+    url: "https://blog.dana-farber.org/insight/2026/01/ten-cancer-related-breakthroughs-giving-us-hope-in-2026/",
+    summary:
+      "Cancer treatment research at Dana-Farber has produced breakthroughs including targeted therapies and cancer vaccines. Menin inhibitors, two targeted therapies recently approved for approximately 40% of acute myeloid leukemia (AML) cases, represent a significant advancement for this previously difficult-to-treat disease. Researchers are now testing menin inhibitors in combination with other therapies to achieve substantial survival benefits for patients with AML and pancreatic cancer."
+  },
+  {
+    title: "University of Cincinnati study sheds light on survival of new neurons in adult brain",
+    url: "https://www.eurekalert.org/news-releases/1115910",
+    summary:
+      "Research from the University of Cincinnati College of Medicine, published in Nature Communications, reveals how immune cells in the adult brain regulate neurogenesis—the generation of new neurons. Immune cells conduct surveillance and send messages to developing neurons. Adult neurogenesis supports learning, memory, and mood regulation. Exercise, sleep, and learning stimulate the process, while stress and aging decrease it, potentially explaining cognitive decline in older adults."
+  },
+  {
+    title: "Scientists Capture a Glimpse into the Quantum Vacuum",
+    url: "https://www.bnl.gov/newsroom/news.php?a=122738",
+    summary:
+      "Scientists have made new findings on particle spin correlations that provide insight into how visible matter emerges from the quantum vacuum. The research examines dynamic fluctuations of energy fields in the quantum vacuum. These findings were announced by Brookhaven National Laboratory on February 4, 2026, and represent observations of previously difficult-to-access quantum phenomena related to the fundamental nature of matter."
+  },
+  {
+    title: "Future Issues in Global Health: Challenges and Conundrums - PMC",
+    url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC11942303/",
+    summary:
+      "Int J Environ Res Public Health . 2025 Feb 21;22(3):325. doi: 10.3390/ijerph22030325 Search in PMC Search in PubMed View in NLM Catalog Add to search Future Issues in Global Health: Challenges and Conundrums Manoj Sharma Manoj Sharma 1 Department of Social and Behavioral Health, School of Public Health, University of Nevada, Las Vegas, NV 89119, USA 2 Department of Internal Medicine, Kirk Kerkorian School of Medicine at UNLV, University of Nevada, Las Vegas, NV 89102, USA Find articles by Manoj Sharma 1, 2 , Md Sohail Akhter Md Sohail Akhter 1 Department of Social and Behavioral Health, School of Public Health, University of Nevada, Las Vegas, NV 89119, USA Find articles by Md Sohail Akhter 1, * , Sharmistha Roy"
+  },
+  {
+    title: "4 Health Issues We're Watching in 2025 | Project HOPE",
+    url: "https://www.projecthope.org/news-stories/story/4-health-issues-were-watching-in-2025/",
+    summary:
+      "Project HOPE identified four urgent global health priorities for 2025: maternal health emergencies, infectious disease threats, mental health and psychosocial support, and primary health care strengthening. In the prior year, the organization reached 4.4 million people, provided direct medical services to 2.8 million patients, screened 655,000 people for disease, and donated $79 million in equipment and supplies. The organization addresses interconnected crises driven by conflict, displacement, poverty, and disease pressuring health systems worldwide."
   }
 ];
 
