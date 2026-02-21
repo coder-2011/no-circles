@@ -50,7 +50,7 @@ describe("generateNewsletterSummaries", () => {
             text: JSON.stringify({
               title: "Refined A",
               summary:
-                "This article explains a lower-latency retrieval approach, compares implementation tradeoffs, and shows how teams balanced recall quality against serving cost in production." // 23 words
+                "Teams replaced monolithic retrieval with staged recall and reranking to cut latency in production. The rollout compared recall against serving cost, added explicit cache invalidation controls, and used rollback thresholds tied to query failure rate and degraded relevance to keep reliability stable under load."
             })
           }
         ]
@@ -85,10 +85,10 @@ describe("generateNewsletterSummaries", () => {
       "Task: produce one neutral summary grounded only in the provided highlights."
     );
     expect(requestBody.messages[0]?.content).toContain(
-      "If highlights do not contain enough concrete detail, set summary to exactly: INSUFFICIENT_SOURCE_DETAIL."
+      "If fewer than 2 concrete details are present, set summary to exactly: INSUFFICIENT_SOURCE_DETAIL."
     );
     expect(requestBody.messages[0]?.content).toContain(
-      "Title policy: preserve original title by default; edit only if unclear, and only with a minimal context anchor."
+      "If title edit is required, change at most 8 words, preserve named entities, and do not add new claims."
     );
   });
 
@@ -118,8 +118,7 @@ describe("generateNewsletterSummaries", () => {
     expect(result).toHaveLength(1);
     expect(result[0].title).toBe("Original A");
     expect(result[0].url).toBe("https://example.com/a");
-    expect(wordCount(result[0].summary)).toBeGreaterThanOrEqual(40);
-    expect(wordCount(result[0].summary)).toBeLessThanOrEqual(60);
+    expect(result[0].summary).toBe("INSUFFICIENT_SOURCE_DETAIL");
   });
 
   it("honors custom word range when provided", async () => {
@@ -217,10 +216,7 @@ describe("generateNewsletterSummaries", () => {
       maxWords: 40
     });
 
-    expect(result[0].summary.toLowerCase().startsWith("unable to generate summary")).toBe(false);
-    const count = wordCount(result[0].summary);
-    expect(count).toBeGreaterThanOrEqual(20);
-    expect(count).toBeLessThanOrEqual(40);
+    expect(result[0].summary).toBe("INSUFFICIENT_SOURCE_DETAIL");
   });
 
   it("processes one model call per item in order", async () => {

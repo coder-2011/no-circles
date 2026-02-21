@@ -93,7 +93,10 @@ function buildSelectorPrompt(args: {
 
   return [
     "Task: choose one best candidate link for the topic.",
-    "Primary objective: maximize topic fit and evidence quality.",
+    "Primary objective: select the candidate with the highest evidence density for the exact topic.",
+    "Evidence density means concrete mechanisms, named systems, quantitative outcomes, incident details, or reproducible implementation steps.",
+    "If candidate excerpt is generic trend commentary without concrete evidence, reject it.",
+    "Do not reward impressive-sounding titles; choose based on excerpt substance.",
     "Hard reject rules:",
     "- reject SEO/listicle/beginner/thin pages",
     "- reject weak evidence with no concrete detail",
@@ -102,7 +105,7 @@ function buildSelectorPrompt(args: {
     "- reject pages where primary content is admin details rather than substantive analysis",
     "Reader-value requirement:",
     "- prefer candidates with concrete teachable content in excerpt (finding/mechanism/tradeoff/failure mode/result/framework)",
-    "- if none meet quality bar, return NULL",
+    "- return NULL unless at least one candidate has both clear topic relevance and at least one concrete teachable unit in excerpt text",
     "Prefer signals:",
     "- postmortems, benchmarks, migration reports, design docs, first-hand implementation notes, and research analysis",
     "- concrete numbers, failure modes, tradeoffs, and constraints",

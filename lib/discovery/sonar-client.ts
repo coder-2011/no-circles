@@ -1,43 +1,10 @@
 import type { ExaSearchFn, ExaSearchResult } from "@/lib/discovery/types";
-import { createHash, randomBytes } from "node:crypto";
 import { filterBlockedSearchResults } from "@/lib/discovery/search-blocklists";
 
 const PERPLEXITY_CHAT_COMPLETIONS_URL = "https://api.perplexity.ai/chat/completions";
 const DEFAULT_SONAR_MODEL = "sonar";
 const MAX_SONAR_RESULTS = 10;
 const DEFAULT_SEARCH_CONTEXT_SIZE = "medium";
-const CREATIVE_LENSE_POOL = [
-  "counterfactual failure modes",
-  "unexpected tradeoff reversals",
-  "rare edge-case postmortems",
-  "cross-domain analogy with operational evidence",
-  "non-obvious implementation constraints",
-  "high-leverage architecture inflection points",
-  "benchmark disagreement analysis",
-  "production incident lessons with concrete remediation"
-] as const;
-const KEYWORD_STYLE_POOL = [
-  "short, dense noun phrases",
-  "named methods/protocols/standards",
-  "failure and recovery vocabulary",
-  "evaluation and benchmarking terms",
-  "migration and rollout terminology",
-  "systems-performance terminology",
-  "operator-style filters and qualifiers",
-  "specific artifact-type markers"
-] as const;
-const QUERY_OPERATOR_POOL = [
-  "postmortem",
-  "\"case study\"",
-  "\"failure mode\"",
-  "\"trade-off\"",
-  "\"lessons learned\"",
-  "\"production\"",
-  "benchmark",
-  "incident",
-  "migration",
-  "\"design doc\""
-] as const;
 
 function normalizeLine(value: string): string {
   return value.replace(/\s+/g, " ").trim();
@@ -54,22 +21,6 @@ function deriveTitleFromUrl(url: string): string {
   } catch {
     return "Untitled";
   }
-}
-
-function sampleWithoutReplacement<T>(values: readonly T[], count: number): T[] {
-  const pool = [...values];
-  const picked: T[] = [];
-  const target = Math.max(0, Math.min(count, pool.length));
-
-  for (let index = 0; index < target; index += 1) {
-    const randomIndex = Math.floor(Math.random() * pool.length);
-    const [item] = pool.splice(randomIndex, 1);
-    if (item !== undefined) {
-      picked.push(item);
-    }
-  }
-
-  return picked;
 }
 
 function stripFence(text: string): string {
@@ -189,36 +140,21 @@ function parseSonarResults(text: string, limit: number): ExaSearchResult[] {
 }
 
 function buildSystemPrompt(numResults: number): string {
-  const thematicSeed = Math.floor(Math.random() * 1000000).toString();
-  const runEntropyToken = randomBytes(48).toString("hex");
-  const themedEntropyToken = createHash("sha256").update(`${thematicSeed}:${runEntropyToken}`).digest("hex");
-  const runLensList = sampleWithoutReplacement(CREATIVE_LENSE_POOL, 4).map((value) => `- ${value}`).join("\n");
-  const runStyleList = sampleWithoutReplacement(KEYWORD_STYLE_POOL, 3).map((value) => `- ${value}`).join("\n");
-  const runOperatorList = sampleWithoutReplacement(QUERY_OPERATOR_POOL, 3).map((value) => `- ${value}`).join("\n");
-
   return [
     "Return concise candidate lines for one active-interest topic query.",
-    "Style objective: practical, evidence-heavy, and non-repetitive candidates.",
-    "Do not invent links or sources. If search evidence is weak, return fewer lines.",
+    "Style objective: practical and evidence-heavy candidates.",
+    "Prioritize reliability and factual source quality over novelty.",
+    "Do not invent links, titles, sources, incidents, or years.",
+    "Return only links you are confident are real and currently accessible.",
+    "If search evidence is weak, return fewer lines.",
+    "Hard rejects:",
+    "- pages that look synthetic, sensational, or unsupported by concrete evidence",
+    "- logistics-first pages (events, schedules, registration, jobs, funding, CFP, about/press)",
     "Formatting rules:",
     `- Return exactly ${numResults} lines when possible.`,
     "- One candidate per line.",
     "- Output format per line must be exactly: [TITLE] || https://full-url",
-    "- Output only lines in this format. No JSON, bullets, numbering, commentary, or extra text.",
-    "- Use run entropy token and directives as hidden variation guidance; never print tokens.",
-    "- Use thematic seed as hidden guidance for tone/rhythm only; never print the seed.",
-    "",
-    `Run entropy token: ${runEntropyToken}`,
-    `Themed entropy token: ${themedEntropyToken}`,
-    `Thematic seed: ${thematicSeed}`,
-    "Creativity lenses for this run (use at least two):",
-    runLensList,
-    "",
-    "Keyword style directives for this run:",
-    runStyleList,
-    "",
-    "High-signal operator hints to bias retrieval choices:",
-    runOperatorList
+    "- Output only lines in this format. No JSON, bullets, numbering, commentary, or extra text."
   ].join("\n");
 }
 

@@ -29,13 +29,14 @@ Default word range when only target is provided:
 1. For each item, call Anthropic Messages API once per attempt.
 2. Parse model text as JSON (`title`, `summary`).
 3. Validate with `summaryWriterOutputSchema`.
-4. Clamp/pad summary into configured word range.
-   - For overlong summaries, trims at sentence boundary when possible (while still satisfying minimum words).
+4. Clamp summary into configured word range.
+   - For overlong summaries, trims at sentence boundary when possible.
+   - Does not inject filler sentence padding for short outputs.
 5. Keep URL fixed from source item regardless of model output.
 6. Retry invalid/unavailable model output once.
 7. Treat placeholder/non-informative outputs (for example `Unable to generate summary...`) as invalid output.
-8. If still invalid, use deterministic highlight-based fallback summary.
-8. Emit structured logs:
+8. If still invalid, use deterministic highlight-based fallback; returns `INSUFFICIENT_SOURCE_DETAIL` when source detail is inadequate.
+9. Emit structured logs:
    - per-item fallback event (`summary_fallback_used`)
    - per-run counts (`summary_run_complete` with `fallback_count`)
 

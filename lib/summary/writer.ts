@@ -26,8 +26,7 @@ const ANTHROPIC_MESSAGES_API_URL = "https://api.anthropic.com/v1/messages";
 const DEFAULT_TARGET_WORDS = 100;
 const DEFAULT_WORD_RANGE_DELTA = 20;
 const MAX_RETRY_COUNT = 1;
-const FALLBACK_SENTENCE =
-  "It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions.";
+const INSUFFICIENT_SOURCE_DETAIL = "INSUFFICIENT_SOURCE_DETAIL";
 
 type CallSummaryModelArgs = {
   prompt: string;
@@ -114,14 +113,7 @@ function clampSummaryLength(summary: string, minWords: number, maxWords: number)
     return normalized;
   }
 
-  let paddedWords = [...words];
-  const fillerWords = FALLBACK_SENTENCE.split(" ");
-
-  while (paddedWords.length < minWords) {
-    paddedWords = [...paddedWords, ...fillerWords];
-  }
-
-  return paddedWords.length > maxWords ? paddedWords.slice(0, maxWords).join(" ") : paddedWords.join(" ");
+  return normalized;
 }
 
 function isDisallowedSummary(summary: string): boolean {
@@ -145,7 +137,12 @@ function normalizeHighlightText(highlights: string[]): string {
 }
 
 function buildFallbackSummary(item: SummarySourceItem, minWords: number, maxWords: number): string {
-  return clampSummaryLength(normalizeHighlightText(item.highlights), minWords, maxWords);
+  const normalized = clampSummaryLength(normalizeHighlightText(item.highlights), minWords, maxWords);
+  if (!normalized) {
+    return INSUFFICIENT_SOURCE_DETAIL;
+  }
+  const wordCount = normalized.split(/\s+/).filter(Boolean).length;
+  return wordCount < minWords ? INSUFFICIENT_SOURCE_DETAIL : normalized;
 }
 
 async function callSummaryModel(args: CallSummaryModelArgs): Promise<string> {
@@ -230,6 +227,9 @@ async function summarizeOneItem(
       const summary = clampSummaryLength(parsed.data.summary, minWords, maxWords);
       if (!summary) {
         throw new Error("SUMMARY_EMPTY_AFTER_NORMALIZATION");
+      }
+      if (summary === INSUFFICIENT_SOURCE_DETAIL) {
+        throw new Error("SUMMARY_INSUFFICIENT_SOURCE_DETAIL");
       }
       if (isDisallowedSummary(summary)) {
         throw new Error("SUMMARY_DISALLOWED_PLACEHOLDER");

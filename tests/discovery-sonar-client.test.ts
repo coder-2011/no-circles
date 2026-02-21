@@ -109,13 +109,9 @@ describe("searchSonar", () => {
     expect(requestBody.web_search_options?.search_context_size).toBe("high");
     expect(requestBody.messages[0]?.role).toBe("system");
     expect(requestBody.messages[0]?.content).toContain("[TITLE] || https://full-url");
-    expect(requestBody.messages[0]?.content).toContain("Style objective:");
-    expect(requestBody.messages[0]?.content).toContain("Run entropy token:");
-    expect(requestBody.messages[0]?.content).toContain("Creativity lenses for this run");
-    const tokenLine = (requestBody.messages[0]?.content ?? "")
-      .split("\n")
-      .find((line) => line.startsWith("Run entropy token: "));
-    expect((tokenLine ?? "").length).toBeGreaterThan(50);
+    expect(requestBody.messages[0]?.content).toContain("Prioritize reliability and factual source quality over novelty.");
+    expect(requestBody.messages[0]?.content).toContain("Do not invent links, titles, sources, incidents, or years.");
+    expect(requestBody.messages[0]?.content).toContain("Return only links you are confident are real and currently accessible.");
     expect(requestBody.messages[1]?.content).toContain("ACTIVE_INTEREST_TOPIC:");
   });
 

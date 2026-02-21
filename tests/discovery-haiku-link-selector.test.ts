@@ -78,6 +78,9 @@ describe("selectBestTopicLink", () => {
     expect(requestBody.max_tokens).toBe(120);
     expect(requestBody.temperature).toBe(0);
     expect(requestBody.messages[0]?.content).toContain("Task: choose one best candidate link for the topic.");
+    expect(requestBody.messages[0]?.content).toContain(
+      "Primary objective: select the candidate with the highest evidence density for the exact topic."
+    );
     expect(requestBody.messages[0]?.content).toContain("Output strict JSON only");
     expect(requestBody.messages[0]?.content).toContain("Hard reject rules:");
     expect(requestBody.messages[0]?.content).toContain("Reader-value requirement:");
@@ -85,9 +88,9 @@ describe("selectBestTopicLink", () => {
       "reject logistics-first pages (event listings, seminar/workshop pages, schedules, registration/application pages, CFP/job/funding announcements, generic institute/about pages)"
     );
     expect(requestBody.messages[0]?.content).toContain(
-      "prefer candidates with concrete teachable content in excerpt (finding/mechanism/tradeoff/failure mode/result/framework)"
+      "return NULL unless at least one candidate has both clear topic relevance and at least one concrete teachable unit in excerpt text"
     );
-    expect(requestBody.messages[0]?.content).toContain("if none meet quality bar, return NULL");
+    expect(requestBody.messages[0]?.content).toContain("Do not reward impressive-sounding titles; choose based on excerpt substance.");
     expect(requestBody.messages[0]?.content).toContain("Already selected items in this issue:");
     expect(requestBody.messages[0]?.content).toContain("AI engineering || Production migration lessons from large-scale model serving");
     expect(requestBody.messages[0]?.content).toContain("Tie-break: if two are close, prefer the one that adds a different angle from already selected items.");

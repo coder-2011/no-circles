@@ -24,6 +24,7 @@ Output:
 - treat highlights as the only evidence source
 - no speculation, hype, or invented detail
 - avoid meta framing (for example `this article explains`)
-- if highlights lack concrete detail, output `summary = INSUFFICIENT_SOURCE_DETAIL`
-- preserve original title by default; only minimal clarity edits when necessary
+- require at least two concrete details; otherwise output `summary = INSUFFICIENT_SOURCE_DETAIL`
+- ban counterfactual/future-projection framing unless explicitly present in highlights
+- preserve original title by default; if edited, change at most 8 words and keep named entities
 - return strict JSON only (`title`, `summary`)
