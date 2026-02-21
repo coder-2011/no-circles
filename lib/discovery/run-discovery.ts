@@ -134,6 +134,7 @@ export async function runDiscovery(
       topic: string;
       interestMemoryText: string;
       candidates: Array<{ url: string; title: string | null; highlights?: string[]; excerpt?: string }>;
+      alreadySelected: Array<{ topic: string; title: string }>;
     }) => Promise<number | null>;
     excerptExtractor?: (args: { url: string; maxCharacters: number }) => Promise<string | null>;
   } = {}
@@ -164,6 +165,7 @@ export async function runDiscovery(
   let candidateFilterExcludedCount = 0;
   let attemptsUsed = 0;
   let earlyStopped = false;
+  const alreadySelected: Array<{ topic: string; title: string }> = [];
 
   for (let attempt = 0; attempt < maxRetries; attempt += 1) {
     attemptsUsed = attempt + 1;
@@ -210,12 +212,18 @@ export async function runDiscovery(
             const selectedIndex = await linkSelector({
               topic: topic.topic,
               interestMemoryText: input.interestMemoryText,
-              candidates: selectorCandidates
+              candidates: selectorCandidates,
+              alreadySelected: alreadySelected.map((item) => ({ ...item }))
             });
             results = reorderBySelectedIndex(selectorCandidates, selectedIndex);
           } catch (error) {
             warnings.push(`TOPIC_SELECTOR_FAILURE:${topic.topic}:${error instanceof Error ? error.message : "UNKNOWN_ERROR"}`);
           }
+        }
+
+        const selectedTitle = results[0]?.title?.trim();
+        if (selectedTitle) {
+          alreadySelected.push({ topic: topic.topic, title: selectedTitle });
         }
 
         results.forEach((result, resultIndex) => {

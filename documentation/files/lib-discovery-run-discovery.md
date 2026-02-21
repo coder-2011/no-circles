@@ -14,7 +14,8 @@ Implementation split:
 
 Optional dependency hook:
 - `includeCandidate(candidate) -> boolean` for downstream candidate-gating policies (for example Bloom anti-repeat checks).
-- `linkSelector({ topic, interestMemoryText, candidates }) -> selectedIndex | null` to override per-topic winner ordering before normalization.
+- `linkSelector({ topic, interestMemoryText, candidates, alreadySelected }) -> selectedIndex | null` to override per-topic winner ordering before normalization.
+  - `alreadySelected` contains progressive `{ topic, title }` context from prior topic selections in the same run.
 - `excerptExtractor({ url, maxCharacters }) -> string | null` to provide custom URL excerpt extraction when enabled.
 
 ## Core Behavior
@@ -27,6 +28,7 @@ Optional dependency hook:
    - fetches local excerpt (default 1500 chars) per candidate URL
    - drops candidates when excerpt extraction fails
 5. Run Haiku selector per topic (when topic has >1 candidate) and reorder candidates so selected link is ranked first.
+   - selector receives progressive per-issue context (`alreadySelected`) so tie-breaking can prefer non-redundant angles across topics while preserving quality/relevance.
    - selector failures are warning-only.
 6. Normalize results into discovery candidates.
    - `exaScore` uses `result.score` when available; falls back to aggregate highlight score when `score` is absent.

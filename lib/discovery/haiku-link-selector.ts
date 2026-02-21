@@ -72,7 +72,12 @@ function parseSelectedIndex(text: string, max: number): number | null {
   return parsed - 1;
 }
 
-function buildSelectorPrompt(args: { topic: string; interestMemoryText: string; candidates: ExaSearchResult[] }): string {
+function buildSelectorPrompt(args: {
+  topic: string;
+  interestMemoryText: string;
+  candidates: ExaSearchResult[];
+  alreadySelected: Array<{ topic: string; title: string }>;
+}): string {
   const items = args.candidates
     .map((candidate, index) => {
       const title = candidate.title?.trim() || "Untitled";
@@ -81,6 +86,10 @@ function buildSelectorPrompt(args: { topic: string; interestMemoryText: string; 
       return `${index + 1}. ${title} || ${candidate.url}\n   Excerpt: ${clippedExcerpt}`;
     })
     .join("\n");
+  const alreadySelectedText =
+    args.alreadySelected.length > 0
+      ? args.alreadySelected.map((item, index) => `${index + 1}. ${item.topic} || ${item.title}`).join("\n")
+      : "(none yet)";
 
   return [
     "You are selecting one best source link for a personalized technical newsletter.",
@@ -100,6 +109,9 @@ function buildSelectorPrompt(args: { topic: string; interestMemoryText: string; 
     "Prefer signals:",
     "- postmortems, benchmarks, migration reports, design docs, first-hand implementation notes, and research analysis",
     "- concrete numbers, failure modes, tradeoffs, and constraints",
+    "Cross-topic diversity tie-break:",
+    "- when two candidates are similarly strong on quality/relevance, prefer the one that adds a different angle than already selected items",
+    "- never sacrifice relevance or evidence quality just to be different",
     "Tie-break order (highest to lowest): topic_fit, evidence_density, novelty_vs_memory, credibility_signal, actionability.",
     "Adversarial self-check: if your top choice would feel shallow to an advanced reader, choose the strongest deeper candidate instead.",
     "If no candidate clears the quality bar, return NULL.",
@@ -110,6 +122,9 @@ function buildSelectorPrompt(args: { topic: string; interestMemoryText: string; 
     "User memory:",
     args.interestMemoryText.slice(0, 800),
     "",
+    "Already selected items in this issue:",
+    alreadySelectedText,
+    "",
     "Candidates:",
     items
   ].join("\n");
@@ -119,6 +134,7 @@ export async function selectBestTopicLink(args: {
   topic: string;
   interestMemoryText: string;
   candidates: ExaSearchResult[];
+  alreadySelected?: Array<{ topic: string; title: string }>;
 }): Promise<number | null> {
   const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
   const modelName =
@@ -149,7 +165,15 @@ export async function selectBestTopicLink(args: {
       model: modelName,
       max_tokens: 120,
       temperature: 0,
-      messages: [{ role: "user", content: buildSelectorPrompt(args) }]
+      messages: [
+        {
+          role: "user",
+          content: buildSelectorPrompt({
+            ...args,
+            alreadySelected: args.alreadySelected ?? []
+          })
+        }
+      ]
     })
   });
 

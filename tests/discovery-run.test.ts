@@ -559,4 +559,54 @@ describe("runDiscovery", () => {
     expect(linkSelector).toHaveBeenCalledTimes(1);
     expect(result.candidates[0]?.canonicalUrl).toBe("https://example.com/second");
   });
+
+  it("passes progressive already-selected topic/title context into selector calls", async () => {
+    const memoryTwoTopics = [
+      "PERSONALITY:",
+      "- practical",
+      "",
+      "ACTIVE_INTERESTS:",
+      "- AI engineering",
+      "- distributed systems",
+      "",
+      "SUPPRESSED_INTERESTS:",
+      "-",
+      "",
+      "RECENT_FEEDBACK:",
+      "- less hype"
+    ].join("\n");
+
+    const exaSearch = vi.fn(async ({ query }: { query: string; numResults: number }) => {
+      if (query.startsWith("AI engineering")) {
+        return [
+          { url: "https://example.com/ai-1", title: "AI Title 1", highlights: ["x"], score: 0.9 },
+          { url: "https://example.com/ai-2", title: "AI Title 2", highlights: ["x"], score: 0.85 }
+        ];
+      }
+
+      return [
+        { url: "https://example.com/dist-1", title: "Dist Title 1", highlights: ["x"], score: 0.9 },
+        { url: "https://example.com/dist-2", title: "Dist Title 2", highlights: ["x"], score: 0.85 }
+      ];
+    });
+    const linkSelector = vi.fn(async () => 0);
+
+    await runDiscovery(
+      {
+        interestMemoryText: memoryTwoTopics,
+        targetCount: 2,
+        maxRetries: 1,
+        maxTopics: 2,
+        perTopicResults: 2
+      },
+      { exaSearch, linkSelector }
+    );
+
+    expect(linkSelector).toHaveBeenCalledTimes(2);
+    const firstCallArgs = linkSelector.mock.calls[0]?.[0] as { alreadySelected: Array<{ topic: string; title: string }> };
+    const secondCallArgs = linkSelector.mock.calls[1]?.[0] as { alreadySelected: Array<{ topic: string; title: string }> };
+
+    expect(firstCallArgs.alreadySelected).toEqual([]);
+    expect(secondCallArgs.alreadySelected).toEqual([{ topic: "AI engineering", title: "AI Title 1" }]);
+  });
 });

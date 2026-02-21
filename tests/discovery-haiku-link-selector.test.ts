@@ -57,6 +57,9 @@ describe("selectBestTopicLink", () => {
     const selected = await selectBestTopicLink({
       topic: "Distributed systems",
       interestMemoryText: "prefers practical incident analyses",
+      alreadySelected: [
+        { topic: "AI engineering", title: "Production migration lessons from large-scale model serving" }
+      ],
       candidates: [
         { url: "https://example.com/one", title: "one", excerpt: "first excerpt" },
         { url: "https://example.com/two", title: "two", excerpt: "second excerpt" }
@@ -77,6 +80,9 @@ describe("selectBestTopicLink", () => {
     expect(requestBody.messages[0]?.content).toContain("Output strict JSON only");
     expect(requestBody.messages[0]?.content).toContain("Hard reject rules:");
     expect(requestBody.messages[0]?.content).toContain("Score each candidate silently using this weighted rubric");
+    expect(requestBody.messages[0]?.content).toContain("Already selected items in this issue:");
+    expect(requestBody.messages[0]?.content).toContain("AI engineering || Production migration lessons from large-scale model serving");
+    expect(requestBody.messages[0]?.content).toContain("Cross-topic diversity tie-break:");
   });
 
   it("returns null when model explicitly returns NULL selector output", async () => {
