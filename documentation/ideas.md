@@ -155,3 +155,13 @@ Result:
 - What is the minimum viable signal set for curiosity prediction without heavy tracking?
 - Which user feedback events should directly update exploration policy?
 - How far can tangent go before usefulness drops for this product's audience?
+
+## Messaging Notes
+- Prior onboarding payment copy (kept for reference/reuse):
+- "Quick note: it's $5/month. You won't pay anything today. Your first invoice comes in two weeks, and if you decide not to continue, that's totally fine, no penalty."
+
+## Personalization Signal Idea
+- Use user data to improve recommendation quality.
+- Candidate signals: explicit onboarding preferences, reply updates, click/open behavior, send-time engagement, topic-level positive/negative feedback, and (with explicit opt-in) browsing-interest signals.
+- Expansion option: evaluate licensed third-party audience/interest datasets from data providers to enrich cold-start topic understanding.
+- Guardrails: require clear consent, legal/compliance review, transparent disclosure, reversible controls, and strict minimization so short-term noise or invasive tracking does not degrade trust.
