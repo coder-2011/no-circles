@@ -240,13 +240,13 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
                 </button>
                 <button
                   aria-label="Refresh quick sparks"
-                  className="group inline-flex h-8 w-8 items-center justify-center rounded-md border border-[#CDBF98] bg-[#F6EFD9] text-[#4F5D45] transition hover:bg-[#ECE2C8]"
+                  className="group inline-flex h-10 w-10 items-center justify-center rounded-md border border-[#CDBF98] bg-[#F6EFD9] text-[#4F5D45] transition hover:bg-[#ECE2C8]"
                   onClick={controller.refreshQuickSparks}
                   type="button"
                 >
                   <svg
                     aria-hidden="true"
-                    className="h-4 w-4 transition-transform duration-200 group-hover:rotate-180"
+                    className="h-5 w-5 transition-transform duration-200 group-hover:rotate-180"
                     fill="none"
                     viewBox="0 0 24 24"
                     xmlns="http://www.w3.org/2000/svg"
@@ -338,9 +338,9 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
               </div>
             </div>
             <div className="rounded-lg border border-[#EBA7A7] bg-[#FDE7E7] px-3 py-2">
-              <p className="text-xs font-medium text-[#8F1D1D]">
-                Oh, and by the way, it&apos;s $5 a month. You don&apos;t have to pay for now. You have to pay in two
-                weeks. The invoice comes and if you don&apos;t want to pay, then it&apos;s fine. Nothing happens.
+              <p className="text-sm font-medium text-[#8F1D1D]">
+                No-Circles is free through mid-March. After that, we plan to introduce a minimal at-cost subscription
+                to cover infrastructure and API usage, with no profit margin.
               </p>
             </div>
           </form>

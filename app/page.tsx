@@ -14,81 +14,69 @@ type SampleBriefItem = {
 
 const SAMPLE_DAILY_BRIEF: SampleBriefItem[] = [
   {
-    title: "Production Retrieval Fails Quietly Before Overall Quality Drops",
-    url: "https://www.pinecone.io/learn/retrieval-augmented-generation/",
+    title: "How Agentic AI Will Reshape Engineering Workflows in 2026",
+    url: "https://www.cio.com/article/4134741/how-agentic-ai-will-reshape-engineering-workflows-in-2026.html",
     summary:
-      "Retrieval systems can degrade gradually while headline quality metrics still look stable. The practical lesson is to instrument retrieval itself, including recall quality and ranking behavior, rather than only scoring final answers. Teams that monitor those intermediate signals can spot drift early, fix context quality quickly, and avoid long periods of subtle user-facing errors."
+      "Agentic AI systems that reason, plan and execute multi-step goals autonomously will fundamentally reshape engineering teams in 2026, moving beyond AI as a coding assistant to autonomous execution of entire software development lifecycle segments. Organizations undergoing this transformation will require strategic overhaul of people, processes and platforms, with the defining challenge being how deliberately they design for sustained execution across long-running workflows rather than simple prompt responses."
   },
   {
-    title: "Industrial Policy Works Best When Operational Capacity Is Built First",
-    url: "https://www.oecd.org/industry/industrial-policy.htm",
+    title: "Cline Agent Migration Postmortem",
+    url: "https://cline.bot/blog/migrating-production-agent-failures-20260210",
     summary:
-      "Industrial strategy often fails at execution, not intention. Programs tend to produce better outcomes when governments set narrower priorities, define measurable milestones, and align agencies around delivery timelines. The article emphasizes that budget size alone is not a guarantee; policy impact depends on whether institutions can coordinate implementation with enough speed and accountability."
+      "The requested blog post about Cline Agent migration is not available. The page indicates the post does not exist or has been moved. It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions."
   },
   {
-    title: "Resilient Supply Chains Combine Redundancy with Decision Speed",
-    url: "https://www.weforum.org/agenda/2023/01/what-is-supply-chain-resilience/",
+    title: "Software Architecture and Design Trends Report - 2025",
+    url: "https://www.infoq.com/articles/architecture-trends-2025/",
     summary:
-      "Supply-chain resilience is strongest when multiple protections work together: visibility, supplier optionality, and explicit escalation rules. Cutting every buffer for cost efficiency can make networks brittle under stress. The useful point here is balance: organizations recover faster when they pair diversification with clear operational authority to reroute, reprioritize, and communicate quickly."
+      "As large language models have become widely adopted, AI-related innovation is focusing on finely-tuned small language models and agentic AI. Retrieval-augmented generation is being adopted as a common technique to improve LLM results, with architects designing systems to accommodate RAG. Architects must evaluate AI-assisted development tools to ensure they increase efficiency without decreasing quality, while considering how citizen developers will use these tools as replacements for low-code solutions."
   },
   {
-    title: "Grid Capacity, Not Generation Targets, Is Slowing Clean-Energy Rollout",
-    url: "https://www.iea.org/reports/electricity-grids-and-secure-energy-transitions",
+    title: "Data Engineering for Agent-Native Workloads: Reliability and Infrastructure Shifts in 2026",
+    url: "https://gradientflow.substack.com/p/data-engineering-for-machine-users",
     summary:
-      "In many regions, clean-energy projects are delayed less by generation technology and more by transmission constraints. Long interconnection queues, permitting lag, and equipment lead times can stall deployment for years. The core takeaway is coordination: planning, approvals, and infrastructure procurement must be sequenced together or investment pipelines back up."
+      "Data engineering faces competing pressures as agentic workloads become dominant: automation increases while decision-making by software demands greater scrutiny. Reasoning-focused models now account for more than half of token traffic, and average prompt sizes have grown roughly fourfold since early 2024. Over 80% of new databases on Databricks are launched by AI agents rather than human engineers. The traditional stack optimized for tabular data, dashboards, batch ETL, and human workflows is becoming inadequate."
   },
   {
-    title: "Housing Supply Rises Faster When Permitting Becomes Predictable",
-    url: "https://www.brookings.edu/articles/how-local-governments-can-boost-housing-supply/",
+    title: "2026 in politics",
+    url: "https://en.wikipedia.org/wiki/2026_in_politics",
     summary:
-      "Cities with similar housing goals can produce very different outcomes because review and permitting pipelines move at different speeds. The article treats housing as an operations challenge: standardized requirements, clearer review windows, and fewer process bottlenecks can materially increase completion rates. Policy direction still matters, but execution rhythm determines how much gets built."
+      "This Wikipedia article provides a dynamic list of political events and scheduled occurrences expected in 2026. The page is organized by month and includes sections for predicted and scheduled events, though specific details are not fully visible in the provided excerpt."
   },
   {
-    title: "Protein Folding Models Are Powerful, but Biology Still Depends on Context",
-    url: "https://www.nature.com/articles/d41586-024-00380-7",
+    title: "Turkish Readability and Content Quality of Strabismus-Related Websites",
+    url: "https://pubmed.ncbi.nlm.nih.gov/38765432",
     summary:
-      "Structure prediction has changed how quickly researchers can reason about proteins, but static structures do not fully explain biological behavior. Function often depends on interactions, conformational dynamics, and cellular environment. The article is useful for setting expectations: model outputs are a major acceleration layer, while experimental work remains essential for causal interpretation."
+      "A cross-sectional study assessed 41 websites about strabismus treatment using Turkish readability formulas and content quality indexes. The Bezirci-Yilmaz readability index indicated websites were readable for individuals with an average education level of 10.5 ± 2.3 years, while senior ophthalmologists evaluated content credibility using JAMA and DISCERN indexes."
   },
   {
-    title: "Machiavelli on Political Durability Under Real-World Instability",
-    url: "https://plato.stanford.edu/entries/machiavelli/",
+    title: "AI Update, February 20, 2026: AI News and Views From the Past Week",
+    url: "https://www.marketingprofs.com/opinions/2026/54328/ai-update-february-20-2026-ai-news-and-views-from-the-past-week",
     summary:
-      "Machiavelli is often summarized as a strategist of power, but the deeper thread is institutional durability. Orders last when legitimacy, enforcement, and political incentives remain aligned under pressure. When one side drifts, formal structure can remain in place while practical stability weakens, which makes this a useful lens for modern governance and organizational design."
+      "LinkedIn overhauled its SEO strategy after reporting a major B2B traffic decline, with non-brand, awareness-driven traffic dropping up to 60% as AI-powered search experiences reduced clickthrough behavior despite stable rankings."
   },
   {
-    title: "Debiasing Works Better as System Design Than Individual Willpower",
-    url: "https://thedecisionlab.com/biases",
+    title: "Nullspace Steering Jailbreak: How Researchers Test AI Safety Through Adversarial Methods",
+    url: "https://news.ufl.edu/2026/02/breaking-ai/",
     summary:
-      "Bias reduction is more reliable when teams redesign decision workflows instead of expecting people to self-correct in stressful moments. Structured reviews, baseline comparisons, and pre-mortems reduce repeated judgment errors. The practical value is straightforward: high-quality decisions become more repeatable when safeguards are embedded in process rather than treated as optional habits."
+      "University of Florida researchers, led by Professor Sumit Kumar Jha, are conducting adversarial testing on large language models using techniques like nullspace steering and red teaming to identify failure modes and strengthen AI security. The work involves deliberately attempting to break AI systems to understand vulnerabilities before deployment, ensuring safety as AI assistants become critical infrastructure."
   },
   {
-    title: "Musical Expectation Explains Why Some Information Sticks Better",
-    url: "https://www.frontiersin.org/articles/10.3389/fpsyg.2013.00511/full",
+    title: "OpenClaw Multi-Agent Rollout: OpenAI vs Chinese Giants Recovery Lessons",
+    url: "https://www.youtube.com/watch?v=BT02OEDY6H8",
     summary:
-      "Music shapes attention by balancing predictability and surprise over time. Too much repetition lowers engagement, while too much novelty raises cognitive load. The article connects that balance to memory formation, offering a useful design analogy: information is retained better when structure is clear enough to follow but varied enough to sustain focus."
+      "Unable to generate summary. The provided highlight contains only YouTube metadata and platform information without substantive content about OpenClaw, multi-agent systems, OpenAI, Chinese AI companies, or recovery lessons referenced in the title."
   },
   {
-    title: "Experimentation Fails When Metrics Drift Away from Real Decisions",
-    url: "https://www.gov.uk/service-manual/measuring-success/ab-testing",
+    title: "Modular Monolith Migration Pitfalls: Lessons from Service Weaver Rollouts",
+    url: "https://conf.researchr.org/home/icse-2025/satrends-2025",
     summary:
-      "A/B testing programs lose value when success metrics are easy to move but weakly tied to actual product decisions. The article emphasizes hypothesis clarity, guardrail metrics, and stopping rules that protect long-term outcomes. Good experimentation is not just about statistical significance; it is about generating evidence that can guide durable product choices."
+      "Unable to generate summary. The provided highlights contain only conference metadata and navigation information for ICSE 2025, with no substantive content about modular monolith migration, Service Weaver, or related technical lessons. The source material does not include the article text needed to create a factual summary."
   }
 ];
 
 function resolveSiteOrigin(): string {
-  const browserOrigin = window.location.origin;
-  const browserHost = window.location.hostname.toLowerCase();
-  const isLocalHost = browserHost === "localhost" || browserHost === "127.0.0.1" || browserHost === "::1";
-  if (isLocalHost) {
-    return browserOrigin;
-  }
-
-  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  if (configuredSiteUrl && /^https?:\/\//.test(configuredSiteUrl)) {
-    return configuredSiteUrl.replace(/\/+$/, "");
-  }
-
-  return browserOrigin;
+  return window.location.origin;
 }
 
 function getAuthQueryErrorMessage(): string | null {
@@ -222,7 +210,10 @@ export default function HomePage() {
     if (!supabase) return;
 
     setAuthError(null);
-    const redirectTo = `${resolveSiteOrigin()}/auth/callback?next=/onboarding`;
+    const callbackUrl = new URL("/auth/callback", resolveSiteOrigin());
+    callbackUrl.searchParams.set("next", "/onboarding");
+    callbackUrl.searchParams.set("callback_origin", window.location.origin);
+    const redirectTo = callbackUrl.toString();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo }
@@ -293,6 +284,12 @@ export default function HomePage() {
                 </li>
               ))}
             </ol>
+          </div>
+          <div className="mt-6 rounded-lg border border-[#EBA7A7] bg-[#FDE7E7] px-3 py-2">
+            <p className="text-sm font-medium text-[#8F1D1D]">
+              No-Circles is free through mid-March. After that, we plan to introduce a minimal at-cost subscription to
+              cover infrastructure and API usage, with no profit margin.
+            </p>
           </div>
         </section>
       </div>

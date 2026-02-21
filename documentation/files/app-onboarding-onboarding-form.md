@@ -12,7 +12,7 @@ Renders onboarding UI as a presentational component driven by controller props.
 - render timezone options from controller so browser-detected timezone can appear even when outside curated list
 - render minimal dictation controls (`Dictate` / `Stop dictation`) for brain-dump voice input
 - render save/sign-out controls and success indicator
-- render post-save billing callout box below controls with trial-to-invoice messaging
+- render post-save pricing callout box below controls clarifying free access through mid-March and later minimal at-cost billing (no profit margin)
 - show submit success/error message panel
 
 ## Input Contract
