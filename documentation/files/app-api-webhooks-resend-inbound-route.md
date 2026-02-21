@@ -4,6 +4,8 @@
 Processes inbound email replies from Resend and updates user memory exactly once per provider message.
 
 ## Request Requirements
+- `Content-Type: application/json`
+- Payload hard limit: `16KB`
 - Svix signature headers:
   - `svix-id`
   - `svix-timestamp`
@@ -12,21 +14,23 @@ Processes inbound email replies from Resend and updates user memory exactly once
 - Environment variable: `RESEND_WEBHOOK_SECRET`.
 
 ## Behavior
-1. Read raw request body (`request.text()`).
-2. Verify Svix signature from raw body.
-3. Parse and validate payload.
-4. Extract sender email from `data.from` (supports `Name <email>` format).
-5. Ignore empty reply text.
-6. Look up user by sender email.
-7. If sender is unknown, send best-effort guidance auto-reply asking the user to reply from their subscribed email (using thread headers when available to suggest address), then return `ignored`.
-8. Generate updated memory via reply processor.
-9. In a DB transaction:
+1. Reject non-JSON requests with `415 UNSUPPORTED_MEDIA_TYPE`.
+2. Read raw request body (`request.text()`).
+3. Reject oversized request bodies with `413 PAYLOAD_TOO_LARGE`.
+4. Verify Svix signature from raw body.
+5. Parse and validate payload.
+6. Extract sender email from `data.from` (supports `Name <email>` format).
+7. Ignore empty reply text.
+8. Look up user by sender email.
+9. If sender is unknown, send best-effort guidance auto-reply asking the user to reply from their subscribed email (using thread headers when available to suggest address), then return `ignored`.
+10. Generate updated memory via reply processor.
+11. In a DB transaction:
    - reserve idempotency key in `processed_webhooks` using `provider + message-id` when available
    - fallback to `provider + svix-id` only when provider message id is missing
    - skip when already processed
    - update `users.interest_memory_text` when newly reserved
-10. Return `updated` or `ignored`.
-11. `GET` returns `405 METHOD_NOT_ALLOWED` (route is not browser-navigable for processing).
+12. Return `updated` or `ignored`.
+13. `GET` returns `405 METHOD_NOT_ALLOWED` (route is not browser-navigable for processing).
 
 ## Security Logging
 - Emits structured security events for:
@@ -41,6 +45,8 @@ Processes inbound email replies from Resend and updates user memory exactly once
 ## Responses
 - `200 { ok: true, status: "updated", user_id }`
 - `200 { ok: true, status: "ignored" }`
+- `413 PAYLOAD_TOO_LARGE`
+- `415 UNSUPPORTED_MEDIA_TYPE`
 - `401 INVALID_SIGNATURE`
 - `400 INVALID_PAYLOAD`
 - `500 INTERNAL_ERROR`

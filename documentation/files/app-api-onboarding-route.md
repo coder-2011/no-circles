@@ -5,6 +5,8 @@ Handles onboarding persistence request for one user.
 
 ## Input Contract
 Validated by `onboardingSchema` in `lib/schemas.ts`.
+- Requires `Content-Type: application/json`.
+- Payload hard limit: `64KB`.
 
 Required request keys:
 - `preferred_name`
@@ -13,18 +15,22 @@ Required request keys:
 - `brain_dump_text`
 
 ## Behavior
-1. Parse JSON body.
-2. Validate payload.
-3. Resolve authenticated user email from auth session.
-4. Return `401 UNAUTHORIZED` when session user is missing.
-5. Transform `brain_dump_text` into canonical memory via onboarding processor.
-6. Upsert row in `users` keyed by authenticated email.
-7. Persist `preferred_name` to `users.preferred_name`.
-8. Persist processor output to `interest_memory_text`.
-9. If this upsert is a first insert (`xmax = 0`), trigger immediate welcome issue send (`5` items, `welcome` variant) in best-effort async mode.
-10. Return `{ ok: true, user_id }`.
+1. Reject non-JSON requests with `415 UNSUPPORTED_MEDIA_TYPE`.
+2. Reject oversized request bodies with `413 PAYLOAD_TOO_LARGE`.
+3. Parse JSON body.
+4. Validate payload.
+5. Resolve authenticated user email from auth session.
+6. Return `401 UNAUTHORIZED` when session user is missing.
+7. Transform `brain_dump_text` into canonical memory via onboarding processor.
+8. Upsert row in `users` keyed by authenticated email.
+9. Persist `preferred_name` to `users.preferred_name`.
+10. Persist processor output to `interest_memory_text`.
+11. If this upsert is a first insert (`xmax = 0`), trigger immediate welcome issue send (`5` items, `welcome` variant) in best-effort async mode.
+12. Return `{ ok: true, user_id }`.
 
 ## Error Envelope
+- `413` with `{ ok: false, error_code: "PAYLOAD_TOO_LARGE", ... }`
+- `415` with `{ ok: false, error_code: "UNSUPPORTED_MEDIA_TYPE", ... }`
 - `400` with `{ ok: false, error_code: "INVALID_PAYLOAD", ... }`
 - `401` with `{ ok: false, error_code: "UNAUTHORIZED", ... }`
 - `500` with `{ ok: false, error_code: "MODEL_AUTH_ERROR", message: "Anthropic authentication failed. Check server API key env and restart dev server." }` when Anthropic returns auth failure

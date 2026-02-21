@@ -258,6 +258,45 @@ describeDb("claim_next_due_user db integration", () => {
     }
   });
 
+  it("clamps near-midnight pre-send window to local midnight", async () => {
+    const client = await pool.connect();
+
+    try {
+      await client.query("begin");
+      await suppressPreexistingDueUsers(client, "2026-02-16T00:00:00.000Z");
+
+      const inserted = await client.query<{ id: string }>(
+        `
+        insert into public.users (email, preferred_name, timezone, send_time_local, interest_memory_text, last_issue_sent_at)
+        values ($1, $2, $3, $4, $5, null)
+        returning id
+        `,
+        [
+          `cron-midnight-clamp-${Date.now()}@example.com`,
+          "Midnight Clamp",
+          "UTC",
+          "00:02",
+          canonicalMemory
+        ]
+      );
+
+      const justBeforeMidnight = await client.query<{ selected_user_id: string | null }>(
+        "select public.claim_next_due_user($1::timestamptz, 5) as selected_user_id",
+        ["2026-02-15T23:59:00.000Z"]
+      );
+      const atMidnight = await client.query<{ selected_user_id: string | null }>(
+        "select public.claim_next_due_user($1::timestamptz, 5) as selected_user_id",
+        ["2026-02-16T00:00:00.000Z"]
+      );
+
+      expect(justBeforeMidnight.rows[0]?.selected_user_id).toBeNull();
+      expect(atMidnight.rows[0]?.selected_user_id).toBe(inserted.rows[0]?.id);
+    } finally {
+      await client.query("rollback");
+      client.release();
+    }
+  });
+
   it("claims multiple due users in deterministic order via claim_due_users_batch", async () => {
     const client = await pool.connect();
 

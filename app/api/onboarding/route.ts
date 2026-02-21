@@ -9,9 +9,40 @@ import { sendUserNewsletter } from "@/lib/pipeline/send-user-newsletter";
 import { logError, logWarn } from "@/lib/observability/log";
 
 const WELCOME_ISSUE_ITEM_COUNT = 5;
+const MAX_ONBOARDING_PAYLOAD_BYTES = 64 * 1024;
+
+function isJsonContentType(request: Request): boolean {
+  const contentType = request.headers.get("content-type");
+  return typeof contentType === "string" && contentType.toLowerCase().includes("application/json");
+}
+
+function payloadBytes(value: string): number {
+  return new TextEncoder().encode(value).length;
+}
 
 export async function POST(request: Request) {
-  const json = await request.json().catch(() => null);
+  if (!isJsonContentType(request)) {
+    return NextResponse.json(
+      { ok: false, error_code: "UNSUPPORTED_MEDIA_TYPE", message: "Expected application/json." },
+      { status: 415 }
+    );
+  }
+
+  const rawBody = await request.text();
+  if (payloadBytes(rawBody) > MAX_ONBOARDING_PAYLOAD_BYTES) {
+    return NextResponse.json(
+      { ok: false, error_code: "PAYLOAD_TOO_LARGE", message: "Onboarding payload exceeds size limit." },
+      { status: 413 }
+    );
+  }
+
+  const json = (() => {
+    try {
+      return JSON.parse(rawBody || "{}");
+    } catch {
+      return null;
+    }
+  })();
   const parsed = onboardingSchema.safeParse(json);
 
   if (!parsed.success) {

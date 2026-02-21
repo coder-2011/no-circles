@@ -9,6 +9,7 @@ const CRON_ROUTE = "POST /api/cron/generate-next";
 const LEASE_TTL_MINUTES = 5;
 const DEFAULT_BATCH_SIZE = 3;
 const MAX_BATCH_CONCURRENCY = 3;
+const MAX_CRON_PAYLOAD_BYTES = 4 * 1024;
 
 type CronPipelineStatus = "sent" | "insufficient_content" | "send_failed" | "internal_error";
 
@@ -69,6 +70,15 @@ function authorizeRequest(request: Request): CronAuthorizationResult {
   return { ok: true };
 }
 
+function isJsonContentType(request: Request): boolean {
+  const contentType = request.headers.get("content-type");
+  return typeof contentType === "string" && contentType.toLowerCase().includes("application/json");
+}
+
+function payloadBytes(value: string): number {
+  return new TextEncoder().encode(value).length;
+}
+
 export async function POST(request: Request) {
   const authResult = authorizeRequest(request);
   if (!authResult.ok) {
@@ -82,7 +92,30 @@ export async function POST(request: Request) {
     );
   }
 
-  const json = await request.json().catch(() => ({}));
+  if (!isJsonContentType(request)) {
+    logWarn("cron_generate_next", "unsupported_media_type", { route: CRON_ROUTE });
+    return NextResponse.json(
+      { ok: false, error_code: "UNSUPPORTED_MEDIA_TYPE", message: "Expected application/json." },
+      { status: 415 }
+    );
+  }
+
+  const rawBody = await request.text();
+  if (payloadBytes(rawBody) > MAX_CRON_PAYLOAD_BYTES) {
+    logWarn("cron_generate_next", "payload_too_large", { route: CRON_ROUTE });
+    return NextResponse.json(
+      { ok: false, error_code: "PAYLOAD_TOO_LARGE", message: "Cron payload exceeds size limit." },
+      { status: 413 }
+    );
+  }
+
+  const json = (() => {
+    try {
+      return JSON.parse(rawBody || "{}");
+    } catch {
+      return {};
+    }
+  })();
   const parsed = cronGenerateNextSchema.safeParse(json);
 
   if (!parsed.success) {

@@ -88,6 +88,50 @@ describe("POST /api/onboarding", () => {
     });
   });
 
+  it("returns 415 when content-type is not application/json", async () => {
+    const request = new Request("http://localhost/api/onboarding", {
+      method: "POST",
+      body: JSON.stringify({
+        preferred_name: "Naman",
+        timezone: "America/New_York",
+        send_time_local: "09:30",
+        brain_dump_text: "AI and coding."
+      }),
+      headers: { "content-type": "text/plain" }
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(415);
+    expect(await response.json()).toEqual({
+      ok: false,
+      error_code: "UNSUPPORTED_MEDIA_TYPE",
+      message: "Expected application/json."
+    });
+    expect(getAuthenticatedUserEmailMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 413 when payload exceeds size limit", async () => {
+    const request = new Request("http://localhost/api/onboarding", {
+      method: "POST",
+      body: JSON.stringify({
+        preferred_name: "Naman",
+        timezone: "America/New_York",
+        send_time_local: "09:30",
+        brain_dump_text: "a".repeat(70_000)
+      }),
+      headers: { "content-type": "application/json" }
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(413);
+    expect(await response.json()).toEqual({
+      ok: false,
+      error_code: "PAYLOAD_TOO_LARGE",
+      message: "Onboarding payload exceeds size limit."
+    });
+    expect(getAuthenticatedUserEmailMock).not.toHaveBeenCalled();
+  });
+
   it("returns 400 on malformed json body", async () => {
     const request = new Request("http://localhost/api/onboarding", {
       method: "POST",

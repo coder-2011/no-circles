@@ -246,6 +246,48 @@ describe("POST /api/cron/generate-next", () => {
     );
   });
 
+  it("returns 415 when content-type is not application/json", async () => {
+    const response = await POST(
+      new Request("http://localhost/api/cron/generate-next", {
+        method: "POST",
+        body: JSON.stringify({}),
+        headers: {
+          "content-type": "text/plain",
+          authorization: "Bearer cron-secret"
+        }
+      })
+    );
+
+    expect(response.status).toBe(415);
+    expect(await response.json()).toEqual({
+      ok: false,
+      error_code: "UNSUPPORTED_MEDIA_TYPE",
+      message: "Expected application/json."
+    });
+    expect(executeMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 413 when payload exceeds size limit", async () => {
+    const response = await POST(
+      new Request("http://localhost/api/cron/generate-next", {
+        method: "POST",
+        body: JSON.stringify({ extra: "x".repeat(5_000) }),
+        headers: {
+          "content-type": "application/json",
+          authorization: "Bearer cron-secret"
+        }
+      })
+    );
+
+    expect(response.status).toBe(413);
+    expect(await response.json()).toEqual({
+      ok: false,
+      error_code: "PAYLOAD_TOO_LARGE",
+      message: "Cron payload exceeds size limit."
+    });
+    expect(executeMock).not.toHaveBeenCalled();
+  });
+
   it("returns 400 when batch_size exceeds validation bounds", async () => {
     const response = await POST(
       new Request("http://localhost/api/cron/generate-next", {

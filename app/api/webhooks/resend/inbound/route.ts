@@ -10,6 +10,16 @@ import { getSvixHeaders, verifyResendWebhookSignature } from "@/lib/webhooks/res
 
 const PROVIDER = "resend";
 const INBOUND_ROUTE = "POST /api/webhooks/resend/inbound";
+const MAX_INBOUND_PAYLOAD_BYTES = 16 * 1024;
+
+function isJsonContentType(request: Request): boolean {
+  const contentType = request.headers.get("content-type");
+  return typeof contentType === "string" && contentType.toLowerCase().includes("application/json");
+}
+
+function payloadBytes(value: string): number {
+  return new TextEncoder().encode(value).length;
+}
 
 function extractSenderEmail(fromField: string): string | null {
   const match = fromField.match(/<([^>]+)>/);
@@ -134,6 +144,14 @@ export async function POST(request: Request) {
     );
   }
 
+  if (!isJsonContentType(request)) {
+    logWarn("webhook_inbound", "unsupported_media_type", { route: INBOUND_ROUTE });
+    return NextResponse.json(
+      { ok: false, error_code: "UNSUPPORTED_MEDIA_TYPE", message: "Expected application/json." },
+      { status: 415 }
+    );
+  }
+
   const signatureHeaders = getSvixHeaders(request);
   if (!signatureHeaders) {
     logWarn("webhook_inbound", "missing_signature_headers", { route: INBOUND_ROUTE });
@@ -144,6 +162,16 @@ export async function POST(request: Request) {
   }
 
   const rawBody = await request.text();
+  if (payloadBytes(rawBody) > MAX_INBOUND_PAYLOAD_BYTES) {
+    logWarn("webhook_inbound", "payload_too_large", {
+      route: INBOUND_ROUTE,
+      svix_id: signatureHeaders.svixId
+    });
+    return NextResponse.json(
+      { ok: false, error_code: "PAYLOAD_TOO_LARGE", message: "Inbound payload exceeds size limit." },
+      { status: 413 }
+    );
+  }
 
   if (!verifyResendWebhookSignature(rawBody, signatureHeaders, webhookSecret)) {
     logWarn("webhook_inbound", "invalid_signature", {

@@ -135,6 +135,14 @@ vi.mock("@/lib/observability/log", () => ({
 
 import { GET, POST } from "@/app/api/webhooks/resend/inbound/route";
 
+function buildInboundRequest(body: unknown): Request {
+  return new Request("http://localhost/api/webhooks/resend/inbound", {
+    method: "POST",
+    body: typeof body === "string" ? body : JSON.stringify(body),
+    headers: { "content-type": "application/json" }
+  });
+}
+
 describe("POST /api/webhooks/resend/inbound", () => {
   beforeEach(() => {
     process.env.RESEND_WEBHOOK_SECRET = "whsec_dGVzdF9zZWNyZXQ=";
@@ -167,12 +175,7 @@ describe("POST /api/webhooks/resend/inbound", () => {
   it("returns 401 for invalid signature", async () => {
     verifyResendWebhookSignatureMock.mockReturnValueOnce(false);
 
-    const response = await POST(
-      new Request("http://localhost/api/webhooks/resend/inbound", {
-        method: "POST",
-        body: JSON.stringify({ data: { from: "Naman <naman@example.com>", text: "more AI" } })
-      })
-    );
+    const response = await POST(buildInboundRequest({ data: { from: "Naman <naman@example.com>", text: "more AI" } }));
 
     expect(response.status).toBe(401);
     const body = await response.json();
@@ -187,12 +190,7 @@ describe("POST /api/webhooks/resend/inbound", () => {
   it("returns 401 when signature headers are missing", async () => {
     getSvixHeadersMock.mockReturnValueOnce(null);
 
-    const response = await POST(
-      new Request("http://localhost/api/webhooks/resend/inbound", {
-        method: "POST",
-        body: JSON.stringify({ data: { from: "Naman <naman@example.com>", text: "more AI" } })
-      })
-    );
+    const response = await POST(buildInboundRequest({ data: { from: "Naman <naman@example.com>", text: "more AI" } }));
 
     expect(response.status).toBe(401);
     expect(await response.json()).toEqual({
@@ -210,12 +208,7 @@ describe("POST /api/webhooks/resend/inbound", () => {
   it("returns ignored for replayed webhook id", async () => {
     testState.reserveSucceeds = false;
 
-    const response = await POST(
-      new Request("http://localhost/api/webhooks/resend/inbound", {
-        method: "POST",
-        body: JSON.stringify({ data: { from: "Naman <naman@example.com>", text: "more AI" } })
-      })
-    );
+    const response = await POST(buildInboundRequest({ data: { from: "Naman <naman@example.com>", text: "more AI" } }));
 
     expect(response.status).toBe(200);
     const body = await response.json();
@@ -230,12 +223,7 @@ describe("POST /api/webhooks/resend/inbound", () => {
   });
 
   it("returns ignored for empty text", async () => {
-    const response = await POST(
-      new Request("http://localhost/api/webhooks/resend/inbound", {
-        method: "POST",
-        body: JSON.stringify({ data: { from: "Naman <naman@example.com>", text: "   " } })
-      })
-    );
+    const response = await POST(buildInboundRequest({ data: { from: "Naman <naman@example.com>", text: "   " } }));
 
     expect(response.status).toBe(200);
     const body = await response.json();
@@ -249,18 +237,13 @@ describe("POST /api/webhooks/resend/inbound", () => {
   });
 
   it("updates memory once for valid event", async () => {
-    const response = await POST(
-      new Request("http://localhost/api/webhooks/resend/inbound", {
-        method: "POST",
-        body: JSON.stringify({
-          data: {
-            email_id: "re_abc123",
-            from: "Naman <naman@example.com>",
-            text: "less crypto, more economics"
-          }
-        })
-      })
-    );
+    const response = await POST(buildInboundRequest({
+      data: {
+        email_id: "re_abc123",
+        from: "Naman <naman@example.com>",
+        text: "less crypto, more economics"
+      }
+    }));
 
     expect(response.status).toBe(200);
     const body = await response.json();
@@ -279,18 +262,13 @@ describe("POST /api/webhooks/resend/inbound", () => {
     testState.user = null;
     testState.linkedSubscribedEmail = "known-user@example.com";
 
-    const response = await POST(
-      new Request("http://localhost/api/webhooks/resend/inbound", {
-        method: "POST",
-        body: JSON.stringify({
-          data: {
-            from: "Alt <alias@example.com>",
-            text: "more ai",
-            headers: { "in-reply-to": "<msg_known_1>" }
-          }
-        })
-      })
-    );
+    const response = await POST(buildInboundRequest({
+      data: {
+        from: "Alt <alias@example.com>",
+        text: "more ai",
+        headers: { "in-reply-to": "<msg_known_1>" }
+      }
+    }));
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ ok: true, status: "ignored" });
@@ -323,36 +301,26 @@ describe("POST /api/webhooks/resend/inbound", () => {
       });
 
     testState.reserveSucceeds = true;
-    const first = await POST(
-      new Request("http://localhost/api/webhooks/resend/inbound", {
-        method: "POST",
-        body: JSON.stringify({
-          data: {
-            email_id: "re_same_message_id",
-            from: "Naman <naman@example.com>",
-            text: "more economics"
-          }
-        })
-      })
-    );
+    const first = await POST(buildInboundRequest({
+      data: {
+        email_id: "re_same_message_id",
+        from: "Naman <naman@example.com>",
+        text: "more economics"
+      }
+    }));
 
     expect(first.status).toBe(200);
     expect(await first.json()).toEqual({ ok: true, status: "updated", user_id: "user-1" });
     expect(testState.reservedWebhookKey).toBe("message:re_same_message_id");
 
     testState.reserveSucceeds = false;
-    const second = await POST(
-      new Request("http://localhost/api/webhooks/resend/inbound", {
-        method: "POST",
-        body: JSON.stringify({
-          data: {
-            email_id: "re_same_message_id",
-            from: "Naman <naman@example.com>",
-            text: "more economics"
-          }
-        })
-      })
-    );
+    const second = await POST(buildInboundRequest({
+      data: {
+        email_id: "re_same_message_id",
+        from: "Naman <naman@example.com>",
+        text: "more economics"
+      }
+    }));
 
     expect(second.status).toBe(200);
     expect(await second.json()).toEqual({ ok: true, status: "ignored" });
@@ -372,6 +340,51 @@ describe("POST /api/webhooks/resend/inbound", () => {
       "webhook_inbound",
       "method_not_allowed",
       expect.objectContaining({ method: "GET" })
+    );
+  });
+
+  it("returns 415 when content-type is not application/json", async () => {
+    const response = await POST(
+      new Request("http://localhost/api/webhooks/resend/inbound", {
+        method: "POST",
+        body: JSON.stringify({ data: { from: "Naman <naman@example.com>", text: "more AI" } }),
+        headers: { "content-type": "text/plain" }
+      })
+    );
+
+    expect(response.status).toBe(415);
+    expect(await response.json()).toEqual({
+      ok: false,
+      error_code: "UNSUPPORTED_MEDIA_TYPE",
+      message: "Expected application/json."
+    });
+    expect(logWarnMock).toHaveBeenCalledWith(
+      "webhook_inbound",
+      "unsupported_media_type",
+      expect.objectContaining({ route: "POST /api/webhooks/resend/inbound" })
+    );
+  });
+
+  it("returns 413 when payload exceeds size limit", async () => {
+    const response = await POST(
+      buildInboundRequest({
+        data: {
+          from: "Naman <naman@example.com>",
+          text: "x".repeat(20_000)
+        }
+      })
+    );
+
+    expect(response.status).toBe(413);
+    expect(await response.json()).toEqual({
+      ok: false,
+      error_code: "PAYLOAD_TOO_LARGE",
+      message: "Inbound payload exceeds size limit."
+    });
+    expect(logWarnMock).toHaveBeenCalledWith(
+      "webhook_inbound",
+      "payload_too_large",
+      expect.objectContaining({ route: "POST /api/webhooks/resend/inbound", svix_id: "msg_123" })
     );
   });
 });
