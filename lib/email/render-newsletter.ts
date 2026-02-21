@@ -74,7 +74,7 @@ export function renderNewsletter(args: RenderNewsletterArgs): RenderedNewsletter
     `<hr style=\"margin: 24px 0; border: 0; border-top: 1px solid #C9BD9A;\"/>`,
     variant === "welcome"
       ? `<p style=\"color: #526149; font-size: 14px; margin: 0;\">You’re always in control of this feed.</p>`
-      : `<p style=\"color: #526149; font-size: 14px; margin: 0;\"><u>Reply with what you want more or less of, and tomorrow's issue will adapt.</u></p>`,
+      : `<p style=\"color: #526149; font-size: 14px; margin: 0;\"><strong style=\"font-size: 16px; color: #1F5E2E;\">Reply with what you want more or less of, and tomorrow's issue will adapt.</strong></p>`,
     `</div>`,
     `</div>`
   ].join("\n");
