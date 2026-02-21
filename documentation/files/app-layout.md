@@ -8,7 +8,7 @@ Defines the root Next.js layout wrapper and page metadata.
 2. Sets top-level metadata (`title`, `description`).
 3. Sets browser/app icons to the shared brand asset (`/logo-no-circles.png`).
 4. Wraps all routes in root HTML/body shell.
-5. Renders a fixed top-left home link with the app logo (`/logo-no-circles.png`) using no surrounding border/background chrome.
+5. Renders a fixed top-left home link with the app logo (`/logo-no-circles.png`) using no surrounding border/background chrome, with priority load and unoptimized delivery to preserve source fidelity.
 6. Uses hydration-warning suppression for client-auth surfaces.
 
 ## Why It Exists

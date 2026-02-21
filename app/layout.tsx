@@ -40,7 +40,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             alt="No Circles logo"
             className="block h-16 w-16 rounded-full object-contain"
             height={64}
+            priority
             src="/logo-no-circles.png"
+            unoptimized
             width={64}
           />
         </Link>
