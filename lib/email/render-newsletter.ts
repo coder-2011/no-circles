@@ -58,7 +58,7 @@ export function renderNewsletter(args: RenderNewsletterArgs): RenderedNewsletter
     .join("\n\n");
 
   const html = [
-    `<div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 720px; margin: 0 auto; padding: 24px;\">`,
+    `<div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F3ECD8; color: #2D3426; max-width: 720px; margin: 0 auto; padding: 24px;\">`,
     `<h2 style=\"margin-top: 0;\">Hi ${escapeHtml(greetingName)},</h2>`,
     variant === "welcome"
       ? [
@@ -70,10 +70,10 @@ export function renderNewsletter(args: RenderNewsletterArgs): RenderedNewsletter
         ].join("\n")
       : `<p style=\"line-height: 1.5;\">Here are your ${itemCount} curated links for today.</p>`,
     htmlItems,
-    `<hr style=\"margin: 24px 0; border: 0; border-top: 1px solid #ddd;\"/>`,
+    `<hr style=\"margin: 24px 0; border: 0; border-top: 1px solid #C9BD9A;\"/>`,
     variant === "welcome"
-      ? `<p style=\"color: #666; font-size: 14px;\">Reply with what you want more or less of, and tomorrow's issue will adapt.</p>`
-      : `<p style=\"color: #666; font-size: 14px;\">Reply to this email anytime to tune what you want more or less of tomorrow.</p>`,
+      ? `<p style=\"color: #526149; font-size: 14px;\">Reply with what you want more or less of, and tomorrow's issue will adapt.</p>`
+      : `<p style=\"color: #526149; font-size: 14px;\">Reply to this email anytime to tune what you want more or less of tomorrow.</p>`,
     `</div>`
   ].join("\n");
 

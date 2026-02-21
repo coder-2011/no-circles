@@ -18,7 +18,7 @@ const uiFont = Source_Sans_3({
 });
 
 export const metadata: Metadata = {
-  title: "No Circles",
+  title: "The No-Circles Project",
   description: "Personalized daily newsletter",
   icons: {
     icon: "/logo-no-circles.png",
