@@ -3,6 +3,8 @@ import { searchSonar } from "@/lib/discovery/sonar-client";
 
 const originalPerplexityKey = process.env.PERPLEXITY_API_KEY;
 const originalSonarModel = process.env.PERPLEXITY_SONAR_MODEL;
+const originalSearchDomainFilter = process.env.PERPLEXITY_SEARCH_DOMAIN_FILTER;
+const originalSearchContextSize = process.env.PERPLEXITY_SEARCH_CONTEXT_SIZE;
 const originalBlocklistSubscriptions = process.env.DISCOVERY_SEARCH_BLOCKLIST_SUBSCRIPTIONS;
 
 describe("searchSonar", () => {
@@ -26,6 +28,18 @@ describe("searchSonar", () => {
       process.env.PERPLEXITY_SONAR_MODEL = originalSonarModel;
     }
 
+    if (originalSearchDomainFilter === undefined) {
+      delete process.env.PERPLEXITY_SEARCH_DOMAIN_FILTER;
+    } else {
+      process.env.PERPLEXITY_SEARCH_DOMAIN_FILTER = originalSearchDomainFilter;
+    }
+
+    if (originalSearchContextSize === undefined) {
+      delete process.env.PERPLEXITY_SEARCH_CONTEXT_SIZE;
+    } else {
+      process.env.PERPLEXITY_SEARCH_CONTEXT_SIZE = originalSearchContextSize;
+    }
+
     if (originalBlocklistSubscriptions === undefined) {
       delete process.env.DISCOVERY_SEARCH_BLOCKLIST_SUBSCRIPTIONS;
     } else {
@@ -35,9 +49,11 @@ describe("searchSonar", () => {
     vi.unstubAllGlobals();
   });
 
-  it("parses strict title/url line format and ignores invalid lines", async () => {
+  it("prefers search_results metadata urls/titles and ignores invalid entries", async () => {
     process.env.PERPLEXITY_API_KEY = "test-key";
     process.env.PERPLEXITY_SONAR_MODEL = "sonar";
+    process.env.PERPLEXITY_SEARCH_DOMAIN_FILTER = "docs.python.org, wikipedia.org";
+    process.env.PERPLEXITY_SEARCH_CONTEXT_SIZE = "high";
     process.env.DISCOVERY_SEARCH_BLOCKLIST_SUBSCRIPTIONS = "https://example.com/empty-blocklist.txt";
 
     fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
@@ -47,14 +63,18 @@ describe("searchSonar", () => {
           ok: true,
           status: 200,
           json: async () => ({
+            search_results: [
+              { title: "Good One", url: "https://example.com/one" },
+              { title: "Good Two", url: "https://example.com/two" },
+              { title: "Duplicate Url", url: "https://example.com/two" },
+              { title: "Bad Url", url: "notaurl" }
+            ],
             choices: [
               {
                 message: {
                   content: [
-                    "[Good One] || https://example.com/one",
-                    "invalid line",
-                    "[Good Two] || https://example.com/two",
-                    "[Good Two Duplicate] || https://example.com/two"
+                    "[Wrong One] || https://wrong.com/one",
+                    "[Wrong Two] || https://wrong.com/two"
                   ].join("\n")
                 }
               }
@@ -79,28 +99,17 @@ describe("searchSonar", () => {
     const requestBody = JSON.parse(String(requestInit.body)) as {
       model: string;
       temperature: number;
+      search_domain_filter?: string[];
+      web_search_options?: { search_context_size?: string };
       messages: Array<{ role: string; content: string }>;
     };
     expect(requestBody.model).toBe("sonar");
-    expect(requestBody.temperature).toBe(1.3);
+    expect(requestBody.temperature).toBe(0.3);
+    expect(requestBody.search_domain_filter).toEqual(["docs.python.org", "wikipedia.org"]);
+    expect(requestBody.web_search_options?.search_context_size).toBe("high");
     expect(requestBody.messages[0]?.role).toBe("system");
     expect(requestBody.messages[0]?.content).toContain("[TITLE] || https://full-url");
-    expect(requestBody.messages[0]?.content).toContain("Topic-memory intent contract:");
-    expect(requestBody.messages[0]?.content).toContain("Reader-value contract (strict):");
-    expect(requestBody.messages[0]?.content).toContain("Hard rejects (never return):");
-    expect(requestBody.messages[0]?.content).toContain(
-      "Event pages, seminar/workshop/conference listings, program calendars, registration pages, call-for-papers, job posts, funding announcements, generic institute/about pages, and press-only announcements."
-    );
-    expect(requestBody.messages[0]?.content).toContain("Temporal relevance contract:");
-    expect(requestBody.messages[0]?.content).toContain(
-      "Apply recency based on topic volatility, not as a blanket rule."
-    );
-    expect(requestBody.messages[0]?.content).toContain(
-      "If recency materially affects correctness or practical usefulness, treat freshness as a ranking priority."
-    );
-    expect(requestBody.messages[0]?.content).toContain(
-      "For slower-moving domains, freshness is optional but substance is mandatory; prefer durable explainers and research syntheses over event/program pages."
-    );
+    expect(requestBody.messages[0]?.content).toContain("Style objective:");
     expect(requestBody.messages[0]?.content).toContain("Run entropy token:");
     expect(requestBody.messages[0]?.content).toContain("Creativity lenses for this run");
     const tokenLine = (requestBody.messages[0]?.content ?? "")
@@ -108,6 +117,36 @@ describe("searchSonar", () => {
       .find((line) => line.startsWith("Run entropy token: "));
     expect((tokenLine ?? "").length).toBeGreaterThan(50);
     expect(requestBody.messages[1]?.content).toContain("ACTIVE_INTEREST_TOPIC:");
+  });
+
+  it("falls back to citations metadata when search_results is unavailable", async () => {
+    process.env.PERPLEXITY_API_KEY = "test-key";
+    process.env.PERPLEXITY_SONAR_MODEL = "sonar";
+    process.env.DISCOVERY_SEARCH_BLOCKLIST_SUBSCRIPTIONS = "https://example.com/empty-blocklist.txt";
+
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("api.perplexity.ai/chat/completions")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            citations: ["https://citations.example.com/alpha", "https://citations.example.com/beta"]
+          })
+        };
+      }
+
+      return {
+        ok: true,
+        status: 200,
+        text: async () => ""
+      };
+    });
+
+    const results = await searchSonar({ query: "systems design", numResults: 10 });
+    expect(results).toHaveLength(2);
+    expect(results[0]?.url).toBe("https://citations.example.com/alpha");
+    expect(results[1]?.url).toBe("https://citations.example.com/beta");
   });
 
   it("filters URLs that match remote blocklist rules", async () => {
@@ -122,15 +161,9 @@ describe("searchSonar", () => {
           ok: true,
           status: 200,
           json: async () => ({
-            choices: [
-              {
-                message: {
-                  content: [
-                    "[Allowed] || https://allowed.com/post",
-                    "[Blocked] || https://blocked.example.com/article"
-                  ].join("\n")
-                }
-              }
+            search_results: [
+              { title: "Allowed", url: "https://allowed.com/post" },
+              { title: "Blocked", url: "https://blocked.example.com/article" }
             ]
           })
         };
@@ -151,5 +184,33 @@ describe("searchSonar", () => {
   it("throws when api key is missing", async () => {
     delete process.env.PERPLEXITY_API_KEY;
     await expect(searchSonar({ query: "x", numResults: 3 })).rejects.toThrow("MISSING_PERPLEXITY_API_KEY");
+  });
+
+  it("uses medium search context when configured value is invalid", async () => {
+    process.env.PERPLEXITY_API_KEY = "test-key";
+    process.env.PERPLEXITY_SEARCH_CONTEXT_SIZE = "invalid";
+    process.env.DISCOVERY_SEARCH_BLOCKLIST_SUBSCRIPTIONS = "https://example.com/empty-blocklist.txt";
+
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("api.perplexity.ai/chat/completions")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            search_results: [{ title: "Allowed", url: "https://allowed.com/post" }]
+          })
+        };
+      }
+
+      return { ok: true, status: 200, text: async () => "" };
+    });
+
+    await searchSonar({ query: "systems", numResults: 1 });
+    const [, requestInit] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const requestBody = JSON.parse(String(requestInit.body)) as {
+      web_search_options?: { search_context_size?: string };
+    };
+    expect(requestBody.web_search_options?.search_context_size).toBe("medium");
   });
 });
