@@ -180,6 +180,84 @@ describeDb("claim_next_due_user db integration", () => {
     }
   });
 
+  it("treats users as due exactly three minutes before configured send time", async () => {
+    const client = await pool.connect();
+
+    try {
+      await client.query("begin");
+      await suppressPreexistingDueUsers(client, "2026-02-16T08:56:00.000Z");
+
+      const inserted = await client.query<{ id: string }>(
+        `
+        insert into public.users (email, preferred_name, timezone, send_time_local, interest_memory_text, last_issue_sent_at)
+        values ($1, $2, $3, $4, $5, null)
+        returning id
+        `,
+        [
+          `cron-preflight-next-${Date.now()}@example.com`,
+          "Preflight Next",
+          "UTC",
+          "09:00",
+          canonicalMemory
+        ]
+      );
+
+      const beforeWindow = await client.query<{ selected_user_id: string | null }>(
+        "select public.claim_next_due_user($1::timestamptz, 5) as selected_user_id",
+        ["2026-02-16T08:56:00.000Z"]
+      );
+      const atWindow = await client.query<{ selected_user_id: string | null }>(
+        "select public.claim_next_due_user($1::timestamptz, 5) as selected_user_id",
+        ["2026-02-16T08:57:00.000Z"]
+      );
+
+      expect(beforeWindow.rows[0]?.selected_user_id).toBeNull();
+      expect(atWindow.rows[0]?.selected_user_id).toBe(inserted.rows[0]?.id);
+    } finally {
+      await client.query("rollback");
+      client.release();
+    }
+  });
+
+  it("applies the same three-minute pre-send window to batch claims", async () => {
+    const client = await pool.connect();
+
+    try {
+      await client.query("begin");
+      await suppressPreexistingDueUsers(client, "2026-02-16T08:56:00.000Z");
+
+      const inserted = await client.query<{ id: string }>(
+        `
+        insert into public.users (email, preferred_name, timezone, send_time_local, interest_memory_text, last_issue_sent_at)
+        values ($1, $2, $3, $4, $5, null)
+        returning id
+        `,
+        [
+          `cron-preflight-batch-${Date.now()}@example.com`,
+          "Preflight Batch",
+          "UTC",
+          "09:00",
+          canonicalMemory
+        ]
+      );
+
+      const beforeWindow = await client.query<{ user_id: string }>(
+        "select user_id from public.claim_due_users_batch($1::timestamptz, 5, 3)",
+        ["2026-02-16T08:56:00.000Z"]
+      );
+      const atWindow = await client.query<{ user_id: string }>(
+        "select user_id from public.claim_due_users_batch($1::timestamptz, 5, 3)",
+        ["2026-02-16T08:57:00.000Z"]
+      );
+
+      expect(beforeWindow.rows).toEqual([]);
+      expect(atWindow.rows.map((row) => row.user_id)).toEqual([inserted.rows[0]?.id]);
+    } finally {
+      await client.query("rollback");
+      client.release();
+    }
+  });
+
   it("claims multiple due users in deterministic order via claim_due_users_batch", async () => {
     const client = await pool.connect();
 

@@ -50,6 +50,9 @@ Versioned SQL history for database schema state.
 - `db/migrations/0013_vivid_safeguard.sql`
   - enables row level security on all active public runtime tables (`users`, `processed_webhooks`, `cron_selection_leases`, `outbound_send_idempotency`)
   - sets deny-by-default access posture until explicit table policies are created
+- `db/migrations/0014_amber_preflight.sql`
+  - updates `public.claim_next_due_user(...)` to start due eligibility 3 minutes before configured local send time (clamped at local midnight)
+  - updates `public.claim_due_users_batch(...)` with the same 3-minute pre-send eligibility window to keep selector behavior consistent across single/batch entry points
 
 ## Metadata
 - `db/migrations/meta/_journal.json`: migration journal

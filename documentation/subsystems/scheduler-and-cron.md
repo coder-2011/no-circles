@@ -13,7 +13,7 @@ Owns scheduled invocation of `POST /api/cron/generate-next`.
 ## Runtime Contract
 1. Every minute, Supabase cron job calls `POST /api/cron/generate-next` via `net.http_post(...)`.
 2. Route validates `CRON_SECRET`, then calls `public.claim_due_users_batch(run_at_utc, 5, batch_size)`.
-3. DB function handles due-user ordering, local-day exclusion, and short lease claim in DB.
+3. DB function opens due eligibility 3 minutes before each configured local send time (clamped at local `00:00`), then handles deterministic ordering, local-day exclusion, and short lease claim in DB.
 4. Route runs send pipeline for each claimed user with bounded concurrency.
 5. Route returns `no_due_user` when queue is empty, otherwise batch result status.
 6. A second daily cron job prunes `processed_webhooks` rows older than 30 days.
