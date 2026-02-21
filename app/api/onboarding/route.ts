@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { sql } from "drizzle-orm";
 import { getAuthenticatedUserEmail } from "@/lib/auth/server-user";
 import { db } from "@/lib/db/client";
@@ -122,24 +122,28 @@ export async function POST(request: Request) {
       });
 
     if (upsertedUser.wasInserted) {
-      void sendUserNewsletter({
-        userId: upsertedUser.id,
-        runAtUtc: new Date(),
-        targetItemCount: WELCOME_ISSUE_ITEM_COUNT,
-        issueVariant: "welcome"
-      }).then((result) => {
-        if (result.status !== "sent") {
-          logWarn("onboarding", "welcome_issue_not_sent", {
+      after(async () => {
+        try {
+          const result = await sendUserNewsletter({
+            userId: upsertedUser.id,
+            runAtUtc: new Date(),
+            targetItemCount: WELCOME_ISSUE_ITEM_COUNT,
+            issueVariant: "welcome"
+          });
+
+          if (result.status !== "sent") {
+            logWarn("onboarding", "welcome_issue_not_sent", {
+              user_id: upsertedUser.id,
+              status: result.status,
+              error: result.error ?? null
+            });
+          }
+        } catch (error) {
+          logError("onboarding", "welcome_issue_failed", {
             user_id: upsertedUser.id,
-            status: result.status,
-            error: result.error ?? null
+            error
           });
         }
-      }).catch((error) => {
-        logError("onboarding", "welcome_issue_failed", {
-          user_id: upsertedUser.id,
-          error
-        });
       });
     }
 

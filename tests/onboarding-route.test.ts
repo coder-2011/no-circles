@@ -4,6 +4,7 @@ const {
   getAuthenticatedUserEmailMock,
   formatOnboardingMemoryMock,
   sendUserNewsletterMock,
+  afterMock,
   returningMock,
   onConflictDoUpdateMock,
   valuesMock,
@@ -12,6 +13,9 @@ const {
   const getAuthenticatedUserEmail = vi.fn();
   const formatOnboardingMemory = vi.fn();
   const sendUserNewsletter = vi.fn(async () => ({ status: "sent", providerMessageId: "msg_1" }));
+  const after = vi.fn((callback: () => Promise<void> | void) => {
+    void callback();
+  });
   const returning = vi.fn();
   const onConflictDoUpdate = vi.fn(() => ({ returning }));
   const values = vi.fn(() => ({ onConflictDoUpdate }));
@@ -21,6 +25,7 @@ const {
     getAuthenticatedUserEmailMock: getAuthenticatedUserEmail,
     formatOnboardingMemoryMock: formatOnboardingMemory,
     sendUserNewsletterMock: sendUserNewsletter,
+    afterMock: after,
     returningMock: returning,
     onConflictDoUpdateMock: onConflictDoUpdate,
     valuesMock: values,
@@ -53,6 +58,14 @@ vi.mock("@/lib/db/schema", () => ({
   }
 }));
 
+vi.mock("next/server", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("next/server")>();
+  return {
+    ...actual,
+    after: afterMock
+  };
+});
+
 import { POST } from "@/app/api/onboarding/route";
 
 describe("POST /api/onboarding", () => {
@@ -68,6 +81,7 @@ describe("POST /api/onboarding", () => {
     onConflictDoUpdateMock.mockClear();
     returningMock.mockClear();
     sendUserNewsletterMock.mockClear();
+    afterMock.mockClear();
   });
 
   it("returns 400 on invalid payload", async () => {
@@ -219,6 +233,7 @@ describe("POST /api/onboarding", () => {
       }
     });
     expect(returningMock).toHaveBeenCalledTimes(1);
+    expect(afterMock).not.toHaveBeenCalled();
     expect(sendUserNewsletterMock).not.toHaveBeenCalled();
   });
 
@@ -326,6 +341,7 @@ describe("POST /api/onboarding", () => {
 
     const response = await POST(request);
     expect(response.status).toBe(200);
+    expect(afterMock).toHaveBeenCalledTimes(1);
     expect(sendUserNewsletterMock).toHaveBeenCalledTimes(1);
     expect(sendUserNewsletterMock).toHaveBeenCalledWith({
       userId: "user-new",

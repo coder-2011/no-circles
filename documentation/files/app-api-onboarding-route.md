@@ -25,7 +25,7 @@ Required request keys:
 8. Upsert row in `users` keyed by authenticated email.
 9. Persist `preferred_name` to `users.preferred_name`.
 10. Persist processor output to `interest_memory_text`.
-11. If this upsert is a first insert (`xmax = 0`), trigger immediate welcome issue send (`5` items, `welcome` variant) in best-effort async mode.
+11. If this upsert is a first insert (`xmax = 0`), schedule immediate welcome issue send (`5` items, `welcome` variant) via `after(...)` so work is attached to request lifecycle in serverless runtimes.
 12. Return `{ ok: true, user_id }`.
 
 ## Error Envelope
