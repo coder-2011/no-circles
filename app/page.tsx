@@ -12,12 +12,6 @@ type SampleBriefItem = {
   summary: string;
 };
 
-const SAMPLE_BRIEF_METADATA = {
-  recipient: "Sample Reader",
-  issueLabel: "Saturday, February 21, 2026",
-  generatedFrom: "Diverse onboarding memory profile passed through live discovery + summary generation"
-};
-
 const SAMPLE_DAILY_BRIEF: SampleBriefItem[] = [
   {
     title: "Agentic System Black-Box Evaluation Tradeoffs",
@@ -275,13 +269,8 @@ export default function HomePage() {
         </section>
 
         <section className="rounded-3xl border border-[#C9BD9A] bg-[#FBF7EB] p-8 text-[#2D3426] shadow-sm md:p-10">
-          <p className="text-sm uppercase tracking-[0.2em] text-[#6B775D]">Sample Daily Brief</p>
+          <h2 className="text-2xl font-semibold leading-tight text-[#2D3426] md:text-3xl">Sample Daily Brief</h2>
           <div className="mt-5 space-y-5 text-[#4A5641]">
-            <p className="text-base leading-7">
-              Daily issue for <span className="font-medium">{SAMPLE_BRIEF_METADATA.recipient}</span> •{" "}
-              {SAMPLE_DAILY_BRIEF.length} curated items • {SAMPLE_BRIEF_METADATA.issueLabel}
-            </p>
-            <p className="text-sm leading-6 text-[#5D6A52]">{SAMPLE_BRIEF_METADATA.generatedFrom}</p>
             <ol className="space-y-5">
               {SAMPLE_DAILY_BRIEF.map((item, index) => (
                 <li className="rounded-xl border border-[#D8CFB4] bg-[#F7F2E2] p-4" key={item.url}>

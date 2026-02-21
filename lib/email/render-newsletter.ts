@@ -40,12 +40,12 @@ export function renderNewsletter(args: RenderNewsletterArgs): RenderedNewsletter
   const htmlItems = args.items
     .map((item, index) => {
       return [
-        `<section style=\"margin: 0 0 20px;\">`,
-        `<h3 style=\"margin: 0 0 8px; font-size: 18px;\">`,
-        `<a href=\"${escapeHtml(item.url)}\" style=\"color: #000; text-decoration: none;\">${index + 1}. ${escapeHtml(item.title)}</a>`,
+        `<section style=\"margin: 0 0 14px; border: 1px solid #D8CFB4; background: #F7F2E2; border-radius: 12px; padding: 14px 16px;\">`,
+        `<h3 style=\"margin: 0 0 8px; font-size: 19px; line-height: 1.35; font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 600;\">`,
+        `<a href=\"${escapeHtml(item.url)}\" style=\"color: #2D3426; text-decoration: underline; text-decoration-color: #8B9A7A; text-decoration-thickness: 2px; text-underline-offset: 4px;\">${index + 1}. ${escapeHtml(item.title)}</a>`,
         `</h3>`,
-        `<p style=\"margin: 0 0 8px; line-height: 1.5;\">${escapeHtml(item.summary)}</p>`,
-        `<p style=\"margin: 0;\"><a href=\"${escapeHtml(item.url)}\">${escapeHtml(item.url)}</a></p>`,
+        `<p style=\"margin: 0 0 8px; line-height: 1.6; color: #4A5641; font-size: 15px;\">${escapeHtml(item.summary)}</p>`,
+        `<p style=\"margin: 0;\"><a href=\"${escapeHtml(item.url)}\" style=\"color: #5D6A52; font-size: 13px;\">${escapeHtml(item.url)}</a></p>`,
         `</section>`
       ].join("\n");
     })
@@ -58,20 +58,22 @@ export function renderNewsletter(args: RenderNewsletterArgs): RenderedNewsletter
     .join("\n\n");
 
   const html = [
-    `<div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #FAF4E6; color: #2D3426; max-width: 720px; margin: 0 auto; padding: 24px;\">`,
-    `<h2 style=\"margin-top: 0;\">Hi ${escapeHtml(greetingName)},</h2>`,
+    `<div style=\"font-family: 'Source Sans 3', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: #F3ECD8; color: #2D3426; max-width: 720px; margin: 0 auto; padding: 24px;\">`,
+    `<div style=\"border: 1px solid #C9BD9A; background: #FBF7EB; border-radius: 18px; padding: 20px;\">`,
+    `<h2 style=\"margin: 0 0 8px; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 34px; line-height: 1.15; color: #2B3125;\">Hi ${escapeHtml(greetingName)},</h2>`,
     variant === "welcome"
       ? [
-          `<p style=\"line-height: 1.5;\">Hey, what’s up, I’m Naman, the solo dev behind The No-Circles Project.</p>`,
-          `<p style=\"line-height: 1.5;\">I built this because most of us end up reading the same things as everyone else in our field, and that usually leads to similar ideas.</p>`,
-          `<p style=\"line-height: 1.5;\">The No-Circles Project is my attempt to break that pattern. If you want to come up with great ideas, you can't just read what everyone else in your field is reading. I built this project to help you break that pattern.</p>`,
-          `<p style=\"line-height: 1.5;\">You tell it what you care about, and it works its magic to find you great information outside your usual bubble, stuff you didn't know you wanted to read, but is still very <u><em>you</em></u>.</p>`,
-          `<p style=\"line-height: 1.5;\"><strong>TLDR; If we give you better inputs, you make better ideas!</strong></p>`
+          `<p style=\"line-height: 1.6; color: #4A5641; margin: 0 0 12px;\">Hey, what’s up, I’m Naman, the solo dev behind The No-Circles Project.</p>`,
+          `<p style=\"line-height: 1.6; color: #4A5641; margin: 0 0 12px;\">I built this because most of us end up reading the same things as everyone else in our field, and that usually leads to similar ideas.</p>`,
+          `<p style=\"line-height: 1.6; color: #4A5641; margin: 0 0 12px;\">The No-Circles Project is my attempt to break that pattern. If you want to come up with great ideas, you can't just read what everyone else in your field is reading. I built this project to help you break that pattern.</p>`,
+          `<p style=\"line-height: 1.6; color: #4A5641; margin: 0 0 12px;\">You tell it what you care about, and it works its magic to find you great information outside your usual bubble, stuff you didn't know you wanted to read, but is still very <u><em>you</em></u>.</p>`,
+          `<p style=\"line-height: 1.6; color: #2D3426; margin: 0 0 14px;\"><strong>TLDR; If we give you better inputs, you make better ideas!</strong></p>`
         ].join("\n")
-      : `<p style=\"line-height: 1.5;\">Here are your ${itemCount} curated links for today.</p>`,
+      : `<p style=\"line-height: 1.6; color: #4A5641; margin: 0 0 14px;\">Here are your ${itemCount} curated links for today.</p>`,
     htmlItems,
     `<hr style=\"margin: 24px 0; border: 0; border-top: 1px solid #C9BD9A;\"/>`,
-    `<p style=\"color: #526149; font-size: 14px;\">Reply with what you want more or less of, and tomorrow's issue will adapt.</p>`,
+    `<p style=\"color: #526149; font-size: 14px; margin: 0;\">Reply with what you want more or less of, and tomorrow's issue will adapt.</p>`,
+    `</div>`,
     `</div>`
   ].join("\n");
 

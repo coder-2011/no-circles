@@ -20,7 +20,8 @@ describe("renderNewsletter", () => {
     expect(rendered.html).toContain("Hi Naman");
     expect(rendered.text).toContain("Hi Naman");
     expect(rendered.html.match(/<section/g)?.length ?? 0).toBe(10);
-    expect(rendered.html).toContain('<a href="https://example.com/1" style="color: #000; text-decoration: none;">1. Title 1</a>');
+    expect(rendered.html).toContain('<a href="https://example.com/1"');
+    expect(rendered.html).toContain(">1. Title 1</a>");
     expect(rendered.text).toContain("10. Title 10");
     expect(rendered.html).toContain("Reply with what you want more or less of, and tomorrow's issue will adapt.");
     expect(rendered.text).toContain("Reply with what you want more or less of, and tomorrow's issue will adapt.");
