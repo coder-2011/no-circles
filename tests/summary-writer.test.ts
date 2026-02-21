@@ -81,45 +81,14 @@ describe("generateNewsletterSummaries", () => {
       temperature: number;
       messages: Array<{ role: string; content: string }>;
     };
-    expect(requestBody.messages[0]?.content).toContain("Title policy: preserve the original title wording as much as possible.");
     expect(requestBody.messages[0]?.content).toContain(
-      "Only edit the title when the original is unclear, vague, or fails to communicate the main idea."
+      "Task: produce one neutral summary grounded only in the provided highlights."
     );
     expect(requestBody.messages[0]?.content).toContain(
-      "Do not end titles with trailing generic format labels (for example: article, postmortem, post, thread, report) unless required for meaning."
+      "If highlights do not contain enough concrete detail, set summary to exactly: INSUFFICIENT_SOURCE_DETAIL."
     );
     expect(requestBody.messages[0]?.content).toContain(
-      "Use clear, direct language and prefer simpler words when accuracy is unchanged."
-    );
-    expect(requestBody.messages[0]?.content).toContain(
-      "Cover one to three important ideas, depending on what is needed for clarity."
-    );
-    expect(requestBody.messages[0]?.content).toContain(
-      "Explain ideas clearly with natural sentence flow instead of listing many parallel points."
-    );
-    expect(requestBody.messages[0]?.content).toContain(
-      "Do not compress into telegraphic or rushed writing."
-    );
-    expect(requestBody.messages[0]?.content).toContain(
-      "Use complete sentences and smooth transitions; clarity is more important than aggressive brevity."
-    );
-    expect(requestBody.messages[0]?.content).toContain(
-      "'the key idea is', 'the main takeaway is', 'the core point is'"
-    );
-    expect(requestBody.messages[0]?.content).toContain(
-      "Give enough explanation to be useful on its own, while leaving some depth for the link."
-    );
-    expect(requestBody.messages[0]?.content).toContain(
-      "Do not start the summary with meta framing such as 'this article explains/discusses/covers'. Start with concrete concepts directly."
-    );
-    expect(requestBody.messages[0]?.content).toContain(
-      "Avoid redundant phrasing and repeated ideas (for example contrast pairs that restate the same point)."
-    );
-    expect(requestBody.messages[0]?.content).toContain(
-      "Merge overlapping concepts into one precise phrase when possible, but keep grammatical flow natural."
-    );
-    expect(requestBody.messages[0]?.content).toContain(
-      "Do not remove words that are necessary for correctness, nuance, or readability."
+      "Title policy: preserve original title by default; edit only if unclear, and only with a minimal context anchor."
     );
   });
 
@@ -187,7 +156,7 @@ describe("generateNewsletterSummaries", () => {
     expect(count).toBeLessThanOrEqual(30);
   });
 
-  it("uses default 50-100 word range when no word controls are provided", async () => {
+  it("uses default 80-120 word range when no word controls are provided", async () => {
     process.env.ANTHROPIC_API_KEY = "test-key";
     process.env.ANTHROPIC_SUMMARY_MODEL = "claude-haiku-4-5";
 
@@ -215,8 +184,43 @@ describe("generateNewsletterSummaries", () => {
     });
 
     const count = wordCount(result[0].summary);
-    expect(count).toBeGreaterThanOrEqual(50);
-    expect(count).toBeLessThanOrEqual(100);
+    expect(count).toBeGreaterThanOrEqual(80);
+    expect(count).toBeLessThanOrEqual(120);
+  });
+
+  it("rejects placeholder-style model summaries and falls back to source-grounded text", async () => {
+    process.env.ANTHROPIC_API_KEY = "test-key";
+    process.env.ANTHROPIC_SUMMARY_MODEL = "claude-haiku-4-5";
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: true,
+        json: async () => ({
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({
+                title: "Original A",
+                summary:
+                  "Unable to generate summary. The provided highlight contains only metadata."
+              })
+            }
+          ]
+        })
+      }))
+    );
+
+    const result = await generateNewsletterSummaries({
+      items: [sourceItems[0]],
+      minWords: 20,
+      maxWords: 40
+    });
+
+    expect(result[0].summary.toLowerCase().startsWith("unable to generate summary")).toBe(false);
+    const count = wordCount(result[0].summary);
+    expect(count).toBeGreaterThanOrEqual(20);
+    expect(count).toBeLessThanOrEqual(40);
   });
 
   it("processes one model call per item in order", async () => {

@@ -77,6 +77,7 @@ describe("selectBestTopicLink", () => {
     expect(requestBody.model).toBe("claude-3-5-haiku-latest");
     expect(requestBody.max_tokens).toBe(120);
     expect(requestBody.temperature).toBe(0);
+    expect(requestBody.messages[0]?.content).toContain("Task: choose one best candidate link for the topic.");
     expect(requestBody.messages[0]?.content).toContain("Output strict JSON only");
     expect(requestBody.messages[0]?.content).toContain("Hard reject rules:");
     expect(requestBody.messages[0]?.content).toContain("Reader-value requirement:");
@@ -84,12 +85,12 @@ describe("selectBestTopicLink", () => {
       "reject logistics-first pages (event listings, seminar/workshop pages, schedules, registration/application pages, CFP/job/funding announcements, generic institute/about pages)"
     );
     expect(requestBody.messages[0]?.content).toContain(
-      "require at least one concrete teachable unit in the excerpt (finding, mechanism, tradeoff, method, failure mode, quantitative result, or decision framework)"
+      "prefer candidates with concrete teachable content in excerpt (finding/mechanism/tradeoff/failure mode/result/framework)"
     );
-    expect(requestBody.messages[0]?.content).toContain("Score each candidate silently using this weighted rubric");
+    expect(requestBody.messages[0]?.content).toContain("if none meet quality bar, return NULL");
     expect(requestBody.messages[0]?.content).toContain("Already selected items in this issue:");
     expect(requestBody.messages[0]?.content).toContain("AI engineering || Production migration lessons from large-scale model serving");
-    expect(requestBody.messages[0]?.content).toContain("Cross-topic diversity tie-break:");
+    expect(requestBody.messages[0]?.content).toContain("Tie-break: if two are close, prefer the one that adds a different angle from already selected items.");
   });
 
   it("returns null when model explicitly returns NULL selector output", async () => {

@@ -13,11 +13,11 @@ Generates final newsletter summary items for PR8 from discovery candidate inputs
   - `highlights[]`
   - optional `topic`
 - optional word controls:
-  - `targetWords` (default 75)
+  - `targetWords` (default 100)
   - or explicit `minWords` / `maxWords`
 
 Default word range when only target is provided:
-- `targetWords - 25` to `targetWords + 25` (default `50-100`)
+- `targetWords - 20` to `targetWords + 20` (default `80-120`)
 
 ## Output Contract
 - `NewsletterSummaryItem[]` with final fields only:
@@ -33,7 +33,8 @@ Default word range when only target is provided:
    - For overlong summaries, trims at sentence boundary when possible (while still satisfying minimum words).
 5. Keep URL fixed from source item regardless of model output.
 6. Retry invalid/unavailable model output once.
-7. If still invalid, use deterministic highlight-based fallback summary.
+7. Treat placeholder/non-informative outputs (for example `Unable to generate summary...`) as invalid output.
+8. If still invalid, use deterministic highlight-based fallback summary.
 8. Emit structured logs:
    - per-item fallback event (`summary_fallback_used`)
    - per-run counts (`summary_run_complete` with `fallback_count`)

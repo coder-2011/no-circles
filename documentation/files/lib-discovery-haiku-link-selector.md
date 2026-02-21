@@ -10,9 +10,9 @@ Runs one Anthropic model call per topic to select the best candidate link from S
    - `ANTHROPIC_SUMMARY_MODEL`
    - `ANTHROPIC_MEMORY_MODEL`
 3. Sends topic, user memory snippet, progressive issue context (`alreadySelected` as topic/title pairs from prior topic selections), and numbered candidate list with short URL excerpt text when available.
-4. Selector prompt enforces weighted scoring guidance (`topic_fit`, `novelty_vs_memory`, `evidence_density`, `actionability`, `credibility_signal`) plus hard reject rules for low-signal SEO-like and logistics-first pages.
-5. Selector prompt enforces reader-value gate: select for learning density (transferable mechanisms/findings/tradeoffs), not keyword overlap; return `NULL` if no candidate has substantive teachable content.
-6. Selector prompt includes cross-topic diversity-aware tie-break guidance (without hard quotas), novelty/progression + advanced-reader self-check, and allows explicit `NULL` when no candidate clears quality bar.
+4. Selector prompt uses a concise contract: prioritize topic fit + evidence quality, apply hard rejects for low-signal SEO-like and logistics-first pages, then abstain with `NULL` if nothing passes quality bar.
+5. Selector prompt enforces reader-value gate: prefer candidates with transferable mechanisms/findings/tradeoffs from excerpt text (not keyword density).
+6. Selector prompt applies a lightweight diversity tie-break only when two candidates are similarly strong.
 7. Expects strict JSON output: `{"selected_index": <1-based integer or "NULL">, "rationale": "<short text>"}`.
 8. Parses JSON output first and retains integer-text fallback parsing for compatibility.
 9. Returns zero-based selected index or `null`.

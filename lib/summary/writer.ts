@@ -23,8 +23,8 @@ type GenerateSummariesInput = {
 };
 
 const ANTHROPIC_MESSAGES_API_URL = "https://api.anthropic.com/v1/messages";
-const DEFAULT_TARGET_WORDS = 75;
-const DEFAULT_WORD_RANGE_DELTA = 25;
+const DEFAULT_TARGET_WORDS = 100;
+const DEFAULT_WORD_RANGE_DELTA = 20;
 const MAX_RETRY_COUNT = 1;
 const FALLBACK_SENTENCE =
   "It highlights the main development, the practical implications, and the key tradeoffs for this topic, while connecting the evidence to practical decisions.";
@@ -37,6 +37,13 @@ type SummarizeOneItemResult = {
   item: NewsletterSummaryItem;
   usedFallback: boolean;
 };
+
+const DISALLOWED_SUMMARY_PATTERNS = [
+  /^unable to generate summary/i,
+  /^no highlights content was provided/i,
+  /^the provided highlight contains only/i,
+  /^the source material does not include/i
+] as const;
 
 function logSummaryEvent(level: "info" | "warn", event: string, details: Record<string, unknown>) {
   if (level === "warn") {
@@ -115,6 +122,11 @@ function clampSummaryLength(summary: string, minWords: number, maxWords: number)
   }
 
   return paddedWords.length > maxWords ? paddedWords.slice(0, maxWords).join(" ") : paddedWords.join(" ");
+}
+
+function isDisallowedSummary(summary: string): boolean {
+  const normalized = summary.replace(/\s+/g, " ").trim();
+  return DISALLOWED_SUMMARY_PATTERNS.some((pattern) => pattern.test(normalized));
 }
 
 function normalizeHighlightText(highlights: string[]): string {
@@ -218,6 +230,9 @@ async function summarizeOneItem(
       const summary = clampSummaryLength(parsed.data.summary, minWords, maxWords);
       if (!summary) {
         throw new Error("SUMMARY_EMPTY_AFTER_NORMALIZATION");
+      }
+      if (isDisallowedSummary(summary)) {
+        throw new Error("SUMMARY_DISALLOWED_PLACEHOLDER");
       }
 
       return {
