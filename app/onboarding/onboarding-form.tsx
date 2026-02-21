@@ -21,18 +21,24 @@ const BRAIN_DUMP_ALLOWED_KEYS = new Set([
   "Escape"
 ]);
 const CELEBRATION_PARTICLES = [
-  { left: "6%", delay: "0ms", duration: "1950ms", size: 7, color: "#34D399" },
-  { left: "13%", delay: "140ms", duration: "2100ms", size: 8, color: "#22C55E" },
-  { left: "21%", delay: "80ms", duration: "1880ms", size: 6, color: "#10B981" },
-  { left: "29%", delay: "220ms", duration: "2240ms", size: 9, color: "#F59E0B" },
-  { left: "37%", delay: "40ms", duration: "2000ms", size: 6, color: "#34D399" },
-  { left: "45%", delay: "260ms", duration: "2180ms", size: 8, color: "#16A34A" },
-  { left: "53%", delay: "100ms", duration: "2050ms", size: 7, color: "#2DD4BF" },
-  { left: "61%", delay: "320ms", duration: "2320ms", size: 8, color: "#38BDF8" },
-  { left: "69%", delay: "180ms", duration: "2020ms", size: 6, color: "#34D399" },
-  { left: "77%", delay: "50ms", duration: "2140ms", size: 9, color: "#10B981" },
-  { left: "85%", delay: "240ms", duration: "2200ms", size: 7, color: "#FBBF24" },
-  { left: "93%", delay: "120ms", duration: "1930ms", size: 6, color: "#86EFAC" }
+  { left: "4%", delay: "0ms", duration: "2360ms", size: 8, color: "#34D399" },
+  { left: "9%", delay: "120ms", duration: "2480ms", size: 9, color: "#22C55E" },
+  { left: "14%", delay: "260ms", duration: "2580ms", size: 8, color: "#10B981" },
+  { left: "20%", delay: "80ms", duration: "2420ms", size: 10, color: "#14B8A6" },
+  { left: "27%", delay: "210ms", duration: "2660ms", size: 9, color: "#38BDF8" },
+  { left: "33%", delay: "50ms", duration: "2380ms", size: 8, color: "#60A5FA" },
+  { left: "39%", delay: "300ms", duration: "2720ms", size: 10, color: "#A78BFA" },
+  { left: "45%", delay: "160ms", duration: "2520ms", size: 9, color: "#F472B6" },
+  { left: "51%", delay: "20ms", duration: "2440ms", size: 8, color: "#FB7185" },
+  { left: "57%", delay: "240ms", duration: "2680ms", size: 10, color: "#F97316" },
+  { left: "63%", delay: "100ms", duration: "2500ms", size: 9, color: "#F59E0B" },
+  { left: "69%", delay: "340ms", duration: "2760ms", size: 10, color: "#FBBF24" },
+  { left: "75%", delay: "70ms", duration: "2460ms", size: 8, color: "#84CC16" },
+  { left: "81%", delay: "280ms", duration: "2640ms", size: 9, color: "#4ADE80" },
+  { left: "86%", delay: "140ms", duration: "2540ms", size: 8, color: "#2DD4BF" },
+  { left: "90%", delay: "320ms", duration: "2700ms", size: 10, color: "#22D3EE" },
+  { left: "94%", delay: "190ms", duration: "2600ms", size: 9, color: "#E879F9" },
+  { left: "97%", delay: "30ms", duration: "2400ms", size: 8, color: "#86EFAC" }
 ] as const;
 
 export function OnboardingForm({ controller }: OnboardingFormProps) {
