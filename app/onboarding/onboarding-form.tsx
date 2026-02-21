@@ -65,7 +65,7 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
                   animationDelay: particle.delay,
                   animationTimingFunction: "cubic-bezier(0.2, 0.72, 0.2, 1)",
                   animationFillMode: "forwards",
-                  "--confetti-drift-x": particle.drift
+                  ["--confetti-drift-x" as string]: particle.drift
                 }}
               />
             ))}
