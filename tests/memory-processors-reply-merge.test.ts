@@ -277,6 +277,78 @@ describe("structured reply memory updates", () => {
     expect(sections?.SUPPRESSED_INTERESTS.toLowerCase()).not.toContain("crypto");
   });
 
+  it("supports lane moves between core and side based on model inference", async () => {
+    process.env.ANTHROPIC_API_KEY = "test-key";
+
+    const downweightOps = {
+      add_active: [],
+      add_active_core: [],
+      add_active_side: [],
+      add_suppressed: [],
+      remove_active: [],
+      move_core_to_side: ["crypto"],
+      move_side_to_core: [],
+      remove_suppressed: [],
+      personality_add: [],
+      personality_remove: [],
+      recent_feedback_add: ["Keep crypto but lower priority"]
+    };
+
+    const rePromoteOps = {
+      add_active: [],
+      add_active_core: [],
+      add_active_side: [],
+      add_suppressed: [],
+      remove_active: [],
+      move_core_to_side: [],
+      move_side_to_core: ["crypto"],
+      remove_suppressed: [],
+      personality_add: [],
+      personality_remove: [],
+      recent_feedback_add: ["Bring crypto back to core"]
+    };
+
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            content: [{ type: "text", text: JSON.stringify(downweightOps) }]
+          })
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            content: [{ type: "text", text: JSON.stringify(rePromoteOps) }]
+          })
+        })
+    );
+
+    const baseMemory = [
+      "PERSONALITY:",
+      "- Curious engineer",
+      "",
+      "ACTIVE_INTERESTS:",
+      "- AI",
+      "- crypto",
+      "",
+      "SUPPRESSED_INTERESTS:",
+      "-",
+      "",
+      "RECENT_FEEDBACK:",
+      "-"
+    ].join("\n");
+
+    const downweighted = await mergeReplyIntoMemory(baseMemory, "A bit less crypto for now.");
+    expect(downweighted.toLowerCase()).toContain("[side] crypto");
+
+    const rePromoted = await mergeReplyIntoMemory(downweighted, "Actually make crypto important again.");
+    expect(rePromoted.toLowerCase()).not.toContain("[side] crypto");
+    expect(rePromoted.toLowerCase()).toContain("- crypto");
+  });
+
   it("rejects injection-like model output with extra keys and falls back", async () => {
     process.env.ANTHROPIC_API_KEY = "test-key";
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);

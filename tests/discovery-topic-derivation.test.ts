@@ -100,4 +100,31 @@ describe("deriveTopicsFromMemory", () => {
     expect(topicNames).not.toContain("observability");
     expect(topics.find((topic) => topic.topic.toLowerCase() === "software architecture")?.softSuppressed).toBe(true);
   });
+
+  it("prioritizes core topics ahead of [side] topics", () => {
+    const memory = [
+      "PERSONALITY:",
+      "- practical",
+      "",
+      "ACTIVE_INTERESTS:",
+      "- AI engineering",
+      "- [side] crypto markets",
+      "- distributed systems",
+      "- [side] startup ops",
+      "",
+      "SUPPRESSED_INTERESTS:",
+      "-",
+      "",
+      "RECENT_FEEDBACK:",
+      "-"
+    ].join("\n");
+
+    const topics = deriveTopicsFromMemory({ interestMemoryText: memory, maxTopics: 10 });
+    const topicNames = topics.map((topic) => topic.topic.toLowerCase());
+
+    expect(topicNames[0]).toBe("ai engineering");
+    expect(topicNames[1]).toBe("distributed systems");
+    expect(topicNames[2]).toBe("crypto markets");
+    expect(topicNames[3]).toBe("startup ops");
+  });
 });

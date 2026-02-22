@@ -1,4 +1,5 @@
 import { parseSections } from "@/lib/memory/contract";
+import { parseActiveInterestLanes } from "@/lib/memory/active-interest-lanes";
 import type { DiscoveryTopic } from "@/lib/discovery/types";
 
 const DEFAULT_MAX_TOPICS = 10;
@@ -81,7 +82,8 @@ export function extractTopicPoolsFromMemory(interestMemoryText: string): {
     };
   }
 
-  const activeTopics = parseBulletLines(sections.ACTIVE_INTERESTS);
+  const activeLaneTopics = parseActiveInterestLanes(sections.ACTIVE_INTERESTS);
+  const activeTopics = [...activeLaneTopics.core, ...activeLaneTopics.side];
   const suppressedTopics = parseBulletLines(sections.SUPPRESSED_INTERESTS);
   const personalityLines = parseBulletLines(sections.PERSONALITY);
   const feedbackLines = parseBulletLines(sections.RECENT_FEEDBACK);
@@ -111,7 +113,8 @@ export function deriveTopicsFromMemory(args: {
     return [];
   }
 
-  const activeLines = parseBulletLines(sections.ACTIVE_INTERESTS);
+  const activeLanes = parseActiveInterestLanes(sections.ACTIVE_INTERESTS);
+  const activeLines = [...activeLanes.core, ...activeLanes.side];
   const personalityLines = parseBulletLines(sections.PERSONALITY);
   const feedbackLines = parseBulletLines(sections.RECENT_FEEDBACK);
   const fallbackSeedTopics = deriveSeedTopics(personalityLines, feedbackLines);
@@ -123,10 +126,13 @@ export function deriveTopicsFromMemory(args: {
 
   const suppressedLines = parseBulletLines(sections.SUPPRESSED_INTERESTS);
 
+  const sideTopicKeys = new Set(activeLanes.side.map((topic) => topic.toLowerCase()));
+
   const topics = topicBase.map((topic, originalIndex) => ({
     topic,
     query: topic,
     topicRank: originalIndex,
+    laneRank: sideTopicKeys.has(topic.toLowerCase()) ? 1 : 0,
     softSuppressed: softSuppressed(topic, suppressedLines)
   }));
 
@@ -136,6 +142,10 @@ export function deriveTopicsFromMemory(args: {
     .sort((a, b) => {
       if (a.softSuppressed !== b.softSuppressed) {
         return a.softSuppressed ? 1 : -1;
+      }
+
+      if (a.laneRank !== b.laneRank) {
+        return a.laneRank - b.laneRank;
       }
 
       return a.topicRank - b.topicRank;

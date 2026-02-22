@@ -17,5 +17,9 @@ Contains memory prompt builders for onboarding formatting and reply-driven memor
   - project/paper-level specifics are mapped to stable categories
   - broad labels add an inferred familiarity signal in memory text unless user states advanced depth.
 - Reply prompt includes hard section-ownership boundaries to prevent topic duplication across `PERSONALITY`, `ACTIVE_INTERESTS`, and `SUPPRESSED_INTERESTS`.
-- Reply prompt differentiates soft downweight language (`less/reduce`) from hard-stop language (`no/stop/scrap`) so soft requests do not force suppression.
+- Reply prompt now asks the model to infer interest intensity and choose lane-aware ops:
+  - strong intent -> core lane (`add_active_core` / `add_active`)
+  - medium/downweighted intent -> side lane (`add_active_side` / `move_core_to_side`)
+  - hard stop intent -> suppressed lane (`add_suppressed` with active removals)
+- Reply prompt keeps soft-vs-hard examples as guidance but explicitly avoids brittle phrase matching; inference is semantic/contextual.
 - Reply prompt includes explicit hierarchical cascade guidance for hard-stop parent topics (for example `scrap philosophy` also applies to `philosophy of physics`).

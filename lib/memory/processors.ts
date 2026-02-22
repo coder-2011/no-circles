@@ -6,6 +6,7 @@ import {
   formatSections,
   validateMemoryText
 } from "@/lib/memory/contract";
+import { parseActiveInterestLanes } from "@/lib/memory/active-interest-lanes";
 import { buildOnboardingMemoryPrompt, buildReplyMemoryPrompt } from "@/lib/ai/memory-prompts";
 import { logInfo, logWarn } from "@/lib/observability/log";
 import { memoryUpdateOpsSchema } from "@/lib/schemas";
@@ -18,7 +19,6 @@ type GenerateMemoryArgs = {
 const ANTHROPIC_MESSAGES_API_URL = "https://api.anthropic.com/v1/messages";
 const MEMORY_MODEL_RETRIES = 2;
 const MAX_RECENT_FEEDBACK_LINES = 8;
-const SUPPRESSED_INTEREST_REGEX = /\b(less|avoid|mute|stop|not interested|don't want|no more)\b/i;
 const ANTHROPIC_AUTH_ERROR = "ANTHROPIC_AUTH_FAILED";
 
 function logMemoryEvent(level: "info" | "warn", event: string, details: Record<string, unknown>) {
@@ -182,22 +182,38 @@ function expandTopicValues(values: Iterable<string>): string[] {
   return uniqueLines([...values].flatMap((value) => splitCompoundTopicLine(value)));
 }
 
+function formatActiveInterestBullets(core: string[], side: string[]): string {
+  if (core.length === 0 && side.length === 0) {
+    return "-";
+  }
+
+  const coreLines = core.map((topic) => `- ${topic}`);
+  const sideLines = side.map((topic) => `- [side] ${topic}`);
+  return [...coreLines, ...sideLines].join("\n");
+}
+
 function normalizeCanonicalMemoryTopics(memory: string): string {
   const sections = parseSections(memory);
   if (!sections) {
     return memory;
   }
 
-  const active = buildOrderedMap(parseTopicLines(sections.ACTIVE_INTERESTS));
+  const activeLanes = parseActiveInterestLanes(sections.ACTIVE_INTERESTS);
+  const activeCore = buildOrderedMap(activeLanes.core);
+  const activeSide = buildOrderedMap(activeLanes.side);
   const suppressed = buildOrderedMap(parseTopicLines(sections.SUPPRESSED_INTERESTS));
 
-  for (const key of active.keys()) {
+  for (const key of activeCore.keys()) {
+    activeSide.delete(key);
+    suppressed.delete(key);
+  }
+  for (const key of activeSide.keys()) {
     suppressed.delete(key);
   }
 
   return buildFallbackMemory({
     PERSONALITY: sections.PERSONALITY,
-    ACTIVE_INTERESTS: toBullets([...active.values()]),
+    ACTIVE_INTERESTS: formatActiveInterestBullets([...activeCore.values()], [...activeSide.values()]),
     SUPPRESSED_INTERESTS: toBullets([...suppressed.values()]),
     RECENT_FEEDBACK: sections.RECENT_FEEDBACK
   });
@@ -243,12 +259,13 @@ function addMany(target: Map<string, string>, values: Iterable<string>) {
 function buildMemoryFromReplyOps(currentMemory: string, inboundReplyText: string, ops: MemoryUpdateOps): string {
   const sections = parseSections(currentMemory);
   const existingPersonality = sections ? parseBulletLines(sections.PERSONALITY) : [];
-  const existingActive = sections ? parseTopicLines(sections.ACTIVE_INTERESTS) : [];
+  const existingActiveLanes = sections ? parseActiveInterestLanes(sections.ACTIVE_INTERESTS) : { core: [], side: [] };
   const existingSuppressed = sections ? parseTopicLines(sections.SUPPRESSED_INTERESTS) : [];
   const existingFeedback = sections ? parseBulletLines(sections.RECENT_FEEDBACK) : [];
 
   const personality = buildOrderedMap(existingPersonality);
-  const active = buildOrderedMap(existingActive);
+  const activeCore = buildOrderedMap(existingActiveLanes.core);
+  const activeSide = buildOrderedMap(existingActiveLanes.side);
   const suppressed = buildOrderedMap(existingSuppressed);
   const feedback = buildOrderedMap(existingFeedback);
 
@@ -256,20 +273,42 @@ function buildMemoryFromReplyOps(currentMemory: string, inboundReplyText: string
   addMany(personality, ops.personality_add);
 
   const addActive = expandTopicValues(ops.add_active);
+  const addActiveCore = expandTopicValues(ops.add_active_core);
+  const addActiveSide = expandTopicValues(ops.add_active_side);
   const addSuppressed = expandTopicValues(ops.add_suppressed);
   const removeActive = expandTopicValues(ops.remove_active);
+  const moveCoreToSide = expandTopicValues(ops.move_core_to_side);
+  const moveSideToCore = expandTopicValues(ops.move_side_to_core);
   const removeSuppressed = expandTopicValues(ops.remove_suppressed);
 
-  removeMany(active, removeActive);
+  removeMany(activeCore, removeActive);
+  removeMany(activeSide, removeActive);
   removeMany(suppressed, removeSuppressed);
 
-  removeMany(active, addSuppressed);
+  removeMany(activeCore, addSuppressed);
+  removeMany(activeSide, addSuppressed);
   addMany(suppressed, addSuppressed);
 
-  removeMany(suppressed, addActive);
-  addMany(active, addActive);
+  removeMany(activeCore, moveCoreToSide);
+  addMany(activeSide, moveCoreToSide);
 
-  for (const key of active.keys()) {
+  removeMany(activeSide, moveSideToCore);
+  addMany(activeCore, moveSideToCore);
+
+  const mergedCoreAdds = uniqueLines([...addActive, ...addActiveCore]);
+  removeMany(suppressed, mergedCoreAdds);
+  removeMany(activeSide, mergedCoreAdds);
+  addMany(activeCore, mergedCoreAdds);
+
+  removeMany(suppressed, addActiveSide);
+  removeMany(activeCore, addActiveSide);
+  addMany(activeSide, addActiveSide);
+
+  for (const key of activeCore.keys()) {
+    activeSide.delete(key);
+    suppressed.delete(key);
+  }
+  for (const key of activeSide.keys()) {
     suppressed.delete(key);
   }
 
@@ -280,7 +319,7 @@ function buildMemoryFromReplyOps(currentMemory: string, inboundReplyText: string
 
   return buildFallbackMemory({
     PERSONALITY: toBullets([...personality.values()]),
-    ACTIVE_INTERESTS: toBullets([...active.values()]),
+    ACTIVE_INTERESTS: formatActiveInterestBullets([...activeCore.values()], [...activeSide.values()]),
     SUPPRESSED_INTERESTS: toBullets([...suppressed.values()]),
     RECENT_FEEDBACK: toBullets(condensedFeedback)
   });
@@ -307,10 +346,6 @@ function extractInterestSignals(text: string): string[] {
   return extractUniqueSegments(text, /[\n,]/);
 }
 
-function extractSuppressedSignals(text: string): string[] {
-  return extractUniqueSegments(text, /[\n.!?]/, (sentence) => SUPPRESSED_INTEREST_REGEX.test(sentence));
-}
-
 function buildFallbackMemory(sections: MemorySections): string {
   return enforceWordCap(formatSections(sections), MEMORY_WORD_CAP);
 }
@@ -328,7 +363,6 @@ export function buildFallbackOnboardingMemory(brainDumpText: string): string {
 
 export function buildFallbackReplyMemory(currentMemory: string, inboundReplyText: string): string {
   const addedInterests = extractInterestSignals(inboundReplyText).slice(0, 12);
-  const suppressed = extractSuppressedSignals(inboundReplyText).slice(0, 12);
   const sections = parseSections(currentMemory);
 
   return buildFallbackMemory({
@@ -336,9 +370,7 @@ export function buildFallbackReplyMemory(currentMemory: string, inboundReplyText
     ACTIVE_INTERESTS: toBullets(
       addedInterests.length > 0 ? addedInterests : ["No new explicit additions from latest reply"]
     ),
-    SUPPRESSED_INTERESTS: toBullets(
-      suppressed.length > 0 ? suppressed : ["No new explicit suppressions from latest reply"]
-    ),
+    SUPPRESSED_INTERESTS: sections?.SUPPRESSED_INTERESTS || "-",
     RECENT_FEEDBACK: toBullets([inboundReplyText])
   });
 }

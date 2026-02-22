@@ -98,6 +98,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/vitest-config.md`
 - `files/app-api-webhooks-resend-inbound-route.md`
 - `files/lib-memory-contract.md`
+- `files/lib-memory-active-interest-lanes.md`
 - `files/lib-memory-processors.md`
 - `files/lib-webhooks-resend-signature.md`
 - `files/lib-webhooks-inbound-idempotency.md`

@@ -11,13 +11,14 @@ describe("buildReplyMemoryPrompt", () => {
     expect(prompt).toContain("Do not duplicate the same topic idea across multiple sections");
   });
 
-  it("distinguishes soft downweight from hard suppression", () => {
+  it("instructs intensity inference with core/side/suppressed outcomes", () => {
     const prompt = buildReplyMemoryPrompt("ACTIVE_INTERESTS:\n- AI", "less ai");
 
-    expect(prompt).toContain("Soft vs hard intent handling:");
-    expect(prompt).toContain("Interpret intent semantically, not by exact phrase matching.");
-    expect(prompt).toContain("Soft downweight intent (for example: 'less X', 'not much more X', 'tone down X', 'reduce X')");
-    expect(prompt).toContain("Do not interpret soft downweight language as full suppression.");
+    expect(prompt).toContain("Interest intensity inference:");
+    expect(prompt).toContain("Infer user intent probabilistically from wording and context");
+    expect(prompt).toContain("move_core_to_side");
+    expect(prompt).toContain("move_side_to_core");
+    expect(prompt).toContain("For uncertain language, prefer reversible changes (side lane) over suppression.");
   });
 
   it("includes hard-stop cascade guidance for parent/subtopic cases", () => {

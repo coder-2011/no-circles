@@ -75,7 +75,7 @@ describe("fallback memory processors", () => {
     expect(countWords(memory)).toBeLessThanOrEqual(MEMORY_WORD_CAP + 1);
   });
 
-  it("creates canonical reply memory with suppression signals", () => {
+  it("creates canonical reply memory while preserving suppressed list on fallback", () => {
     const currentMemory = [
       "PERSONALITY:",
       "- Curious engineer",
@@ -94,6 +94,7 @@ describe("fallback memory processors", () => {
 
     expect(hasRequiredHeaders(updated)).toBe(true);
     expect(updated.toLowerCase()).toContain("less crypto");
+    expect(updated).toContain("SUPPRESSED_INTERESTS:");
   });
 });
 
