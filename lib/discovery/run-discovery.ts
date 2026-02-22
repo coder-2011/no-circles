@@ -119,6 +119,19 @@ function selectActiveTopicsRandomly(allActiveTopics: string[], maxTopics: number
   return shuffled.slice(0, maxTopics).filter(Boolean);
 }
 
+function resolveSerendipityTargetCount(activeInterestCount: number, targetCount: number): number {
+  if (targetCount <= 1) {
+    return 0;
+  }
+
+  const desired =
+    activeInterestCount <= 2 ? 5 :
+      activeInterestCount <= 4 ? 3 :
+        DEFAULT_SERENDIPITY_TARGET_COUNT;
+
+  return Math.min(desired, Math.max(0, targetCount - 1));
+}
+
 async function buildDiscoveryTopics(args: {
   interestMemoryText: string;
   maxTopics: number;
@@ -147,9 +160,10 @@ async function buildDiscoveryTopics(args: {
     };
   }
 
+  const desiredSerendipityTargetCount = resolveSerendipityTargetCount(pools.activeTopics.length, args.targetCount);
   const activeTopicLimit = Math.max(1, Math.min(pools.activeTopics.length, args.maxTopics));
   const activeTopics = selectActiveTopicsRandomly(pools.activeTopics, activeTopicLimit);
-  const serendipityTargetCount = Math.min(DEFAULT_SERENDIPITY_TARGET_COUNT, Math.max(0, args.targetCount - 1));
+  const serendipityTargetCount = desiredSerendipityTargetCount;
   const serendipityLimit = Math.max(0, args.maxTopics - activeTopics.length);
   const serendipityTopics = serendipityLimit > 0
     ? await selectSerendipityTopics({

@@ -50,7 +50,10 @@ Optional dependency hook:
    - serendipity lane: up to 2 adjacent topics selected by high-temperature Haiku from memory-derived seed candidates
    - when active-interest count exceeds `maxTopics`, active topics are randomly sampled (without replacement) up to the cap
 13. Enforce lane quotas:
-   - default split is `8 core + 2 serendipity` for target `10`
+   - adaptive split for target `10` based on active-interest count:
+     - `<=2` active interests: `5 core + 5 serendipity`
+     - `3-4` active interests: `7 core + 3 serendipity`
+     - `>=5` active interests: `8 core + 2 serendipity`
    - core lane is allocated as evenly as possible across active interests (difference at most 1 slot)
 14. Select final candidates by per-topic quotas (no quality-pool backfill across dominant topics).
 15. Build `diversityCard` on final output with hard thresholds for topic/domain spread.
