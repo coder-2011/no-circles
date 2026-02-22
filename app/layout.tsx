@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { Analytics } from "@vercel/analytics/next";
 import { Cormorant_Garamond, Source_Sans_3 } from "next/font/google";
 
 const editorialFont = Cormorant_Garamond({
@@ -47,6 +48,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           />
         </Link>
         {children}
+        <Analytics />
       </body>
     </html>
   );
