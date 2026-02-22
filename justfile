@@ -38,6 +38,11 @@ hyper-reply-evolution-live:
 	set -a; [ -f ./.env.local ] && . ./.env.local; set +a; \
 	npx vitest run --config vitest.hyper.config.ts tests/hyper/reply-evolution-live.integration.test.ts
 
+# Run query-system hyper live integration test with local env loaded
+hyper-query-system-live:
+	set -a; [ -f ./.env.local ] && . ./.env.local; set +a; \
+	npx vitest run --config vitest.hyper.config.ts tests/hyper/query-system-live.integration.test.ts
+
 # Count tracked code LOC on main branch (prefers origin/main when available)
 main-loc:
 	ref=$$(git rev-parse --verify origin/main >/dev/null 2>&1 && echo origin/main || echo main); \
