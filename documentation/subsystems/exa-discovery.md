@@ -11,7 +11,7 @@ Implements candidate discovery stage only.
 - Attempt-tier quality/diversity early-stop gating
 - Suppression-aware primary selection with no suppressed fallback
 - Quality filtering for low-signal sources and low-score candidates
-- Strict one-winner-per-topic primary output selection, then backfill to target count
+- Quota-based output selection: evenly allocated core slots across active interests plus reserved serendipity slots
 
 ## Out of Scope
 - Extraction/fetch fallback (PR7)
@@ -21,7 +21,7 @@ Implements candidate discovery stage only.
 
 ## Runtime Contract
 Input: `interest_memory_text` and run knobs.
-Output: deterministic target-count list (default `10`) built from per-topic winners plus staged non-suppressed backfill (topic-balanced first pass), along with topics used, attempts used, warnings, and diversity card metrics.
+Output: deterministic target-count list (default `10`) built from quota-based lane allocation (`8` core across active interests as evenly as possible, `2` serendipity from adjacent topics), along with topics used, attempts used, warnings, and diversity card metrics.
 
 Integration hook:
 - discovery orchestration accepts an optional candidate include predicate for downstream policies (for example PR9 Bloom anti-repeat gating) before final selection.
@@ -32,5 +32,5 @@ Integration hook:
 - Sonar retrieval prompt enforces strict parseable output format (`[TITLE] || https://...`) for deterministic extraction.
 - Haiku selector runs once per topic to choose best candidate link from Sonar outputs.
 - Discovery attempts use calibrated relaxed thresholds to improve first-attempt pass rate while preserving diversity checks.
-- Final selection starts strict one-per-topic with weighted topic-local scoring (`exa` weighted higher than highlight score), then backfills to target count with topic-balance preference before relaxed fallback.
+- Final selection is quota-based per topic and lane; it does not backfill excess slots from dominant topics when other topic quotas are underfilled.
 - Diversity and source-signal diagnostics are emitted in warnings and `diversityCard`.
