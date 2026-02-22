@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { BRAIN_DUMP_WORD_LIMIT } from "@/app/onboarding/onboarding-config";
 import type { OnboardingController } from "@/app/onboarding/use-onboarding-controller";
+import type { CSSProperties } from "react";
 
 type OnboardingFormProps = {
   controller: OnboardingController;
@@ -65,7 +66,7 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
                   animationDelay: particle.delay,
                   animationTimingFunction: "cubic-bezier(0.2, 0.72, 0.2, 1)",
                   animationFillMode: "forwards",
-                  "--confetti-drift-x": particle.drift
+                  ["--confetti-drift-x" as keyof CSSProperties]: particle.drift
                 }}
               />
             ))}
