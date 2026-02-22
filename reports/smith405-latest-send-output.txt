@@ -1,0 +1,39 @@
+User: smith405@mail.lcc.edu
+Generated at (UTC): 2026-02-22T20:21:00Z
+
+=== ENTIRE INTEREST MEMORY TEXT ===
+PERSONALITY:
+- Drawn to foundational and historical perspectives across disciplines - Interested in both scientific and esoteric frameworks - Practical orientation toward business operations - Early-stage explorer across multiple domains rather than deep specialist in any single area
+
+ACTIVE_INTERESTS:
+- Paleoanthropology
+- Geology
+- Biological anthropology
+- Depth psychology
+- Alchemy
+- Music industry business
+
+SUPPRESSED_INTERESTS:
+-
+
+RECENT_FEEDBACK:
+- Seeking broad coverage across natural sciences, human origins, psychological theory, and esoteric traditions - Wants practical guidance on record label profitability - No topics explicitly deprioritized
+
+=== ENTIRE EMAIL THAT WAS SENT ===
+Unavailable from current system state.
+
+Reason:
+- The app currently stores outbound send metadata only (status/idempotency/provider_message_id), not full rendered email body.
+- Provider retrieval is blocked because RESEND_API_KEY is restricted to send-only scope.
+
+Provider fetch error (raw):
+{"statusCode":401,"message":"This API key is restricted to only send emails","name":"restricted_api_key"}
+
+Recoverable latest-send metadata:
+- user_id: 85b757e4-50da-48ec-9856-a95cab2e180d
+- provider_message_id: 510d83f8-506b-41ed-89fb-d27d22906f5e
+- local_issue_date: 2026-02-21
+- status: sent
+- created_at_utc: 2026-02-22 04:53:42.103684+00
+- updated_at_utc: 2026-02-22 04:53:59.769+00
+- last_issue_sent_at_utc: 2026-02-22 04:53:00.196+00
