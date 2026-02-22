@@ -60,4 +60,24 @@ describe("renderNewsletter", () => {
     expect(rendered.text).toContain("TLDR; If we give you better inputs, you make better ideas!");
     expect(rendered.text).toContain("3. Three");
   });
+
+  it("marks serendipitous items in html and text", () => {
+    const rendered = renderNewsletter({
+      preferredName: "Naman",
+      timezone: "UTC",
+      runAtUtc: new Date("2026-02-16T18:00:00.000Z"),
+      items: [
+        { title: "Core Item", summary: "Core summary", url: "https://example.com/core" },
+        {
+          title: "Adjacent Discovery",
+          summary: "Discovery summary",
+          url: "https://example.com/discovery",
+          isSerendipitous: true
+        }
+      ]
+    });
+
+    expect(rendered.html).toContain("Serendipity pick:");
+    expect(rendered.text).toContain("Serendipity pick: new territory you may find useful.");
+  });
 });

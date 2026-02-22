@@ -39,11 +39,15 @@ export function renderNewsletter(args: RenderNewsletterArgs): RenderedNewsletter
 
   const htmlItems = args.items
     .map((item, index) => {
+      const serendipityNote = item.isSerendipitous
+        ? `<p style=\"margin: 0 0 8px; color: #6A775E; font-size: 12px;\"><strong>Serendipity pick:</strong> new territory you may find useful.</p>`
+        : "";
       return [
         `<section style=\"margin: 0 0 14px; border: 1px solid #D8CFB4; background: #F7F2E2; border-radius: 12px; padding: 14px 16px;\">`,
         `<h3 style=\"margin: 0 0 8px; font-size: 19px; line-height: 1.35; font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 600;\">`,
         `<a href=\"${escapeHtml(item.url)}\" style=\"color: #2D3426; text-decoration: underline; text-decoration-color: #8B9A7A; text-decoration-thickness: 2px; text-underline-offset: 4px;\">${index + 1}. ${escapeHtml(item.title)}</a>`,
         `</h3>`,
+        serendipityNote,
         `<p style=\"margin: 0 0 8px; line-height: 1.6; color: #4A5641; font-size: 15px;\">${escapeHtml(item.summary)}</p>`,
         `<p style=\"margin: 0;\"><a href=\"${escapeHtml(item.url)}\" style=\"color: #5D6A52; font-size: 13px;\">${escapeHtml(item.url)}</a></p>`,
         `</section>`
@@ -53,7 +57,14 @@ export function renderNewsletter(args: RenderNewsletterArgs): RenderedNewsletter
 
   const textItems = args.items
     .map((item, index) => {
-      return [`${index + 1}. ${item.title}`, item.summary, item.url].join("\n");
+      return [
+        `${index + 1}. ${item.title}`,
+        item.isSerendipitous ? "Serendipity pick: new territory you may find useful." : null,
+        item.summary,
+        item.url
+      ]
+        .filter(Boolean)
+        .join("\n");
     })
     .join("\n\n");
 

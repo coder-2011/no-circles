@@ -7,12 +7,14 @@ type SummarySourceItem = {
   title: string;
   highlights: string[];
   topic?: string;
+  isSerendipitous?: boolean;
 };
 
 export type NewsletterSummaryItem = {
   title: string;
   url: string;
   summary: string;
+  isSerendipitous?: boolean;
 };
 
 type GenerateSummariesInput = {
@@ -239,7 +241,8 @@ async function summarizeOneItem(
         item: {
           title: parsed.data.title || item.title,
           url: item.url,
-          summary
+          summary,
+          ...(item.isSerendipitous ? { isSerendipitous: true } : {})
         },
         usedFallback: false
       };
@@ -260,7 +263,8 @@ async function summarizeOneItem(
     item: {
       title: item.title,
       url: item.url,
-      summary: buildFallbackSummary(item, minWords, maxWords)
+      summary: buildFallbackSummary(item, minWords, maxWords),
+      ...(item.isSerendipitous ? { isSerendipitous: true } : {})
     },
     usedFallback: true
   };

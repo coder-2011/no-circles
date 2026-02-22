@@ -13,6 +13,7 @@ Orchestrates PR9 single-user runtime: discovery -> Bloom gate -> summary -> emai
 7. Fetch Exa highlights for winner URLs (`~4500` max chars each) and keep only candidates with non-empty highlights.
 8. Reserve outbound idempotency key.
 9. Generate target-count summaries.
+   - marks summary inputs with `isSerendipitous=true` when candidate topic belongs to `discovery.serendipityTopics`.
 10. Render + send email (retry-once handled by send module); supports `daily` and `welcome` render variants.
 11. On success, transactionally persist:
    - `users.last_issue_sent_at`
