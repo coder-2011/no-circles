@@ -49,7 +49,6 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/app-globals-css.md`
 - `files/app-layout.md`
 - `files/app-not-found.md`
-- `files/app-celebration-sandbox-page.md`
 - `files/app-onboarding-page.md`
 - `files/app-onboarding-onboarding-config.md`
 - `files/app-onboarding-use-onboarding-controller.md`
@@ -113,6 +112,8 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/lib-discovery-sonar-client.md`
 - `files/lib-discovery-search-blocklists.md`
 - `files/lib-discovery-haiku-link-selector.md`
+- `files/lib-discovery-haiku-serendipity-selector.md`
+- `files/lib-discovery-haiku-query-builder.md`
 - `files/lib-discovery-run-discovery.md`
 - `files/lib-summary-writer.md`
 - `files/lib-email-render-newsletter.md`
@@ -139,6 +140,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/tests-hyper-pipeline-seam-integration.md`
 - `files/tests-hyper-full-system-live-integration.md`
 - `files/tests-hyper-reply-evolution-live-integration.md`
+- `files/tests-hyper-query-system-live-integration.md`
 
 ## Conventions
 

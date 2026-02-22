@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { formatOnboardingMemory } from "@/lib/memory/processors";
 import { runDiscovery } from "@/lib/discovery/run-discovery";
+import { searchSonar } from "@/lib/discovery/sonar-client";
 import { generateNewsletterSummaries } from "@/lib/summary/writer";
 import { buildRunId, toPrettyJson, writeHyperLog } from "@/tests/hyper/logging";
 
 const BRAIN_DUMP = [
-  "Messy but real brain dump: I want a genuinely mixed daily brief, not mostly tech.",
+  "I want a genuinely mixed daily brief, not mostly tech.",
   "Give me strong pieces across AI/software, global politics/history, economics and business strategy, climate/energy, biology and medicine, psychology, design/architecture, and arts/literature.",
   "I still care about engineering depth (postmortems, system tradeoffs, reliability lessons), but cap pure engineering to a minority of the issue.",
   "For policy/history, prioritize concrete analyses of institutions, geopolitical shifts, governance experiments, and second-order effects.",
@@ -35,15 +36,38 @@ describe("hyper integration: full system live smoke", () => {
     async () => {
       const runId = buildRunId("full-system-live");
       const interestMemoryText = await formatOnboardingMemory(BRAIN_DUMP);
+      const queryTrace: Array<{
+        query: string;
+        numResults: number;
+        durationMs: number;
+        resultCount: number;
+      }> = [];
 
-      const discovery = await runDiscovery({
-        interestMemoryText,
-        targetCount: 10,
-        maxRetries: 1,
-        maxTopics: 10,
-        perTopicResults: 4,
-        requireUrlExcerpt: true
-      });
+      const liveSearch = async ({ query, numResults }: { query: string; numResults: number }) => {
+        const startedAt = Date.now();
+        const results = await searchSonar({ query, numResults });
+        queryTrace.push({
+          query,
+          numResults,
+          durationMs: Date.now() - startedAt,
+          resultCount: results.length
+        });
+        return results;
+      };
+
+      const discovery = await runDiscovery(
+        {
+          interestMemoryText,
+          targetCount: 10,
+          maxRetries: 1,
+          maxTopics: 10,
+          perTopicResults: 4,
+          requireUrlExcerpt: true
+        },
+        {
+          exaSearch: liveSearch
+        }
+      );
 
       const summaries = await generateNewsletterSummaries({
         items: discovery.candidates.map((candidate) => ({
@@ -66,6 +90,12 @@ describe("hyper integration: full system live smoke", () => {
         runId,
         fileName: "interest-memory.txt",
         content: interestMemoryText
+      });
+      await writeHyperLog({
+        group: "full-system",
+        runId,
+        fileName: "query-trace.txt",
+        content: toPrettyJson(queryTrace)
       });
       await writeHyperLog({
         group: "full-system",
