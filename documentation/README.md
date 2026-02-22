@@ -77,6 +77,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/db-migration-0007-calm-guardrail.md`
 - `files/db-migration-0013-vivid-safeguard.md`
 - `files/db-migration-0014-amber-preflight.md`
+- `files/db-migration-0015-sure-policy.md`
 - `files/db-migration-meta-0001-snapshot.md`
 - `files/db-migration-meta-0002-snapshot.md`
 - `files/db-migration-meta-journal.md`

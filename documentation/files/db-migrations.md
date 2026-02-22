@@ -53,6 +53,10 @@ Versioned SQL history for database schema state.
 - `db/migrations/0014_amber_preflight.sql`
   - updates `public.claim_next_due_user(...)` to start due eligibility 3 minutes before configured local send time (clamped at local midnight)
   - updates `public.claim_due_users_batch(...)` with the same 3-minute pre-send eligibility window to keep selector behavior consistent across single/batch entry points
+- `db/migrations/0015_sure_policy.sql`
+  - creates explicit RLS policies for all active runtime tables
+  - grants `service_role` full table access under RLS
+  - grants authenticated self select/update access on `users` via JWT email match
 
 ## Metadata
 - `db/migrations/meta/_journal.json`: migration journal
