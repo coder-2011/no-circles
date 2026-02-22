@@ -240,7 +240,7 @@ export default function HomePage() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_15%,rgba(61,111,73,0.14),transparent_40%),radial-gradient(circle_at_82%_8%,rgba(198,182,137,0.24),transparent_36%),radial-gradient(circle_at_70%_86%,rgba(93,131,89,0.12),transparent_40%)]" />
       <div className="relative mx-auto w-full max-w-7xl space-y-10">
         <section className="rounded-3xl border border-[#C9BD9A] bg-[#F8F3E4] p-8 shadow-sm md:p-10">
-          <h1 className="text-5xl font-semibold leading-tight text-[#2B3125] md:text-6xl">The No-Circles Project</h1>
+          <h1 className="text-5xl font-semibold leading-tight text-[#2B3125] md:text-6xl">Find what search would never show you.</h1>
           <div className="mt-6 flex flex-wrap gap-3">
             <button
               className="rounded-lg border border-[#3D6F49] bg-[#3D6F49] px-5 py-3 text-base font-medium text-[#F3ECD8] transition hover:bg-[#315E3E] disabled:opacity-60"
@@ -264,6 +264,24 @@ export default function HomePage() {
             {authState === "signed_in" && email ? `Signed in as ${email}` : "Sign in to save onboarding securely."}
           </p>
           {authError ? <p className="mt-3 text-base text-rose-700">{authError}</p> : null}
+          <div className="mt-6 grid max-w-6xl gap-4 md:grid-cols-[1.45fr_1fr]">
+            <div className="relative overflow-hidden rounded-[1.9rem] border border-[#C9BD9A] bg-[#FBF7EB] px-6 py-6 shadow-sm md:px-8 md:py-7">
+              <span className="pointer-events-none absolute right-5 top-4 rounded-full border border-[#CDBF98] bg-[#EFE5CD] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#5A6650]">
+                Daily: 10 reads
+              </span>
+              <p className="max-w-3xl pt-8 text-[1.45rem] font-semibold leading-[1.35] text-[#374230] md:pt-6 md:text-[1.95rem]">
+                No-Circles curates 10 high-signal, niche long-form pieces every morning, optimized for unexpected but
+                meaningful discovery.
+              </p>
+            </div>
+            <div className="relative rounded-[1.3rem] border border-[#CDBF98] bg-[#F6EFD9] px-5 py-5 shadow-sm md:-ml-4 md:mt-6 md:rotate-[-1deg]">
+              <div className="pointer-events-none absolute -right-2 -top-2 h-6 w-6 rounded-md border border-[#CDBF98] bg-[#EFE5CD] rotate-12" />
+              <p className="text-[1.02rem] leading-[1.55] text-[#4C5A45] md:text-[1.22rem]">
+                The principle is that great ideas come from unexpected places, so we should encourage people toward
+                more unexpected endeavors.
+              </p>
+            </div>
+          </div>
         </section>
 
         <section className="rounded-3xl border border-[#C9BD9A] bg-[#FBF7EB] p-8 text-[#2D3426] shadow-sm md:p-10">
