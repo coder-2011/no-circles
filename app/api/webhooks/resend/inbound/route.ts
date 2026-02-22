@@ -1,5 +1,6 @@
 import { desc, eq, inArray, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { Resend } from "resend";
 import { db } from "@/lib/db/client";
 import { outboundSendIdempotency, processedWebhooks, users } from "@/lib/db/schema";
 import { sendTransactionalEmail } from "@/lib/email/send-newsletter";
@@ -35,6 +36,36 @@ function toNonEmptyString(value: unknown): string | null {
 
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
+}
+
+function getResendClient(): Resend {
+  const apiKey = process.env.RESEND_API_KEY?.trim();
+  if (!apiKey) {
+    throw new Error("MISSING_RESEND_API_KEY");
+  }
+
+  return new Resend(apiKey);
+}
+
+async function fetchInboundReplyText(emailId: string): Promise<string | null> {
+  const resend = getResendClient();
+
+  const receivingResponse = await resend.emails.receiving.get(emailId);
+  if (receivingResponse.error) {
+    throw new Error(receivingResponse.error.message || "RESEND_RECEIVING_GET_ERROR");
+  }
+
+  const receivingText = toNonEmptyString(receivingResponse.data?.text);
+  if (receivingText) {
+    return receivingText;
+  }
+
+  const emailResponse = await resend.emails.get(emailId);
+  if (emailResponse.error) {
+    throw new Error(emailResponse.error.message || "RESEND_EMAIL_GET_ERROR");
+  }
+
+  return toNonEmptyString(emailResponse.data?.text);
 }
 
 function resolveMessageId(payload: (typeof resendInboundWebhookSchema)["_output"]): string | null {
@@ -224,12 +255,33 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, status: "ignored" });
   }
 
-  const inboundReplyText = parsedPayload.data.data.text.trim();
+  const inlineReplyText = parsedPayload.data.data.text.trim();
+  const replyEmailId = toNonEmptyString(parsedPayload.data.data.email_id);
+
+  let inboundReplyText = inlineReplyText;
+  if (!inboundReplyText && replyEmailId) {
+    try {
+      inboundReplyText = (await fetchInboundReplyText(replyEmailId)) ?? "";
+    } catch (error) {
+      logError("webhook_inbound", "email_content_fetch_failed", {
+        route: INBOUND_ROUTE,
+        svix_id: signatureHeaders.svixId,
+        email_id: replyEmailId,
+        error
+      });
+      return NextResponse.json(
+        { ok: false, error_code: "INTERNAL_ERROR", message: "Failed to fetch inbound email content." },
+        { status: 500 }
+      );
+    }
+  }
+
   if (!inboundReplyText) {
     logInfo("webhook_inbound", "ignored_empty_text", {
       route: INBOUND_ROUTE,
       svix_id: signatureHeaders.svixId,
-      sender_email: senderEmail
+      sender_email: senderEmail,
+      email_id_present: Boolean(replyEmailId)
     });
     return NextResponse.json({ ok: true, status: "ignored" });
   }

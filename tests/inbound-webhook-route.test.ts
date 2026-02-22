@@ -9,6 +9,8 @@ const {
   orderByMock,
   limitMock,
   transactionMock,
+  receivingGetMock,
+  emailGetMock,
   mergeReplyIntoMemoryMock,
   sendTransactionalEmailMock,
   getSvixHeadersMock,
@@ -93,6 +95,8 @@ const {
     orderByMock: orderBy,
     limitMock: limit,
     transactionMock: transaction,
+    receivingGetMock: vi.fn(async () => ({ data: { text: "more AI depth" }, error: null })),
+    emailGetMock: vi.fn(async () => ({ data: { text: "more AI depth" }, error: null })),
     mergeReplyIntoMemoryMock: vi.fn(async () => "PERSONALITY:\n- Updated\n\nACTIVE_INTERESTS:\n- Economics\n\nSUPPRESSED_INTERESTS:\n- Crypto\n\nRECENT_FEEDBACK:\n- Wants less crypto"),
     sendTransactionalEmailMock: vi.fn(async () => ({ ok: true, providerMessageId: "msg_auto_reply", attempts: 1, error: null })),
     getSvixHeadersMock: vi.fn(() => ({
@@ -122,6 +126,17 @@ vi.mock("@/lib/email/send-newsletter", () => ({
   sendTransactionalEmail: sendTransactionalEmailMock
 }));
 
+vi.mock("resend", () => ({
+  Resend: class {
+    emails = {
+      receiving: {
+        get: receivingGetMock
+      },
+      get: emailGetMock
+    };
+  }
+}));
+
 vi.mock("@/lib/webhooks/resend-signature", () => ({
   getSvixHeaders: getSvixHeadersMock,
   verifyResendWebhookSignature: verifyResendWebhookSignatureMock
@@ -146,6 +161,7 @@ function buildInboundRequest(body: unknown): Request {
 describe("POST /api/webhooks/resend/inbound", () => {
   beforeEach(() => {
     process.env.RESEND_WEBHOOK_SECRET = "whsec_dGVzdF9zZWNyZXQ=";
+    process.env.RESEND_API_KEY = "re_test_key";
     testState.user = {
       id: "user-1",
       interestMemoryText:
@@ -163,6 +179,8 @@ describe("POST /api/webhooks/resend/inbound", () => {
     orderByMock.mockClear();
     limitMock.mockClear();
     transactionMock.mockClear();
+    receivingGetMock.mockClear();
+    emailGetMock.mockClear();
     mergeReplyIntoMemoryMock.mockClear();
     sendTransactionalEmailMock.mockClear();
     getSvixHeadersMock.mockClear();
@@ -255,6 +273,83 @@ describe("POST /api/webhooks/resend/inbound", () => {
       "webhook_inbound",
       "updated",
       expect.objectContaining({ user_id: "user-1" })
+    );
+  });
+
+  it("fetches inbound text by email_id when inline text is missing", async () => {
+    receivingGetMock.mockResolvedValueOnce({
+      data: { text: "less company coverage, more AI papers" },
+      error: null
+    });
+
+    const response = await POST(buildInboundRequest({
+      data: {
+        email_id: "re_payload_only",
+        from: "Naman <naman@example.com>"
+      }
+    }));
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true, status: "updated", user_id: "user-1" });
+    expect(receivingGetMock).toHaveBeenCalledWith("re_payload_only");
+    expect(mergeReplyIntoMemoryMock).toHaveBeenCalledWith(
+      expect.any(String),
+      "less company coverage, more AI papers"
+    );
+    expect(testState.reservedWebhookKey).toBe("message:re_payload_only");
+  });
+
+  it("falls back to emails.get when receiving text is missing", async () => {
+    receivingGetMock.mockResolvedValueOnce({
+      data: { text: null },
+      error: null
+    });
+    emailGetMock.mockResolvedValueOnce({
+      data: { text: "more biology theory, less mech interp" },
+      error: null
+    });
+
+    const response = await POST(buildInboundRequest({
+      data: {
+        email_id: "re_payload_fallback",
+        from: "Naman <naman@example.com>"
+      }
+    }));
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true, status: "updated", user_id: "user-1" });
+    expect(receivingGetMock).toHaveBeenCalledWith("re_payload_fallback");
+    expect(emailGetMock).toHaveBeenCalledWith("re_payload_fallback");
+    expect(mergeReplyIntoMemoryMock).toHaveBeenCalledWith(
+      expect.any(String),
+      "more biology theory, less mech interp"
+    );
+  });
+
+  it("returns ignored when text is unavailable after fetch by email_id", async () => {
+    receivingGetMock.mockResolvedValueOnce({
+      data: { text: null },
+      error: null
+    });
+    emailGetMock.mockResolvedValueOnce({
+      data: { text: null },
+      error: null
+    });
+
+    const response = await POST(buildInboundRequest({
+      data: {
+        email_id: "re_payload_empty",
+        from: "Naman <naman@example.com>"
+      }
+    }));
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true, status: "ignored" });
+    expect(mergeReplyIntoMemoryMock).not.toHaveBeenCalled();
+    expect(logInfoMock).toHaveBeenCalledWith(
+      "webhook_inbound",
+      "ignored_empty_text",
+      expect.objectContaining({ sender_email: "naman@example.com", email_id_present: true })
     );
   });
 
