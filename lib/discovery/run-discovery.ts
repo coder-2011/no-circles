@@ -1,5 +1,7 @@
-import { deriveTopicsFromMemory } from "@/lib/discovery/topic-derivation";
+import { deriveTopicsFromMemory, extractTopicPoolsFromMemory } from "@/lib/discovery/topic-derivation";
 import { selectBestTopicLink } from "@/lib/discovery/haiku-link-selector";
+import { selectSerendipityTopics } from "@/lib/discovery/haiku-serendipity-selector";
+import { buildHaikuQuery } from "@/lib/discovery/haiku-query-builder";
 import { searchSonar } from "@/lib/discovery/sonar-client";
 import { fetchUrlExcerpt } from "@/lib/discovery/url-excerpt";
 import { logInfo } from "@/lib/observability/log";
@@ -14,7 +16,6 @@ import {
 } from "@/lib/discovery/types";
 export type { DiscoveryRunResult } from "@/lib/discovery/types";
 import {
-  applyDomainCap,
   buildAttemptQuery,
   buildDiversityCard,
   dedupeCandidates,
@@ -22,7 +23,6 @@ import {
   normalizeCandidate,
   qualityFilterCandidates,
   summarizeQualityFilterDiagnostics,
-  selectOnePerTopic,
   shouldEarlyStop
 } from "@/lib/discovery/run-discovery-selection";
 
@@ -30,7 +30,7 @@ const DEFAULT_PER_TOPIC_RESULTS = 7;
 const DEFAULT_MAX_TOPICS = 10;
 const DEFAULT_EARLY_STOP_BUFFER = 2;
 const DEFAULT_MAX_PER_DOMAIN = 3;
-const DEFAULT_BACKFILL_MAX_TOPIC_SHARE = 0.4;
+const DEFAULT_SERENDIPITY_TARGET_COUNT = 2;
 const RECENCY_OPERATORS = ["last 7 days", "last 30 days", "last 90 days", "last 12 months", "since previous year"] as const;
 const DISCOVERY_DEBUG = process.env.DISCOVERY_DEBUG === "1";
 const LOW_SIGNAL_EXCERPT_PATTERNS = [
@@ -56,10 +56,6 @@ const LOW_SIGNAL_EXCERPT_NAV_TERMS = [
 function logDiscoveryDebug(event: string, details: Record<string, unknown>) {
   if (!DISCOVERY_DEBUG) return;
   logInfo("discovery", event, details);
-}
-
-function hasRequiredItemFields(candidate: DiscoveryCandidate): boolean {
-  return Boolean(candidate.title && candidate.highlight);
 }
 
 function normalizeLine(value: string): string {
@@ -107,59 +103,129 @@ function reorderBySelectedIndex<T>(items: T[], selectedIndex: number | null): T[
   return [selected, ...items.slice(0, selectedIndex), ...items.slice(selectedIndex + 1)];
 }
 
-function fillFromPool(
-  selected: DiscoveryCandidate[],
-  pool: DiscoveryCandidate[],
-  targetCount: number,
-  maxTopicShare?: number
-): { items: DiscoveryCandidate[]; added: number } {
-  if (selected.length >= targetCount) {
-    return { items: selected, added: 0 };
+function selectActiveTopicsRandomly(allActiveTopics: string[], maxTopics: number): string[] {
+  if (allActiveTopics.length <= maxTopics) {
+    return allActiveTopics;
   }
 
-  const selectedUrls = new Set(selected.map((candidate) => candidate.canonicalUrl));
-  const topicCounts = new Map<string, number>();
-  for (const candidate of selected) {
-    topicCounts.set(candidate.topic, (topicCounts.get(candidate.topic) ?? 0) + 1);
+  const shuffled = [...allActiveTopics];
+  for (let i = shuffled.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const current = shuffled[i];
+    shuffled[i] = shuffled[j] ?? "";
+    shuffled[j] = current ?? "";
   }
 
-  const topicShareCap =
-    typeof maxTopicShare === "number" && maxTopicShare > 0 ? Math.max(1, Math.ceil(targetCount * maxTopicShare)) : null;
-  let added = 0;
+  return shuffled.slice(0, maxTopics).filter(Boolean);
+}
 
-  const orderedPool = [...pool].sort((a, b) => {
-    const aCount = topicCounts.get(a.topic) ?? 0;
-    const bCount = topicCounts.get(b.topic) ?? 0;
-    if (aCount !== bCount) {
-      return aCount - bCount;
-    }
-    if (a.topicRank !== b.topicRank) {
-      return a.topicRank - b.topicRank;
-    }
-    return a.resultRank - b.resultRank;
+async function buildDiscoveryTopics(args: {
+  interestMemoryText: string;
+  maxTopics: number;
+  targetCount: number;
+}): Promise<{
+  topics: DiscoveryRunResult["topics"];
+  activeTopics: string[];
+  serendipityTopics: string[];
+  coreTargetCount: number;
+  serendipityTargetCount: number;
+}> {
+  const pools = extractTopicPoolsFromMemory(args.interestMemoryText);
+
+  // Preserve legacy fallback when ACTIVE_INTERESTS is empty.
+  if (pools.activeTopics.length === 0) {
+    const fallbackTopics = deriveTopicsFromMemory({
+      interestMemoryText: args.interestMemoryText,
+      maxTopics: args.maxTopics
+    });
+    return {
+      topics: fallbackTopics,
+      activeTopics: fallbackTopics.map((topic) => topic.topic),
+      serendipityTopics: [],
+      coreTargetCount: args.targetCount,
+      serendipityTargetCount: 0
+    };
+  }
+
+  const activeTopicLimit = Math.max(1, Math.min(pools.activeTopics.length, args.maxTopics));
+  const activeTopics = selectActiveTopicsRandomly(pools.activeTopics, activeTopicLimit);
+  const serendipityTargetCount = Math.min(DEFAULT_SERENDIPITY_TARGET_COUNT, Math.max(0, args.targetCount - 1));
+  const serendipityLimit = Math.max(0, args.maxTopics - activeTopics.length);
+  const serendipityTopics = serendipityLimit > 0
+    ? await selectSerendipityTopics({
+      activeTopics,
+      suppressedTopics: pools.suppressedTopics,
+      interestMemoryText: args.interestMemoryText,
+      maxTopics: Math.min(serendipityLimit, serendipityTargetCount)
+    })
+    : [];
+  const effectiveSerendipityTargetCount = Math.min(serendipityTargetCount, serendipityTopics.length);
+  const effectiveCoreTargetCount = Math.max(1, args.targetCount - effectiveSerendipityTargetCount);
+
+  const topics = [
+    ...activeTopics.map((topic, index) => ({
+      topic,
+      query: topic,
+      topicRank: index,
+      softSuppressed: false
+    })),
+    ...serendipityTopics.map((topic, index) => ({
+      topic,
+      query: topic,
+      topicRank: activeTopics.length + index,
+      softSuppressed: false
+    }))
+  ];
+
+  return {
+    topics,
+    activeTopics,
+    serendipityTopics,
+    coreTargetCount: effectiveCoreTargetCount,
+    serendipityTargetCount: effectiveSerendipityTargetCount
+  };
+}
+
+function buildPerTopicQuotas(topics: string[], targetCount: number): Map<string, number> {
+  const quotas = new Map<string, number>();
+  if (topics.length === 0 || targetCount <= 0) return quotas;
+
+  const base = Math.floor(targetCount / topics.length);
+  const remainder = targetCount % topics.length;
+  topics.forEach((topic, index) => {
+    quotas.set(topic, base + (index < remainder ? 1 : 0));
+  });
+  return quotas;
+}
+
+function selectByTopicQuotas(args: {
+  candidates: DiscoveryCandidate[];
+  topicQuotas: Map<string, number>;
+}): DiscoveryCandidate[] {
+  const selected: DiscoveryCandidate[] = [];
+  const selectedUrls = new Set<string>();
+  const perTopicCount = new Map<string, number>();
+
+  const ordered = [...args.candidates].sort((a, b) => {
+    if (a.topicRank !== b.topicRank) return a.topicRank - b.topicRank;
+    if (a.resultRank !== b.resultRank) return a.resultRank - b.resultRank;
+    return a.canonicalUrl.localeCompare(b.canonicalUrl);
   });
 
-  for (const candidate of orderedPool) {
-    if (selected.length >= targetCount) {
-      break;
-    }
+  for (const candidate of ordered) {
+    const quota = args.topicQuotas.get(candidate.topic) ?? 0;
+    if (quota <= 0) continue;
+    if (selectedUrls.has(candidate.canonicalUrl)) continue;
 
-    if (selectedUrls.has(candidate.canonicalUrl)) {
-      continue;
-    }
-
-    const topicCount = topicCounts.get(candidate.topic) ?? 0;
-    if (topicShareCap !== null && topicCount >= topicShareCap) {
-      continue;
-    }
+    const current = perTopicCount.get(candidate.topic) ?? 0;
+    if (current >= quota) continue;
 
     selected.push(candidate);
     selectedUrls.add(candidate.canonicalUrl);
-    topicCounts.set(candidate.topic, topicCount + 1);
-    added += 1;
+    perTopicCount.set(candidate.topic, current + 1);
   }
 
-  return { items: selected, added };
+  return selected;
 }
 
 export async function runDiscovery(
@@ -174,6 +240,7 @@ export async function runDiscovery(
       alreadySelected: Array<{ topic: string; title: string }>;
     }) => Promise<number | null>;
     excerptExtractor?: (args: { url: string; maxCharacters: number }) => Promise<string | null>;
+    queryBuilder?: (args: { topic: string; interestMemoryText: string; attempt: number }) => Promise<string>;
   } = {}
 ): Promise<DiscoveryRunResult> {
   const targetCount = input.targetCount ?? DEFAULT_DISCOVERY_TARGET_COUNT;
@@ -186,11 +253,16 @@ export async function runDiscovery(
   const includeCandidate = deps.includeCandidate ?? (() => true);
   const linkSelector = deps.linkSelector ?? selectBestTopicLink;
   const excerptExtractor = deps.excerptExtractor ?? fetchUrlExcerpt;
+  const queryBuilder = deps.queryBuilder ?? buildHaikuQuery;
 
-  const topics = deriveTopicsFromMemory({
+  const topicPlan = await buildDiscoveryTopics({
     interestMemoryText: input.interestMemoryText,
-    maxTopics
+    maxTopics,
+    targetCount
   });
+  const topics = topicPlan.topics;
+  const coreTopicQuotas = buildPerTopicQuotas(topicPlan.activeTopics, topicPlan.coreTargetCount);
+  const serendipityTopicQuotas = buildPerTopicQuotas(topicPlan.serendipityTopics, topicPlan.serendipityTargetCount);
 
   if (topics.length === 0) {
     throw new Error("NO_ACTIVE_TOPICS");
@@ -209,7 +281,35 @@ export async function runDiscovery(
     const perTopicResults = basePerTopicResults + attempt * 2;
 
     for (const topic of topics) {
-      const query = appendRecencyOperator(buildAttemptQuery(topic, attempt), topic.topicRank, attempt);
+      const fallbackQuery = buildAttemptQuery(topic, attempt);
+      let baseQuery = fallbackQuery;
+      let querySource: "haiku" | "fallback" = "fallback";
+
+      try {
+        const generatedQuery = await queryBuilder({
+          topic: topic.topic,
+          interestMemoryText: input.interestMemoryText,
+          attempt: attempt + 1
+        });
+        const normalizedGenerated = normalizeLine(generatedQuery);
+        if (!normalizedGenerated) {
+          throw new Error("EMPTY_GENERATED_QUERY");
+        }
+        baseQuery = normalizedGenerated;
+        querySource = "haiku";
+      } catch (error) {
+        warnings.push(
+          `QUERY_BUILDER_FALLBACK:${topic.topic}:${error instanceof Error ? error.message : "UNKNOWN_QUERY_BUILDER_ERROR"}`
+        );
+      }
+
+      const query = appendRecencyOperator(baseQuery, topic.topicRank, attempt);
+      logDiscoveryDebug("topic_query_built", {
+        topic: topic.topic,
+        attempt: attempt + 1,
+        query_source: querySource,
+        query
+      });
 
       try {
         const rawResults = await exaSearch({ query, numResults: perTopicResults });
@@ -247,16 +347,35 @@ export async function runDiscovery(
           continue;
         }
 
-        let results = selectorCandidates;
-        if (selectorCandidates.length > 1) {
+        const selectorEligibleCandidates = selectorCandidates.filter((result, resultIndex) => {
+          const normalized = normalizeCandidate({
+            topic,
+            result,
+            resultRank: resultIndex
+          });
+
+          if (!normalized) return false;
+          if (includeCandidate(normalized)) return true;
+
+          candidateFilterExcludedCount += 1;
+          return false;
+        });
+
+        if (selectorEligibleCandidates.length === 0) {
+          warnings.push(`TOPIC_NO_SELECTOR_ELIGIBLE_CANDIDATES:${topic.topic}`);
+          continue;
+        }
+
+        let results = selectorEligibleCandidates;
+        if (selectorEligibleCandidates.length > 1) {
           try {
             const selectedIndex = await linkSelector({
               topic: topic.topic,
               interestMemoryText: input.interestMemoryText,
-              candidates: selectorCandidates,
+              candidates: selectorEligibleCandidates,
               alreadySelected: alreadySelected.map((item) => ({ ...item }))
             });
-            results = reorderBySelectedIndex(selectorCandidates, selectedIndex);
+            results = reorderBySelectedIndex(selectorEligibleCandidates, selectedIndex);
           } catch (error) {
             warnings.push(`TOPIC_SELECTOR_FAILURE:${topic.topic}:${error instanceof Error ? error.message : "UNKNOWN_ERROR"}`);
           }
@@ -322,49 +441,40 @@ export async function runDiscovery(
   const nonSuppressed = filterNonSuppressed(deduped);
   const qualityDiagnostics = summarizeQualityFilterDiagnostics(nonSuppressed);
   const qualityFiltered = qualityFilterCandidates(nonSuppressed, warnings);
-  const domainCapped = applyDomainCap(qualityFiltered, Math.max(targetCount * 2, targetCount), maxPerDomain, true);
-  const onePerTopic = selectOnePerTopic(domainCapped, targetCount, warnings);
-  const selected = [...onePerTopic];
+  const activeTopicSet = new Set(topicPlan.activeTopics);
+  const serendipityTopicSet = new Set(topicPlan.serendipityTopics);
+  const corePool = qualityFiltered.filter((candidate) => activeTopicSet.has(candidate.topic));
+  const serendipityPool = qualityFiltered.filter((candidate) => serendipityTopicSet.has(candidate.topic));
+  const selectedCore = selectByTopicQuotas({
+    candidates: corePool,
+    topicQuotas: coreTopicQuotas
+  });
+  const selectedSerendipity = selectByTopicQuotas({
+    candidates: serendipityPool,
+    topicQuotas: serendipityTopicQuotas
+  });
+  const selected = [...selectedCore, ...selectedSerendipity];
   logDiscoveryDebug("post_filter_stage_counts", {
     deduped_count: deduped.length,
     non_suppressed_count: nonSuppressed.length,
     quality_filtered_count: qualityFiltered.length,
-    domain_capped_count: domainCapped.length,
-    one_per_topic_count: onePerTopic.length,
+    core_pool_count: corePool.length,
+    serendipity_pool_count: serendipityPool.length,
+    selected_core_count: selectedCore.length,
+    selected_serendipity_count: selectedSerendipity.length,
     target_count: targetCount,
+    core_target_count: topicPlan.coreTargetCount,
+    serendipity_target_count: topicPlan.serendipityTargetCount,
     quality_pool_diagnostics: qualityDiagnostics,
     warnings
   });
 
-  if (selected.length < targetCount) {
-    warnings.push("INSUFFICIENT_TOPIC_WINNERS");
+  if (selectedCore.length < topicPlan.coreTargetCount) {
+    warnings.push(`INSUFFICIENT_CORE_TOPIC_ALLOCATION:${selectedCore.length}/${topicPlan.coreTargetCount}`);
   }
 
-  if (qualityFiltered.length < targetCount) {
-    warnings.push("NON_SUPPRESSED_POOL_BELOW_TARGET");
-  }
-
-  const nonTopicQualityPool = qualityFiltered.filter(
-    (candidate) => !onePerTopic.some((winner) => winner.canonicalUrl === candidate.canonicalUrl)
-  );
-  const qualityBackfill = fillFromPool(selected, nonTopicQualityPool, targetCount, DEFAULT_BACKFILL_MAX_TOPIC_SHARE);
-  if (qualityBackfill.added > 0) {
-    warnings.push(`BACKFILLED_FROM_QUALITY_POOL_${qualityBackfill.added}`);
-  }
-
-  if (selected.length < targetCount) {
-    const relaxedTopicBalanceBackfill = fillFromPool(selected, nonTopicQualityPool, targetCount);
-    if (relaxedTopicBalanceBackfill.added > 0) {
-      warnings.push(`RELAXED_TOPIC_BALANCE_BACKFILL_${relaxedTopicBalanceBackfill.added}`);
-    }
-  }
-
-  const relaxedNonSuppressedPool = nonSuppressed
-    .filter(hasRequiredItemFields)
-    .filter((candidate) => !qualityFiltered.some((qualityCandidate) => qualityCandidate.canonicalUrl === candidate.canonicalUrl));
-  const relaxedQualityBackfill = fillFromPool(selected, relaxedNonSuppressedPool, targetCount);
-  if (relaxedQualityBackfill.added > 0) {
-    warnings.push(`RELAXED_QUALITY_BACKFILL_${relaxedQualityBackfill.added}`);
+  if (selectedSerendipity.length < topicPlan.serendipityTargetCount) {
+    warnings.push(`INSUFFICIENT_SERENDIPITY_ALLOCATION:${selectedSerendipity.length}/${topicPlan.serendipityTargetCount}`);
   }
 
   if (selected.length < targetCount) {
@@ -394,6 +504,7 @@ export async function runDiscovery(
   return {
     candidates: finalItems,
     topics,
+    serendipityTopics: [...topicPlan.serendipityTopics],
     attempts: attemptsUsed,
     warnings,
     diversityCard

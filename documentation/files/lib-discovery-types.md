@@ -22,4 +22,5 @@ Declares shared contracts and defaults for discovery pipeline stage (PR6).
   - early-stop buffer (`earlyStopBuffer`)
   - per-domain diversity cap (`maxPerDomain`)
 - `DiscoveryRunResult.diversityCard` reports topic/domain spread and pass/fail against hard diversity thresholds.
+- `DiscoveryRunResult.serendipityTopics` (optional) lists the topic names selected for the serendipity lane in that run.
 - Caller can keep defaults or override per run.

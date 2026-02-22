@@ -56,6 +56,7 @@ export type DiscoveryRunInput = {
 export type DiscoveryRunResult = {
   candidates: DiscoveryCandidate[];
   topics: DiscoveryTopic[];
+  serendipityTopics?: string[];
   attempts: number;
   warnings: string[];
   diversityCard: DiscoveryDiversityCard;

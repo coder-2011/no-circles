@@ -91,6 +91,15 @@ describe("selectBestTopicLink", () => {
       "return NULL unless at least one candidate has both clear topic relevance and at least one concrete teachable unit in excerpt text"
     );
     expect(requestBody.messages[0]?.content).toContain("Do not reward impressive-sounding titles; choose based on excerpt substance.");
+    expect(requestBody.messages[0]?.content).toContain(
+      "if two candidates are similarly relevant, prefer the one with clearer concrete evidence over broader trend framing"
+    );
+    expect(requestBody.messages[0]?.content).toContain(
+      "prefer primary or first-hand sources (original research, official docs, direct reports) over commentary when quality is comparable"
+    );
+    expect(requestBody.messages[0]?.content).toContain(
+      "when uncertain between candidates, choose the one with lower hype language and higher specificity"
+    );
     expect(requestBody.messages[0]?.content).toContain("Already selected items in this issue:");
     expect(requestBody.messages[0]?.content).toContain("AI engineering || Production migration lessons from large-scale model serving");
     expect(requestBody.messages[0]?.content).toContain("Tie-break: if two are close, prefer the one that adds a different angle from already selected items.");

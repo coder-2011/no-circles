@@ -67,6 +67,41 @@ function deriveSeedTopics(personalityLines: string[], feedbackLines: string[]): 
   return [...seen.values()];
 }
 
+export function extractTopicPoolsFromMemory(interestMemoryText: string): {
+  activeTopics: string[];
+  suppressedTopics: string[];
+  serendipitySeedTopics: string[];
+} {
+  const sections = parseSections(interestMemoryText);
+  if (!sections) {
+    return {
+      activeTopics: [],
+      suppressedTopics: [],
+      serendipitySeedTopics: []
+    };
+  }
+
+  const activeTopics = parseBulletLines(sections.ACTIVE_INTERESTS);
+  const suppressedTopics = parseBulletLines(sections.SUPPRESSED_INTERESTS);
+  const personalityLines = parseBulletLines(sections.PERSONALITY);
+  const feedbackLines = parseBulletLines(sections.RECENT_FEEDBACK);
+  const seedTopics = deriveSeedTopics(personalityLines, feedbackLines);
+
+  const activeKeys = new Set(activeTopics.map((topic) => topic.toLowerCase()));
+  const suppressedKeys = new Set(suppressedTopics.map((topic) => topic.toLowerCase()));
+
+  const serendipitySeedTopics = seedTopics.filter((topic) => {
+    const key = topic.toLowerCase();
+    return !activeKeys.has(key) && !suppressedKeys.has(key);
+  });
+
+  return {
+    activeTopics,
+    suppressedTopics,
+    serendipitySeedTopics
+  };
+}
+
 export function deriveTopicsFromMemory(args: {
   interestMemoryText: string;
   maxTopics?: number;

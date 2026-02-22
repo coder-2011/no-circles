@@ -46,6 +46,35 @@ describe("runDiscovery", () => {
     expect(result.warnings.some((warning) => warning.startsWith("CANDIDATE_EXTRACTION_FAILED:"))).toBe(true);
   });
 
+  it("excludes includeCandidate-rejected URLs before Haiku selector input", async () => {
+    const exaSearch = vi.fn(async () => [
+      { url: "https://example.com/repeated", title: "Repeated", highlights: ["legacy"], score: 0.9 },
+      { url: "https://example.com/fresh", title: "Fresh", highlights: ["fresh"], score: 0.85 }
+    ]);
+
+    const linkSelector = vi.fn(async () => 0);
+
+    const result = await runDiscovery(
+      {
+        interestMemoryText: memory,
+        targetCount: 1,
+        maxRetries: 1,
+        perTopicResults: 2,
+        maxTopics: 1
+      },
+      {
+        exaSearch,
+        includeCandidate: (candidate) => candidate.canonicalUrl !== "https://example.com/repeated",
+        linkSelector
+      }
+    );
+
+    expect(result.candidates).toHaveLength(1);
+    expect(result.candidates[0]?.canonicalUrl).toBe("https://example.com/fresh");
+    expect(linkSelector).not.toHaveBeenCalled();
+    expect(result.warnings).toContain("CANDIDATE_FILTERED_1");
+  });
+
   it("fills to target count after selecting one winner per topic", async () => {
     const exaSearch = vi.fn(async ({ query }: { query: string; numResults: number }) => {
       if (query.startsWith("AI engineering")) {
@@ -100,6 +129,37 @@ describe("runDiscovery", () => {
       "https://example.com/a"
     ]);
     expect(result.warnings).toContain("BACKFILLED_FROM_QUALITY_POOL_1");
+  });
+
+  it("uses Haiku query builder output and falls back deterministically when it fails", async () => {
+    const builtQueries: string[] = [];
+    const exaSearch = vi.fn(async ({ query }: { query: string; numResults: number }) => {
+      builtQueries.push(query);
+      const slug = query.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+      return [{ url: `https://example.com/${slug}`, title: "One", highlights: ["signal"], score: 0.9 }];
+    });
+
+    const queryBuilder = vi
+      .fn()
+      .mockResolvedValueOnce("niche distributed systems retry storm mitigation patterns")
+      .mockRejectedValueOnce(new Error("QUERY_TOO_LONG"));
+
+    const result = await runDiscovery(
+      {
+        interestMemoryText: memory,
+        targetCount: 2,
+        maxRetries: 1,
+        perTopicResults: 1,
+        maxTopics: 2
+      },
+      { exaSearch, queryBuilder }
+    );
+
+    expect(result.candidates).toHaveLength(2);
+    expect(queryBuilder).toHaveBeenCalledTimes(2);
+    expect(builtQueries[0]).toContain("niche distributed systems retry storm mitigation patterns");
+    expect(builtQueries[1]).toContain("data engineering");
+    expect(result.warnings.some((warning) => warning.startsWith("QUERY_BUILDER_FALLBACK:"))).toBe(true);
   });
 
   it("retries up to maxRetries and backfills to target when topic winner pool is insufficient", async () => {
