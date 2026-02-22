@@ -34,7 +34,11 @@ function getResendClient(): Resend {
 }
 
 function getFromAddress(): string {
-  return process.env.RESEND_FROM_EMAIL?.trim() || "No Circles <newsletter@updates.nocircles.com>";
+  const from = process.env.RESEND_FROM_EMAIL?.trim();
+  if (!from) {
+    throw new Error("MISSING_RESEND_FROM_EMAIL");
+  }
+  return from;
 }
 
 function getReplyToAddress(): string | undefined {

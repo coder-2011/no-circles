@@ -21,6 +21,7 @@ import { sendNewsletter } from "@/lib/email/send-newsletter";
 describe("sendNewsletter", () => {
   beforeEach(() => {
     process.env.RESEND_API_KEY = "resend_key";
+    process.env.RESEND_FROM_EMAIL = "No-Circles <newsletter@updates.nocircles.com>";
     emailSendMock.mockReset();
   });
 
