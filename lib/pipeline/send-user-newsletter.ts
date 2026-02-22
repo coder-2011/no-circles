@@ -304,6 +304,7 @@ export async function sendUserNewsletter(
   }
 
   let summaries: NewsletterSummaryItem[];
+  const serendipityTopicSet = new Set(discovery.serendipityTopics ?? []);
 
   try {
     summaries = await generateSummariesFn({
@@ -311,7 +312,8 @@ export async function sendUserNewsletter(
         url: candidate.url,
         title: candidate.title ?? "Untitled",
         highlights: candidate.highlights,
-        topic: candidate.topic
+        topic: candidate.topic,
+        isSerendipitous: serendipityTopicSet.has(candidate.topic)
       })),
       targetWords: 100
     });

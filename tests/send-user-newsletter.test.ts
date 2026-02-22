@@ -30,6 +30,7 @@ function makeDiscoveryResult(urls: string[]): DiscoveryRunResult {
       highlightScores: [0.7]
     })),
     topics: [],
+    serendipityTopics: ["topic-9", "topic-10"],
     attempts: 1,
     warnings: [],
     diversityCard: {
@@ -97,6 +98,10 @@ describe("sendUserNewsletter", () => {
 
     expect(result.status).toBe("sent");
     expect(generateSummariesFn).toHaveBeenCalledTimes(1);
+    const summaryInputItems = generateSummariesFn.mock.calls[0]?.[0]?.items;
+    expect(summaryInputItems?.[8]?.isSerendipitous).toBe(true);
+    expect(summaryInputItems?.[9]?.isSerendipitous).toBe(true);
+    expect(summaryInputItems?.[0]?.isSerendipitous).toBe(false);
     expect(sendNewsletterFn).toHaveBeenCalledTimes(1);
     expect(markIdempotencyFailedFn).not.toHaveBeenCalled();
     expect(persistSendSuccessFn).toHaveBeenCalledTimes(1);

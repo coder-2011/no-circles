@@ -12,6 +12,7 @@ Generates final newsletter summary items for PR8 from discovery candidate inputs
   - `title`
   - `highlights[]`
   - optional `topic`
+  - optional `isSerendipitous` (pass-through lane metadata from discovery/pipeline)
 - optional word controls:
   - `targetWords` (default 100)
   - or explicit `minWords` / `maxWords`
@@ -24,6 +25,7 @@ Default word range when only target is provided:
   - `title`
   - `url`
   - `summary`
+  - optional `isSerendipitous` (present only when true in source item)
 
 ## Behavior
 1. For each item, call Anthropic Messages API once per attempt.
