@@ -102,6 +102,49 @@ describe("structured reply memory updates", () => {
     expect(updated).toEqual(fallback);
   });
 
+  it("preserves existing active interests when fallback is used", async () => {
+    process.env.ANTHROPIC_API_KEY = "test-key";
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: true,
+        json: async () => ({
+          content: [{ type: "text", text: "not-json" }]
+        })
+      }))
+    );
+
+    const currentMemory = [
+      "PERSONALITY:",
+      "- Values rigor",
+      "",
+      "ACTIVE_INTERESTS:",
+      "- Artificial intelligence",
+      "- Evolutionary theory",
+      "- Emerging technologies",
+      "",
+      "SUPPRESSED_INTERESTS:",
+      "- Low-quality content",
+      "",
+      "RECENT_FEEDBACK:",
+      "- Wants broad exposure"
+    ].join("\n");
+
+    const updated = await mergeReplyIntoMemory(
+      currentMemory,
+      "Give me less mech interp and more cool Biology theories and tell me less about companies."
+    );
+    const sections = parseSections(updated);
+
+    expect(sections).not.toBeNull();
+    expect(sections?.ACTIVE_INTERESTS.toLowerCase()).toContain("artificial intelligence");
+    expect(sections?.ACTIVE_INTERESTS.toLowerCase()).toContain("evolutionary theory");
+    expect(sections?.ACTIVE_INTERESTS.toLowerCase()).toContain("emerging technologies");
+    expect(sections?.SUPPRESSED_INTERESTS.toLowerCase()).toContain("low-quality content");
+    expect(sections?.RECENT_FEEDBACK.toLowerCase()).toContain("less mech interp");
+  });
+
   it("keeps cumulative interests across multiple replies", async () => {
     process.env.ANTHROPIC_API_KEY = "test-key";
 

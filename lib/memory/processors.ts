@@ -362,16 +362,26 @@ export function buildFallbackOnboardingMemory(brainDumpText: string): string {
 }
 
 export function buildFallbackReplyMemory(currentMemory: string, inboundReplyText: string): string {
-  const addedInterests = extractInterestSignals(inboundReplyText).slice(0, 12);
   const sections = parseSections(currentMemory);
+  const existingFeedback = sections ? parseBulletLines(sections.RECENT_FEEDBACK) : [];
+  const feedback = buildOrderedMap(existingFeedback);
+  addMany(feedback, [inboundReplyText]);
+  const condensedFeedback = [...feedback.values()].slice(-MAX_RECENT_FEEDBACK_LINES);
+
+  if (sections) {
+    return buildFallbackMemory({
+      PERSONALITY: sections.PERSONALITY,
+      ACTIVE_INTERESTS: sections.ACTIVE_INTERESTS,
+      SUPPRESSED_INTERESTS: sections.SUPPRESSED_INTERESTS,
+      RECENT_FEEDBACK: toBullets(condensedFeedback)
+    });
+  }
 
   return buildFallbackMemory({
-    PERSONALITY: sections?.PERSONALITY || "- Evolving learner profile",
-    ACTIVE_INTERESTS: toBullets(
-      addedInterests.length > 0 ? addedInterests : ["No new explicit additions from latest reply"]
-    ),
-    SUPPRESSED_INTERESTS: sections?.SUPPRESSED_INTERESTS || "-",
-    RECENT_FEEDBACK: toBullets([inboundReplyText])
+    PERSONALITY: "- Evolving learner profile",
+    ACTIVE_INTERESTS: toBullets(extractInterestSignals(inboundReplyText).slice(0, 12)),
+    SUPPRESSED_INTERESTS: "-",
+    RECENT_FEEDBACK: toBullets(condensedFeedback.length > 0 ? condensedFeedback : [inboundReplyText])
   });
 }
 
