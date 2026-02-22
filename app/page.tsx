@@ -273,6 +273,10 @@ export default function HomePage() {
                 No-Circles curates 10 high-signal, niche long-form pieces every morning, optimized for unexpected but
                 meaningful discovery.
               </p>
+              <p className="mt-4 max-w-3xl text-lg leading-[1.55] text-[#4A5641] md:text-xl">
+                And When your interests change or you choose a new side quest, you reply to the email and your daily
+                newletter updates
+              </p>
             </div>
             <div className="relative rounded-[1.3rem] border border-[#CDBF98] bg-[#F6EFD9] px-5 py-5 shadow-sm md:-ml-4 md:mt-6 md:rotate-[-1deg]">
               <div className="pointer-events-none absolute -right-2 -top-2 h-6 w-6 rounded-md border border-[#CDBF98] bg-[#EFE5CD] rotate-12" />
