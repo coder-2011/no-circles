@@ -322,6 +322,70 @@ describe("POST /api/webhooks/resend/inbound", () => {
     );
   });
 
+  it("prefers inline webhook text over fetched email content when both exist", async () => {
+    const response = await POST(buildInboundRequest({
+      data: {
+        email_id: "re_inline_preferred",
+        from: "Naman <naman@example.com>",
+        text: "inline text should win"
+      }
+    }));
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true, status: "updated", user_id: "user-1" });
+    expect(receivingGetMock).not.toHaveBeenCalled();
+    expect(emailGetMock).not.toHaveBeenCalled();
+    expect(mergeReplyIntoMemoryMock).toHaveBeenCalledWith(expect.any(String), "inline text should win");
+  });
+
+  it("extracts reply from Gmail-style html dir=auto block", async () => {
+    receivingGetMock.mockResolvedValueOnce({
+      data: {
+        text: null,
+        html: "<div dir=\"ltr\"><div dir=\"auto\">Give me less companies and more AI papers</div></div><div class=\"gmail_quote\">quoted</div>"
+      },
+      error: null
+    });
+
+    const response = await POST(buildInboundRequest({
+      data: {
+        email_id: "re_html_top_reply",
+        from: "Naman <naman@example.com>"
+      }
+    }));
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true, status: "updated", user_id: "user-1" });
+    expect(mergeReplyIntoMemoryMock).toHaveBeenCalledWith(
+      expect.any(String),
+      "Give me less companies and more AI papers"
+    );
+    expect(emailGetMock).not.toHaveBeenCalled();
+  });
+
+  it("splits concatenated Gmail plain text boundary before quoted thread", async () => {
+    receivingGetMock.mockResolvedValueOnce({
+      data: {
+        text: "Give me less mech interp and more biology theoriesOn Sun, Feb 22, 2026 at 11:28 AM Naman wrote:\n> quoted"
+      },
+      error: null
+    });
+
+    const response = await POST(buildInboundRequest({
+      data: {
+        email_id: "re_concat_boundary",
+        from: "Naman <naman@example.com>"
+      }
+    }));
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true, status: "updated", user_id: "user-1" });
+    expect(mergeReplyIntoMemoryMock).toHaveBeenCalledWith(
+      expect.any(String),
+      "Give me less mech interp and more biology theories"
+    );
+  });
+
   it("falls back to emails.get when receiving text is missing", async () => {
     receivingGetMock.mockResolvedValueOnce({
       data: { text: null },
@@ -373,6 +437,33 @@ describe("POST /api/webhooks/resend/inbound", () => {
       "webhook_inbound",
       "ignored_empty_text",
       expect.objectContaining({ sender_email: "naman@example.com", email_id_present: true })
+    );
+  });
+
+  it("returns 500 when receiving content fetch fails", async () => {
+    receivingGetMock.mockResolvedValueOnce({
+      data: null,
+      error: { message: "forbidden" }
+    });
+
+    const response = await POST(buildInboundRequest({
+      data: {
+        email_id: "re_fetch_error",
+        from: "Naman <naman@example.com>"
+      }
+    }));
+
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({
+      ok: false,
+      error_code: "INTERNAL_ERROR",
+      message: "Failed to fetch inbound email content."
+    });
+    expect(transactionMock).not.toHaveBeenCalled();
+    expect(logErrorMock).toHaveBeenCalledWith(
+      "webhook_inbound",
+      "email_content_fetch_failed",
+      expect.objectContaining({ email_id: "re_fetch_error" })
     );
   });
 
