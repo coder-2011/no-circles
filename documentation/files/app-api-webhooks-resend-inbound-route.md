@@ -24,6 +24,7 @@ Processes inbound email replies from Resend and updates user memory exactly once
 7. Resolve reply text:
    - use inline `data.text` when present
    - if missing and `data.email_id` exists, fetch message text from Resend (`emails.receiving.get`, fallback `emails.get`)
+   - for fetched email content, extract newest reply segment and trim quoted-thread/history markers before memory merge
 8. Ignore empty reply text after resolution.
 9. Look up user by sender email.
 10. If sender is unknown, send best-effort guidance auto-reply asking the user to reply from their subscribed email (using thread headers when available to suggest address), then return `ignored`.

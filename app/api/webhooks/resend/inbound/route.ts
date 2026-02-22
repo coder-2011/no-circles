@@ -38,6 +38,78 @@ function toNonEmptyString(value: unknown): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
+function decodeHtmlEntities(value: string): string {
+  return value
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'");
+}
+
+function stripHtmlTags(value: string): string {
+  return value.replace(/<[^>]*>/g, " ");
+}
+
+function extractTopReplyFromHtml(html: string | null | undefined): string | null {
+  const source = toNonEmptyString(html);
+  if (!source) {
+    return null;
+  }
+
+  const firstAutoBlock = source.match(/<div[^>]*dir=["']auto["'][^>]*>([\s\S]*?)<\/div>/i);
+  if (!firstAutoBlock) {
+    return null;
+  }
+
+  const text = toNonEmptyString(decodeHtmlEntities(stripHtmlTags(firstAutoBlock[1] ?? "")));
+  return text;
+}
+
+function extractNewestReplyText(rawText: string | null | undefined): string | null {
+  const raw = toNonEmptyString(rawText);
+  if (!raw) {
+    return null;
+  }
+
+  const normalized = raw
+    .replace(/\r\n?/g, "\n")
+    // Gmail plain text can concatenate "...ai stuffOn Sun, Feb..." with no newline.
+    .replace(/([a-z0-9])On ([A-Z][a-z]{2},)/g, "$1\nOn $2");
+
+  const lines = normalized.split("\n");
+  const kept: string[] = [];
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    if (trimmed.length === 0) {
+      if (kept.length > 0 && kept[kept.length - 1] !== "") {
+        kept.push("");
+      }
+      continue;
+    }
+
+    const lower = trimmed.toLowerCase();
+    if (
+      /^on .+ wrote:$/i.test(trimmed) ||
+      trimmed.startsWith(">") ||
+      lower.startsWith("from:") ||
+      lower.startsWith("subject:") ||
+      lower.startsWith("to:") ||
+      lower.startsWith("sent:") ||
+      lower.includes("original message")
+    ) {
+      break;
+    }
+
+    kept.push(trimmed);
+  }
+
+  return toNonEmptyString(kept.join("\n").replace(/\n{3,}/g, "\n\n"));
+}
+
 function getResendClient(): Resend {
   const apiKey = process.env.RESEND_API_KEY?.trim();
   if (!apiKey) {
@@ -55,9 +127,15 @@ async function fetchInboundReplyText(emailId: string): Promise<string | null> {
     throw new Error(receivingResponse.error.message || "RESEND_RECEIVING_GET_ERROR");
   }
 
-  const receivingText = toNonEmptyString(receivingResponse.data?.text);
-  if (receivingText) {
-    return receivingText;
+  const replyFromHtml = extractTopReplyFromHtml(receivingResponse.data?.html);
+  const replyFromReceivingText = extractNewestReplyText(receivingResponse.data?.text);
+
+  if (replyFromHtml) {
+    return replyFromHtml;
+  }
+
+  if (replyFromReceivingText) {
+    return replyFromReceivingText;
   }
 
   const emailResponse = await resend.emails.get(emailId);
@@ -65,7 +143,7 @@ async function fetchInboundReplyText(emailId: string): Promise<string | null> {
     throw new Error(emailResponse.error.message || "RESEND_EMAIL_GET_ERROR");
   }
 
-  return toNonEmptyString(emailResponse.data?.text);
+  return extractNewestReplyText(emailResponse.data?.text);
 }
 
 function resolveMessageId(payload: (typeof resendInboundWebhookSchema)["_output"]): string | null {

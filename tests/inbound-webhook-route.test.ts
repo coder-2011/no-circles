@@ -299,6 +299,29 @@ describe("POST /api/webhooks/resend/inbound", () => {
     expect(testState.reservedWebhookKey).toBe("message:re_payload_only");
   });
 
+  it("extracts only newest reply content from threaded receiving text", async () => {
+    receivingGetMock.mockResolvedValueOnce({
+      data: {
+        text: "Give me less mech interp and more cool Biology theories and tell me less about companies.\n\nOn Sun, Feb 22, 2026 at 11:28 AM Naman Chetwani <naman.chetwani@gmail.com> wrote:\n> old reply\n> quoted body"
+      },
+      error: null
+    });
+
+    const response = await POST(buildInboundRequest({
+      data: {
+        email_id: "re_threaded_text",
+        from: "Naman <naman@example.com>"
+      }
+    }));
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true, status: "updated", user_id: "user-1" });
+    expect(mergeReplyIntoMemoryMock).toHaveBeenCalledWith(
+      expect.any(String),
+      "Give me less mech interp and more cool Biology theories and tell me less about companies."
+    );
+  });
+
   it("falls back to emails.get when receiving text is missing", async () => {
     receivingGetMock.mockResolvedValueOnce({
       data: { text: null },
