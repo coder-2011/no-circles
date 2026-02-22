@@ -11,8 +11,9 @@ Landing/auth-entry client page for the product.
 5. Adds `callback_origin` query param to OAuth redirect URL using active browser origin; callback route can use this localhost-only override to avoid accidental fallback to production onboarding during local development.
 6. Supports local sign-out and client-side navigation back to `/`.
 7. Uses wider responsive layout bounds and larger typography/button sizing so primary content occupies more of the viewport.
-8. Renders a populated `Sample Daily Brief` section with ten realistic newsletter items (title + outbound link + neutral summary) as a static, curated exemplar.
-9. Shows a pricing notice in the top hero section directly under the auth CTA/status area, clarifying free access through mid-March and planned minimal at-cost billing afterward (no profit margin).
+8. Presents clear above-the-fold product messaging in a styled hero copy box focused on un-googleable discovery: ten high-signal niche long-form reads each morning plus a principle statement about unexpected ideas.
+9. Renders a populated `Sample Daily Brief` section with ten realistic newsletter items (title + outbound link + neutral summary) as a static, curated exemplar.
+10. Shows a pricing notice directly below the sample brief clarifying free access through mid-March and planned minimal at-cost billing afterward (no profit margin).
 
 ## Why It Exists
 - Provides the single public entrypoint for authentication.
