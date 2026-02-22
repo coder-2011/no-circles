@@ -293,9 +293,6 @@ export default function HomePage() {
           </div>
         </section>
       </div>
-      <p className="pointer-events-none fixed bottom-4 right-4 text-xs font-medium text-[#6B775D]/90">
-        built by Naman Chetwani
-      </p>
     </main>
   );
 }
