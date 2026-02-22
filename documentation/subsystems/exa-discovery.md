@@ -21,11 +21,7 @@ Implements candidate discovery stage only.
 
 ## Runtime Contract
 Input: `interest_memory_text` and run knobs.
-Output: deterministic target-count list (default `10`) built from quota-based lane allocation with adaptive serendipity:
-- `<=2` active interests -> `5` core + `5` serendipity
-- `3-4` active interests -> `7` core + `3` serendipity
-- `>=5` active interests -> `8` core + `2` serendipity
-along with topics used, attempts used, warnings, and diversity card metrics.
+Output: deterministic target-count list (default `10`) built from quota-based lane allocation (`8` core across active interests as evenly as possible, `2` serendipity from adjacent topics), along with topics used, attempts used, warnings, and diversity card metrics.
 
 Integration hook:
 - discovery orchestration accepts an optional candidate include predicate for downstream policies (for example PR9 Bloom anti-repeat gating) before final selection.
