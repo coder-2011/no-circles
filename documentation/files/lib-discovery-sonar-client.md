@@ -8,7 +8,7 @@ Implements Perplexity Sonar retrieval for discovery topics with strict, parseabl
 2. Calls `https://api.perplexity.ai/chat/completions` with:
    - model: `PERPLEXITY_SONAR_MODEL` (default `sonar`)
    - lower-variance generation temperature (`0.3`) for stability
-  - concise retrieval system prompt that prioritizes factual reliability over novelty and forbids fabricated links/titles/incidents/years
+  - concise output-contract system prompt that enforces parseable lines, abstention on weak evidence, and no fabricated links/titles/entities
    - optional `search_domain_filter` from env `PERPLEXITY_SEARCH_DOMAIN_FILTER` (comma-separated)
    - `web_search_options.search_context_size` from env `PERPLEXITY_SEARCH_CONTEXT_SIZE` (`low|medium|high`, default `medium`)
    - user prompt framed as `ACTIVE_INTEREST_TOPIC:` plus topic query.
@@ -22,9 +22,9 @@ Implements Perplexity Sonar retrieval for discovery topics with strict, parseabl
 7. Returns results in `ExaSearchResult`-compatible shape for discovery pipeline compatibility.
 
 ## Prompt Guardrails
-- prefer reliability/factual source quality over novelty
-- if uncertain, return fewer candidates
-- reject synthetic/sensational pages and logistics-first pages
+- produce parseable output only: `[TITLE] || https://full-url`
+- precision-first: return up to `numResults`, including zero when evidence is weak
+- forbid fabricated links/titles/entities and reject logistics/admin + low-substance pages
 
 ## Errors
 - `MISSING_PERPLEXITY_API_KEY`

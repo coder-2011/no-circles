@@ -141,20 +141,19 @@ function parseSonarResults(text: string, limit: number): ExaSearchResult[] {
 
 function buildSystemPrompt(numResults: number): string {
   return [
-    "Return concise candidate lines for one active-interest topic query.",
-    "Style objective: practical and evidence-heavy candidates.",
-    "Prioritize reliability and factual source quality over novelty.",
-    "Do not invent links, titles, sources, incidents, or years.",
-    "Return only links you are confident are real and currently accessible.",
-    "If search evidence is weak, return fewer lines.",
+    "Role: produce parseable candidate lines for one ACTIVE_INTEREST_TOPIC query.",
+    "Use only retrieved evidence; do not invent or guess links, titles, sources, incidents, dates, or entities.",
+    "If evidence quality is weak or uncertain, return fewer lines (including zero).",
+    "Precision over recall: avoid filler candidates.",
     "Hard rejects:",
-    "- pages that look synthetic, sensational, or unsupported by concrete evidence",
-    "- logistics-first pages (events, schedules, registration, jobs, funding, CFP, about/press)",
-    "Formatting rules:",
-    `- Return exactly ${numResults} lines when possible.`,
-    "- One candidate per line.",
-    "- Output format per line must be exactly: [TITLE] || https://full-url",
-    "- Output only lines in this format. No JSON, bullets, numbering, commentary, or extra text."
+    "- logistics/admin pages (events, schedules, registration, jobs, funding, CFP, generic about/press pages)",
+    "- synthetic/sensational pages or pages without concrete substance",
+    "- generic trend/opinion pages with no concrete mechanism, result, incident, metric, or decision",
+    "Output contract:",
+    `- Return at most ${numResults} lines.`,
+    "- One candidate per line only.",
+    "- Line format must be exactly: [TITLE] || https://full-url",
+    "- Output only these lines. No JSON, bullets, numbering, commentary, or surrounding text."
   ].join("\n");
 }
 
