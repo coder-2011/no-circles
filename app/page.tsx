@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getBrowserSupabaseClient } from "@/lib/auth/browser-client";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { Fanwood_Text } from "next/font/google";
 
 type AuthState = "loading" | "signed_in" | "signed_out" | "error";
 type SampleBriefItem = {
@@ -65,7 +66,7 @@ const SAMPLE_DAILY_BRIEF: SampleBriefItem[] = [
     title: "Future Issues in Global Health: Challenges and Conundrums - PMC",
     url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC11942303/",
     summary:
-      "Int J Environ Res Public Health . 2025 Feb 21;22(3):325. doi: 10.3390/ijerph22030325 Search in PMC Search in PubMed View in NLM Catalog Add to search Future Issues in Global Health: Challenges and Conundrums Manoj Sharma Manoj Sharma 1 Department of Social and Behavioral Health, School of Public Health, University of Nevada, Las Vegas, NV 89119, USA 2 Department of Internal Medicine, Kirk Kerkorian School of Medicine at UNLV, University of Nevada, Las Vegas, NV 89102, USA Find articles by Manoj Sharma 1, 2 , Md Sohail Akhter Md Sohail Akhter 1 Department of Social and Behavioral Health, School of Public Health, University of Nevada, Las Vegas, NV 89119, USA Find articles by Md Sohail Akhter 1, * , Sharmistha Roy"
+      "Global health systems face interconnected challenges including non-communicable diseases, infectious disease outbreaks, antimicrobial resistance, climate change, and wars. The COVID-19 pandemic exposed vulnerabilities particularly in low- and middle-income countries. The United Nations Sustainable Development Goals, adopted in 2015, established Goal 3 to ensure healthy lives and promote well-being for all ages by 2030. Progress toward these targets remains uneven. Solutions require interprofessional and multisectoral collaborative efforts involving governments, international organizations, and communities. Strengthening the World Health Organization's coordinating role is identified as necessary for addressing health inequities and building resilient healthcare systems."
   },
   {
     title: "4 Health Issues We're Watching in 2025 | Project HOPE",
@@ -74,6 +75,11 @@ const SAMPLE_DAILY_BRIEF: SampleBriefItem[] = [
       "Project HOPE identified four urgent global health priorities for 2025: maternal health emergencies, infectious disease threats, mental health and psychosocial support, and primary health care strengthening. In the prior year, the organization reached 4.4 million people, provided direct medical services to 2.8 million patients, screened 655,000 people for disease, and donated $79 million in equipment and supplies. The organization addresses interconnected crises driven by conflict, displacement, poverty, and disease pressuring health systems worldwide."
   }
 ];
+
+const topTitleFont = Fanwood_Text({
+  subsets: ["latin"],
+  weight: "400"
+});
 
 function resolveSiteOrigin(): string {
   return window.location.origin;
@@ -240,7 +246,12 @@ export default function HomePage() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_15%,rgba(61,111,73,0.14),transparent_40%),radial-gradient(circle_at_82%_8%,rgba(198,182,137,0.24),transparent_36%),radial-gradient(circle_at_70%_86%,rgba(93,131,89,0.12),transparent_40%)]" />
       <div className="relative mx-auto w-full max-w-7xl space-y-10">
         <section className="rounded-3xl border border-[#C9BD9A] bg-[#F8F3E4] p-8 shadow-sm md:p-10">
-          <h1 className="text-5xl font-semibold leading-tight text-[#2B3125] md:text-6xl">Find what search would never show you.</h1>
+          <div className={`${topTitleFont.className} text-center text-[45px] font-bold leading-none text-[#2B3125] md:text-[57px]`}>
+            The No-Circles Project
+          </div>
+          <h1 className="mt-4 text-[41px] font-normal leading-tight text-[#2B3125] md:text-[53px]">
+            Find what search would never show you.
+          </h1>
           <div className="mt-6 flex flex-wrap gap-3">
             <button
               className="rounded-lg border border-[#3D6F49] bg-[#3D6F49] px-5 py-3 text-base font-medium text-[#F3ECD8] transition hover:bg-[#315E3E] disabled:opacity-60"
@@ -270,19 +281,21 @@ export default function HomePage() {
                 Daily: 10 reads
               </span>
               <p className="max-w-3xl pt-8 text-[1.45rem] font-semibold leading-[1.35] text-[#374230] md:pt-6 md:text-[1.95rem]">
-                No-Circles curates 10 high-signal, niche long-form pieces every morning, optimized for unexpected but
-                meaningful discovery.
+                No-Circles curates 10 niche long-form pieces every morning, for unexpected but meaningful discovery.
               </p>
               <p className="mt-4 max-w-3xl text-lg leading-[1.55] text-[#4A5641] md:text-xl">
-                And When your interests change or you choose a new side quest, you reply to the email and your daily
-                newletter updates
+                And when your interests change or you choose a new side quest, you reply to the email and your daily
+                newsletter updates.
               </p>
             </div>
-            <div className="relative rounded-[1.3rem] border border-[#CDBF98] bg-[#F6EFD9] px-5 py-5 shadow-sm md:-ml-4 md:mt-6 md:rotate-[-1deg]">
+            <div className="relative flex h-full flex-col rounded-[1.3rem] border border-[#CDBF98] bg-[#F6EFD9] px-5 py-5 shadow-sm md:-ml-4 md:mt-6 md:rotate-[-1deg]">
               <div className="pointer-events-none absolute -right-2 -top-2 h-6 w-6 rounded-md border border-[#CDBF98] bg-[#EFE5CD] rotate-12" />
               <p className="text-[1.02rem] leading-[1.55] text-[#4C5A45] md:text-[1.22rem]">
                 The principle is that great ideas come from unexpected places, so we should encourage people toward
                 more unexpected endeavors.
+              </p>
+              <p className="mt-12 text-base font-bold leading-[1.55] text-[#5A6650] md:mt-auto md:pt-8 md:text-lg">
+                We filter through 150+ sources to deliver 10 just for you
               </p>
             </div>
           </div>
