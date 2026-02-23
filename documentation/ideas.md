@@ -41,6 +41,23 @@ Capture high-leverage product ideas that can meaningfully improve content qualit
 - Guardrail:
 - avoid overfitting to one click; use bounded weight updates and decay.
 
+## Depth Control + Save for Research
+- Add explicit depth controls so users can reply with:
+- `Too basic`
+- `Too academic`
+- Product intent:
+- keep the newsletter calibrated to current learning stage so users can progress from beginner to advanced without content drift.
+- Implementation direction:
+- treat depth feedback as structured per-topic signals that adjust summary/detail level and source selection for future issues.
+- preserve reversibility so users can move depth preference up or down over time.
+
+- Add a `Save for Research` trigger:
+- if a user replies `Deep dive`, treat that as a sub-topic zoom-in request for the next issue.
+- next-day behavior:
+- reserve a mini-cluster (for example 3 items) focused on that sub-topic while keeping the rest of the issue balanced.
+- Product intent:
+- support rabbit-hole exploration on demand without permanently overfitting the full digest.
+
 ## Diversity Promotion in Every Issue
 - Problem:
 - issues can still feel narrow when many selected links cluster around one subtopic, source ecosystem, or viewpoint.
@@ -81,6 +98,52 @@ Target users take pride in broad curiosity, so the product should reflect that i
 - Why it's addictive:
 - people are drawn to personalized data reflections (similar behavioral pull to wrap-style products)
 - creates strong switching cost: leaving the product means losing the evolving mirror of how their mind is changing
+
+## Monthly Intellectual Growth Summary
+Roughly once per month, send a dedicated summary of how each person's intellectual interests are changing and growing.
+
+- The Mechanic:
+- generate a monthly reflection issue that highlights:
+- interests that strengthened
+- interests that faded
+- new themes that appeared
+- bridges formed between previously separate topics
+- Why it matters:
+- gives users a clear narrative of their evolving curiosity over time
+- reinforces identity and long-term product value beyond daily link delivery
+
+## Global Interest Map (Anonymous Community Lens)
+Create a public, anonymous dashboard showing what the broader No-Circles community is curious about today.
+
+- Example signal:
+- "Today, 40% of users shifted focus from Generative AI to Systems Thinking."
+- Product intent:
+- attract curiosity-driven users by showcasing real-time intellectual movement across the community.
+- create social proof around what thoughtful readers are exploring right now.
+- Guardrails:
+- aggregate-only reporting (no user-identifiable data).
+- minimum cohort thresholds before showing any trend segment.
+
+## Daily Front-Page Sample Brief
+Keep a sample daily brief visible on the homepage and update it every day.
+
+- Product intent:
+- show real output quality to new visitors without requiring sign-up.
+- make the value proposition concrete and current.
+- Implementation direction:
+- refresh the sample from the latest high-quality generated run each day.
+- preserve a small curation gate so low-quality/noisy runs are not promoted to the front page.
+
+## Creator Distribution / SEO Sponsorship (Future Monetization)
+Later, offer high-quality creators a paid distribution channel where No-Circles helps surface their work through discovery and SEO-oriented visibility.
+
+- Product intent:
+- create a monetization path tied to content quality, not low-signal ads.
+- help strong creators reach the right curiosity-driven audience.
+- Guardrails:
+- strict quality threshold before any paid inclusion.
+- clear sponsorship labeling and ranking transparency.
+- never allow payment to bypass trust/quality filters.
 
 ## Curiosity Graph Concept
 - Maintain a per-user graph:
