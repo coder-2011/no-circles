@@ -77,7 +77,7 @@ export function renderNewsletter(args: RenderNewsletterArgs): RenderedNewsletter
           `<p style=\"line-height: 1.6; color: #4A5641; margin: 0 0 12px;\">Hey, what’s up, I’m Naman, the solo dev behind The No-Circles Project.</p>`,
           `<p style=\"line-height: 1.6; color: #4A5641; margin: 0 0 12px;\">I built this because most of us end up reading the same things as everyone else in our field, and that usually leads to similar ideas.</p>`,
           `<p style=\"line-height: 1.6; color: #4A5641; margin: 0 0 12px;\">The No-Circles Project is my attempt to break that pattern. If you want to come up with great ideas, you can't just read what everyone else in your field is reading. I built this project to help you break that pattern.</p>`,
-          `<p style=\"line-height: 1.6; color: #4A5641; margin: 0 0 12px;\">You tell it what you care about, and it works its magic to find you great information outside your usual bubble, stuff you didn't know you wanted to read, but is still very <u><em>you</em></u>. <u>Reply with what you want more or less of, and tomorrow's issue will adapt.</u></p>`,
+          `<p style=\"line-height: 1.6; color: #4A5641; margin: 0 0 12px;\">You tell it what you care about, and it works its magic to find you great information outside your usual bubble, stuff you didn't know you wanted to read, but is still very <u><em>you</em></u>. <u><span style=\"font-family: 'Cambria Math', Cambria, Georgia, serif; font-size: 20px;\">Reply with what you want more or less of, and tomorrow's issue will adapt.</span></u></p>`,
           `<p style=\"line-height: 1.6; color: #2D3426; margin: 0 0 14px;\"><strong>TLDR; If we give you better inputs, you make better ideas!</strong></p>`
         ].join("\n")
       : `<p style=\"line-height: 1.6; color: #4A5641; margin: 0 0 14px;\">Here are your ${itemCount} curated links for today.</p>`,
@@ -85,7 +85,7 @@ export function renderNewsletter(args: RenderNewsletterArgs): RenderedNewsletter
     `<hr style=\"margin: 24px 0; border: 0; border-top: 1px solid #C9BD9A;\"/>`,
     variant === "welcome"
       ? `<p style=\"color: #526149; font-size: 14px; margin: 0;\">You’re always in control of this feed.</p>`
-      : `<p style=\"color: #526149; font-size: 14px; margin: 0;\"><strong style=\"font-size: 16px; color: #1F5E2E;\">Reply with what you want more or less of, and tomorrow's issue will adapt.</strong></p>`,
+      : `<p style=\"color: #526149; font-size: 14px; margin: 0;\"><strong style=\"font-family: 'Cambria Math', Cambria, Georgia, serif; font-size: 20px; color: #1F5E2E;\">Reply with what you want more or less of, and tomorrow's issue will adapt.</strong></p>`,
     `</div>`,
     `</div>`
   ].join("\n");
