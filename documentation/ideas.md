@@ -317,3 +317,22 @@ Result:
 - Guardrails:
 - clearly label this first send as a draft/initial pass.
 - ensure quick generation does not bypass core quality and safety checks.
+
+## Every Email Needs a Signature Value Element
+- Every single email should contain something like this:
+- include at least one unmistakably high-value element that signals the product's unique intelligence and taste.
+- Product intent:
+- ensure each send has a memorable reason to exist, not just routine updates.
+- create consistent perceived value even when topic mix changes day to day.
+
+## CRITICAL: Set Up the Quote System
+- We have to set up the quote system, and this is critical.
+- Product intent:
+- make standout ideas instantly memorable and shareable inside each brief.
+- establish a consistent mechanism for extracting, formatting, and presenting high-signal quotes.
+
+## The "Starred" Vault
+- If a user replies with `⭐️` to any email, that link goes into a personal Vault.
+- Product intent:
+- make No-Circles both a curator and an archivist of the user's labeled knowledge.
+- increase long-term retention because switching away means losing years of organized signal.
