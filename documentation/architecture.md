@@ -124,7 +124,7 @@ V1 intentionally excludes a manual regenerate endpoint.
 - **Purpose**: scheduled route that claims due users in batch and runs send pipeline.
 - **Request schema (zod shape)**:
   - `run_at_utc?: string` (optional override)
-  - `batch_size?: number` (`1..25`, default route value `3`)
+  - `batch_size?: number` (`1..25`, default route value `10`)
 - **Behavior**:
   - calls `public.claim_due_users_batch(run_at_utc, 5, batch_size)` in Postgres
   - function computes due users from `timezone`, `send_time_local`, and `last_issue_sent_at`

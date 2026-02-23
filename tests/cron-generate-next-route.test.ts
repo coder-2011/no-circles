@@ -208,7 +208,7 @@ describe("POST /api/cron/generate-next", () => {
     expect(await response.json()).toEqual({
       ok: true,
       status: "processed_batch",
-      requested_batch_size: 3,
+      requested_batch_size: 10,
       claimed_user_count: 1,
       counts: {
         sent: 0,

@@ -9,7 +9,7 @@ HTTP wrapper around DB-owned selector function plus PR9 single-user send runtime
 - Payload hard limit: `4KB`.
 - Validates request body with `cronGenerateNextSchema`.
 - Accepts optional `run_at_utc` ISO datetime override.
-- Accepts optional `batch_size` integer override (`1..25`).
+- Accepts optional `batch_size` integer override (`1..25`, default `10`).
 
 ## Behavior
 1. Rejects unauthorized requests with `401 UNAUTHORIZED`.

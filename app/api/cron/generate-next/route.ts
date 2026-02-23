@@ -7,7 +7,7 @@ import { sendUserNewsletter } from "@/lib/pipeline/send-user-newsletter";
 
 const CRON_ROUTE = "POST /api/cron/generate-next";
 const LEASE_TTL_MINUTES = 5;
-const DEFAULT_BATCH_SIZE = 3;
+const DEFAULT_BATCH_SIZE = 10;
 const MAX_BATCH_CONCURRENCY = 3;
 const MAX_CRON_PAYLOAD_BYTES = 4 * 1024;
 
