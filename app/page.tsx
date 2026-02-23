@@ -249,7 +249,7 @@ export default function HomePage() {
           <div className={`${topTitleFont.className} text-center text-[45px] font-bold leading-none text-[#2B3125] md:text-[57px]`}>
             The No-Circles Project
           </div>
-          <h1 className="mt-4 text-[41px] font-normal leading-tight text-[#2B3125] md:text-[53px]">
+          <h1 className="mt-5 text-[36px] font-normal leading-tight text-[#2B3125] md:text-[48px]">
             Find what search would never show you.
           </h1>
           <div className="mt-6 flex flex-wrap gap-3">
