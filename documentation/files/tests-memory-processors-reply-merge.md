@@ -11,6 +11,7 @@ Covers structured JSON-op reply updates and safety fallbacks.
 - conflicting active vs suppressed ops resolve deterministically (active wins)
 - extra-key/injection-like payloads are schema-rejected with fallback
 - non-JSON instruction-like outputs are rejected with fallback and warning logs
+- direct ordered append behavior for explicit feedback lines in `RECENT_FEEDBACK`
 
 ## Why This File Exists
 - Isolates reply-mutation semantics and adversarial model-output coverage.

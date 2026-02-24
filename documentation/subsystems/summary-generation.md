@@ -34,7 +34,8 @@ Output:
 - URL is always copied from input; model output never controls URL.
 - Model output must validate against `summaryWriterOutputSchema` (`title`, `summary`).
 - Placeholder/non-informative model summaries are rejected and treated as invalid output.
-- If model output is invalid/unavailable after one retry, deterministic fallback summary is used so item generation does not fail.
+- If model output is invalid/unavailable after one retry, deterministic fallback summary is used only when highlight detail is strong enough.
+- If highlights are missing/too weak, the item is skipped so low-signal summaries are not emitted; upstream pipeline handles reduced item count as `insufficient_content`.
 
 ## Tone and Editorial Rules
 - Neutral, factual, source-grounded.

@@ -35,8 +35,9 @@ type CallSummaryModelArgs = {
 };
 
 type SummarizeOneItemResult = {
-  item: NewsletterSummaryItem;
+  item: NewsletterSummaryItem | null;
   usedFallback: boolean;
+  skipped: boolean;
 };
 
 const DISALLOWED_SUMMARY_PATTERNS = [
@@ -132,7 +133,7 @@ function normalizeHighlightText(highlights: string[]): string {
     .trim();
 
   if (!merged) {
-    return "No summary text is available from source highlights.";
+    return "";
   }
 
   return merged;
@@ -205,6 +206,17 @@ async function summarizeOneItem(
   minWords: number,
   maxWords: number
 ): Promise<SummarizeOneItemResult> {
+  if (item.highlights.length === 0) {
+    logSummaryEvent("warn", "summary_skipped_missing_highlights", {
+      url: item.url
+    });
+    return {
+      item: null,
+      usedFallback: false,
+      skipped: true
+    };
+  }
+
   let lastError = "UNKNOWN_ERROR";
 
   for (let attempt = 0; attempt <= MAX_RETRY_COUNT; attempt += 1) {
@@ -244,7 +256,8 @@ async function summarizeOneItem(
           summary,
           ...(item.isSerendipitous ? { isSerendipitous: true } : {})
         },
-        usedFallback: false
+        usedFallback: false,
+        skipped: false
       };
     } catch (error) {
       lastError = error instanceof Error ? error.message : "UNKNOWN_ERROR";
@@ -259,14 +272,28 @@ async function summarizeOneItem(
     reason: lastError
   });
 
+  const fallbackSummary = buildFallbackSummary(item, minWords, maxWords);
+  if (!fallbackSummary || fallbackSummary === INSUFFICIENT_SOURCE_DETAIL) {
+    logSummaryEvent("warn", "summary_skipped_insufficient_highlights", {
+      url: item.url,
+      reason: lastError
+    });
+    return {
+      item: null,
+      usedFallback: true,
+      skipped: true
+    };
+  }
+
   return {
     item: {
       title: item.title,
       url: item.url,
-      summary: buildFallbackSummary(item, minWords, maxWords),
+      summary: fallbackSummary,
       ...(item.isSerendipitous ? { isSerendipitous: true } : {})
     },
-    usedFallback: true
+    usedFallback: true,
+    skipped: false
   };
 }
 
@@ -282,17 +309,23 @@ export async function generateNewsletterSummaries(input: GenerateSummariesInput)
 
   const results: NewsletterSummaryItem[] = [];
   let fallbackCount = 0;
+  let skippedCount = 0;
   for (const item of normalizedItems) {
     const summaryResult = await summarizeOneItem(item, minWords, maxWords);
     if (summaryResult.usedFallback) {
       fallbackCount += 1;
+    }
+    if (summaryResult.skipped || !summaryResult.item) {
+      skippedCount += 1;
+      continue;
     }
     results.push(summaryResult.item);
   }
 
   logSummaryEvent("info", "summary_run_complete", {
     item_count: results.length,
-    fallback_count: fallbackCount
+    fallback_count: fallbackCount,
+    skipped_count: skippedCount
   });
 
   return results;

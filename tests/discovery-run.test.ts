@@ -158,11 +158,11 @@ describe("runDiscovery", () => {
     expect(result.candidates).toHaveLength(2);
     expect(queryBuilder).toHaveBeenCalledTimes(2);
     expect(builtQueries[0]).toContain("niche distributed systems retry storm mitigation patterns");
-    expect(builtQueries[1]).toContain("data engineering");
+    expect(builtQueries[1]).toMatch(/AI engineering|distributed systems/);
     expect(result.warnings.some((warning) => warning.startsWith("QUERY_BUILDER_FALLBACK:"))).toBe(true);
   });
 
-  it("retries up to maxRetries and backfills to target when topic winner pool is insufficient", async () => {
+  it("retries only topics with zero viable candidates", async () => {
     const exaSearch = vi
       .fn()
       .mockResolvedValueOnce([
@@ -177,23 +177,23 @@ describe("runDiscovery", () => {
       ])
       .mockResolvedValueOnce([{ url: "https://example.com/new-3", title: "new 3", highlights: ["w"] }]);
 
-    const result = await runDiscovery(
-      {
-        interestMemoryText: memory,
-        targetCount: 4,
-        maxRetries: 2,
-        maxTopics: 2,
-        perTopicResults: 2
-      },
-      { exaSearch }
-    );
+    await expect(
+      runDiscovery(
+        {
+          interestMemoryText: memory,
+          targetCount: 4,
+          maxRetries: 2,
+          maxTopics: 2,
+          perTopicResults: 2
+        },
+        { exaSearch }
+      )
+    ).rejects.toThrow("INSUFFICIENT_QUALITY_CANDIDATES");
 
-    expect(result.attempts).toBe(2);
-    expect(result.candidates).toHaveLength(4);
-    expect(exaSearch).toHaveBeenCalledTimes(4);
+    // Only the first-attempt topic calls execute because both topics produce viable candidates.
+    expect(exaSearch).toHaveBeenCalledTimes(2);
     expect(exaSearch.mock.calls[0][0]).toMatchObject({ numResults: 2 });
-    expect(exaSearch.mock.calls[2][0]).toMatchObject({ numResults: 4 });
-    expect(result.warnings.some((warning) => warning.startsWith("BACKFILLED_FROM_QUALITY_POOL_"))).toBe(true);
+    expect(exaSearch.mock.calls[1][0]).toMatchObject({ numResults: 2 });
   });
 
   it("evaluates early-stop policy without breaking one-per-topic selection", async () => {

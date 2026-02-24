@@ -12,8 +12,18 @@ import {
   type UserBloomState
 } from "@/lib/bloom/user-url-bloom";
 import { generateNewsletterSummaries, type NewsletterSummaryItem } from "@/lib/summary/writer";
-import { renderNewsletter } from "@/lib/email/render-newsletter";
+import {
+  pickRandomNewsletterThemeTemplate,
+  renderNewsletter,
+  type NewsletterThemeTemplateKey
+} from "@/lib/email/render-newsletter";
 import { sendNewsletter } from "@/lib/email/send-newsletter";
+import { selectPersonalizedQuote, type PersonalizedQuote } from "@/lib/quotes/select-personalized-quote";
+import {
+  buildFeedbackClickUrl,
+  createFeedbackClickToken,
+  resolveFeedbackBaseUrl
+} from "@/lib/feedback/click-token";
 import {
   buildOutboundIdempotencyKey,
   markOutboundSendIdempotencyFailed,
@@ -47,7 +57,9 @@ type SendPipelineDeps = {
   runDiscoveryFn?: typeof runDiscovery;
   generateSummariesFn?: typeof generateNewsletterSummaries;
   getFinalHighlightsByUrlFn?: typeof getFinalHighlightsByUrl;
+  selectQuoteFn?: typeof selectPersonalizedQuote;
   renderNewsletterFn?: typeof renderNewsletter;
+  selectThemeTemplateFn?: () => NewsletterThemeTemplateKey;
   sendNewsletterFn?: typeof sendNewsletter;
   loadUserFn?: (userId: string) => Promise<PipelineUser | null>;
   reserveIdempotencyFn?: (args: { userId: string; idempotencyKey: string; localIssueDate: string }) => Promise<ReserveOutboundSendResult>;
@@ -102,7 +114,9 @@ export async function sendUserNewsletter(
   const runDiscoveryFn = deps.runDiscoveryFn ?? runDiscovery;
   const generateSummariesFn = deps.generateSummariesFn ?? generateNewsletterSummaries;
   const getFinalHighlightsByUrlFn = deps.getFinalHighlightsByUrlFn ?? getFinalHighlightsByUrl;
+  const selectQuoteFn = deps.selectQuoteFn ?? selectPersonalizedQuote;
   const renderNewsletterFn = deps.renderNewsletterFn ?? renderNewsletter;
+  const selectThemeTemplateFn = deps.selectThemeTemplateFn ?? pickRandomNewsletterThemeTemplate;
   const sendNewsletterFn = deps.sendNewsletterFn ?? sendNewsletter;
 
   const loadUserFn = deps.loadUserFn ?? loadUser;
@@ -172,7 +186,7 @@ export async function sendUserNewsletter(
       {
         interestMemoryText: user.interestMemoryText,
         targetCount: targetItemCount,
-        maxRetries: 1,
+        maxAttempts: 1,
         perTopicResults: 7,
         requireUrlExcerpt: true
       },
@@ -249,7 +263,7 @@ export async function sendUserNewsletter(
     })
     .filter((candidate): candidate is CandidateWithHighlights => candidate !== null);
 
-  if (candidatesWithHighlights.length < targetItemCount) {
+  if (candidatesWithHighlights.length === 0) {
     return {
       status: "insufficient_content",
       userId: user.id,
@@ -264,6 +278,7 @@ export async function sendUserNewsletter(
     user_id: user.id,
     run_at_utc: args.runAtUtc.toISOString(),
     selected_count: selectedCandidates.length,
+    selected_with_highlights_count: candidatesWithHighlights.length,
     warnings: discovery.warnings
   });
 
@@ -287,7 +302,7 @@ export async function sendUserNewsletter(
         status: "sent",
         userId: user.id,
         runAtUtc: args.runAtUtc.toISOString(),
-        itemCount: targetItemCount,
+        itemCount: 0,
         idempotencyKey,
         providerMessageId: reserveResult.providerMessageId
       };
@@ -305,10 +320,11 @@ export async function sendUserNewsletter(
 
   let summaries: NewsletterSummaryItem[];
   const serendipityTopicSet = new Set(discovery.serendipityTopics ?? []);
+  const summaryInputCandidates = candidatesWithHighlights.slice(0, targetItemCount);
 
   try {
     summaries = await generateSummariesFn({
-      items: candidatesWithHighlights.map((candidate) => ({
+      items: summaryInputCandidates.map((candidate) => ({
         url: candidate.url,
         title: candidate.title ?? "Untitled",
         highlights: candidate.highlights,
@@ -331,10 +347,10 @@ export async function sendUserNewsletter(
     };
   }
 
-  if (summaries.length !== targetItemCount) {
+  if (summaries.length === 0) {
     await markIdempotencyFailedFn({
       idempotencyKey,
-      reason: `SUMMARY_COUNT_MISMATCH:${summaries.length}/${targetItemCount}`
+      reason: "SUMMARY_EMPTY_AFTER_CONTEXT_FILTER"
     });
 
     return {
@@ -343,16 +359,89 @@ export async function sendUserNewsletter(
       runAtUtc: args.runAtUtc.toISOString(),
       itemCount: summaries.length,
       idempotencyKey,
-      error: "SUMMARY_COUNT_MISMATCH"
+      error: "SUMMARY_EMPTY_AFTER_CONTEXT_FILTER"
     };
   }
+
+  let quote: PersonalizedQuote | null = null;
+  try {
+    quote = await selectQuoteFn({
+      userId: user.id,
+      localIssueDate,
+      interestMemoryText: user.interestMemoryText,
+      candidateCount: 50,
+      shortlistCount: 20
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "QUOTE_SELECTION_FAILED";
+    logError("send_pipeline", "quote_selection_failed", {
+      user_id: user.id,
+      run_at_utc: args.runAtUtc.toISOString(),
+      error: message
+    });
+  }
+
+  const selectedThemeTemplate = selectThemeTemplateFn();
 
   const rendered = renderNewsletterFn({
     preferredName: user.preferredName,
     timezone: user.timezone,
     runAtUtc: args.runAtUtc,
     items: summaries,
-    variant: issueVariant
+    feedbackLinksByItemUrl: (() => {
+      const secret = process.env.FEEDBACK_LINK_SECRET?.trim();
+      const baseUrl = resolveFeedbackBaseUrl();
+      if (!secret || !baseUrl) {
+        if (!secret) {
+          logPipeline("feedback_links_disabled_missing_secret", {
+            user_id: user.id,
+            run_at_utc: args.runAtUtc.toISOString()
+          });
+        }
+
+        if (!baseUrl) {
+          logPipeline("feedback_links_disabled_missing_base_url", {
+            user_id: user.id,
+            run_at_utc: args.runAtUtc.toISOString()
+          });
+        }
+
+        return undefined;
+      }
+
+      const linksByUrl: Record<string, { moreLikeThisUrl: string; lessLikeThisUrl: string }> = {};
+      for (let index = 0; index < summaries.length; index += 1) {
+        const summary = summaries[index];
+        if (!summary) {
+          continue;
+        }
+
+        const moreLikeToken = createFeedbackClickToken({
+          userId: user.id,
+          url: summary.url,
+          title: summary.title,
+          feedbackType: "more_like_this",
+          secret
+        });
+        const lessLikeToken = createFeedbackClickToken({
+          userId: user.id,
+          url: summary.url,
+          title: summary.title,
+          feedbackType: "less_like_this",
+          secret
+        });
+
+        linksByUrl[summary.url] = {
+          moreLikeThisUrl: buildFeedbackClickUrl({ baseUrl, token: moreLikeToken }),
+          lessLikeThisUrl: buildFeedbackClickUrl({ baseUrl, token: lessLikeToken })
+        };
+      }
+
+      return linksByUrl;
+    })(),
+    quote,
+    variant: issueVariant,
+    themeTemplate: selectedThemeTemplate
   });
 
   const sendResult = await sendNewsletterFn({
@@ -378,13 +467,13 @@ export async function sendUserNewsletter(
       status: "send_failed",
       userId: user.id,
       runAtUtc: args.runAtUtc.toISOString(),
-      itemCount: targetItemCount,
+      itemCount: summaries.length,
       idempotencyKey,
       error: reason
     };
   }
 
-  const sentCanonicalUrls = selectedCandidates.map((candidate) => candidate.canonicalUrl);
+  const sentCanonicalUrls = summaryInputCandidates.map((candidate) => candidate.canonicalUrl);
   const bloomAfterSend = addCanonicalUrls(bloomState, sentCanonicalUrls);
 
   try {
@@ -410,7 +499,7 @@ export async function sendUserNewsletter(
       status: "send_failed",
       userId: user.id,
       runAtUtc: args.runAtUtc.toISOString(),
-      itemCount: targetItemCount,
+      itemCount: summaries.length,
       idempotencyKey,
       providerMessageId: sendResult.providerMessageId,
       error: message
@@ -420,8 +509,9 @@ export async function sendUserNewsletter(
   logPipeline("sent", {
     user_id: user.id,
     run_at_utc: args.runAtUtc.toISOString(),
-    item_count: targetItemCount,
+    item_count: summaries.length,
     issue_variant: issueVariant,
+    theme_template: selectedThemeTemplate,
     provider_message_id: sendResult.providerMessageId,
     bloom_count_estimate: bloomAfterSend.count
   });
@@ -430,7 +520,7 @@ export async function sendUserNewsletter(
     status: "sent",
     userId: user.id,
     runAtUtc: args.runAtUtc.toISOString(),
-    itemCount: targetItemCount,
+    itemCount: summaries.length,
     idempotencyKey,
     providerMessageId: sendResult.providerMessageId
   };

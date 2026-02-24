@@ -152,6 +152,9 @@ describe("hyper integration: send pipeline live with mocked resend", () => {
         expect(result.status).toBe("sent");
         expect(result.itemCount).toBe(10);
         expect(resendSendMock).toHaveBeenCalledTimes(1);
+        const resendArgs = resendSendMock.mock.calls[0]?.[0] as { html?: string; text?: string } | undefined;
+        expect(resendArgs?.html).toContain("Quote of the Day");
+        expect(resendArgs?.text).toContain("Quote of the Day:");
         expect(userRow.rows[0]?.last_issue_sent_at).toBeTruthy();
         expect(userRow.rows[0]?.sent_url_bloom_bits).toBeTruthy();
         expect(idempotencyRow.rows[0]?.status).toBe("sent");

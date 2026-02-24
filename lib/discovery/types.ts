@@ -45,6 +45,8 @@ export type DiscoveryDiversityCard = {
 export type DiscoveryRunInput = {
   interestMemoryText: string;
   targetCount?: number;
+  maxAttempts?: number;
+  // Legacy alias; behaves the same as maxAttempts for backward compatibility.
   maxRetries?: number;
   maxTopics?: number;
   perTopicResults?: number;

@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { renderNewsletter } from "@/lib/email/render-newsletter";
+import {
+  getNewsletterThemeTemplateKeys,
+  pickRandomNewsletterThemeTemplate,
+  renderNewsletter
+} from "@/lib/email/render-newsletter";
 
 describe("renderNewsletter", () => {
   it("renders subject, html, and text with 10 item blocks", () => {
@@ -53,12 +57,12 @@ describe("renderNewsletter", () => {
     });
 
     expect(rendered.subject).toBe("Welcome to No Circles - your first issue");
-    expect(rendered.html).toContain("Hey, what’s up, I’m Naman, the solo dev behind The No-Circles Project.");
-    expect(rendered.html).toContain("<u><em>you</em></u>");
-    expect(rendered.html).toContain("<strong>TLDR; If we give you better inputs, you make better ideas!</strong>");
-    expect(rendered.text).toContain("Hey, what’s up, I’m Naman, the solo dev behind The No-Circles Project.");
-    expect(rendered.text).toContain("TLDR; If we give you better inputs, you make better ideas!");
+    expect(rendered.html).toContain("Here is your first issue with 3 curated links.");
+    expect(rendered.text).toContain("Here is your first issue with 3 curated links.");
+    expect(rendered.html).not.toContain("Hey, what’s up, I’m Naman, the solo dev behind The No-Circles Project.");
+    expect(rendered.text).not.toContain("Hey, what’s up, I’m Naman, the solo dev behind The No-Circles Project.");
     expect(rendered.text).toContain("3. Three");
+    expect(rendered.text).toContain("Reply with what you want more or less of, and tomorrow's issue will adapt.");
   });
 
   it("marks serendipitous items in html and text", () => {
@@ -79,5 +83,70 @@ describe("renderNewsletter", () => {
 
     expect(rendered.html).toContain("Serendipity pick:");
     expect(rendered.text).toContain("Serendipity pick: new territory you may find useful.");
+  });
+
+  it("renders in-email feedback links when provided", () => {
+    const rendered = renderNewsletter({
+      preferredName: "Naman",
+      timezone: "UTC",
+      runAtUtc: new Date("2026-02-16T18:00:00.000Z"),
+      items: [{ title: "Core Item", summary: "Core summary", url: "https://example.com/core" }],
+      feedbackLinksByItemUrl: {
+        "https://example.com/core": {
+          moreLikeThisUrl: "https://nocircles.app/api/feedback/click?token=more",
+          lessLikeThisUrl: "https://nocircles.app/api/feedback/click?token=less"
+        }
+      }
+    });
+
+    expect(rendered.html).toContain(">More like this</a>");
+    expect(rendered.html).toContain(">Less like this</a>");
+    expect(rendered.text).toContain("More like this: https://nocircles.app/api/feedback/click?token=more");
+    expect(rendered.text).toContain("Less like this: https://nocircles.app/api/feedback/click?token=less");
+  });
+
+  it("renders personalized quote inline above the reply line when quote is provided", () => {
+    const rendered = renderNewsletter({
+      preferredName: "Naman",
+      timezone: "UTC",
+      runAtUtc: new Date("2026-02-16T18:00:00.000Z"),
+      items: [{ title: "Core Item", summary: "Core summary", url: "https://example.com/core" }],
+      quote: {
+        text: "The cure for boredom is curiosity. There is no cure for curiosity.",
+        author: "Dorothy Parker",
+        category: "curiosity"
+      }
+    });
+
+    const replyLine = "Reply with what you want more or less of, and tomorrow's issue will adapt.";
+    const quoteLabelIndex = rendered.html.indexOf("Quote of the Day");
+    const replyIndex = rendered.html.indexOf(replyLine);
+
+    expect(rendered.html).toContain("Quote of the Day");
+    expect(rendered.html).toContain("Dorothy Parker");
+    expect(quoteLabelIndex).toBeGreaterThan(-1);
+    expect(replyIndex).toBeGreaterThan(-1);
+    expect(quoteLabelIndex).toBeLessThan(replyIndex);
+    expect(rendered.text).toContain("Quote of the Day:");
+    expect(rendered.text).toContain("Dorothy Parker");
+  });
+
+  it("renders using selected template colors", () => {
+    const rendered = renderNewsletter({
+      preferredName: "Naman",
+      timezone: "UTC",
+      runAtUtc: new Date("2026-02-16T18:00:00.000Z"),
+      themeTemplate: "06-coastal-brass",
+      items: [{ title: "Core Item", summary: "Core summary", url: "https://example.com/core" }]
+    });
+
+    expect(rendered.html).toContain("background: #F3F6FB");
+    expect(rendered.html).toContain("color: #3A6294");
+  });
+
+  it("picks random theme template by random source", () => {
+    expect(pickRandomNewsletterThemeTemplate(() => 0)).toBe("01-riviera-sun");
+    expect(pickRandomNewsletterThemeTemplate(() => 0.9999)).toBe("10-mint-fig");
+    expect(getNewsletterThemeTemplateKeys().length).toBe(10);
   });
 });

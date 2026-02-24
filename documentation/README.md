@@ -18,6 +18,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `subsystems/scheduler-and-cron.md`: Supabase scheduler ownership and cron trigger contract
 - `subsystems/summary-generation.md`: PR8 item-level summary generation contract
 - `subsystems/send-and-bloom-delivery.md`: PR9 delivery runtime with Bloom + outbound idempotency
+- `subsystems/personalized-quote-selection.md`: quote selection flow (HF batch pull + Haiku pick)
 
 ## Suggested Reading Order
 
@@ -38,6 +39,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `subsystems/scheduler-and-cron.md`
 - `subsystems/summary-generation.md`
 - `subsystems/send-and-bloom-delivery.md`
+- `subsystems/personalized-quote-selection.md`
 
 ## Current File Docs
 
@@ -104,6 +106,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/lib-webhooks-inbound-idempotency.md`
 - `files/lib-ai-memory-prompts.md`
 - `files/lib-ai-summary-prompts.md`
+- `files/lib-ai-quote-prompts.md`
 - `files/lib-art-dwitter-sketches.md`
 - `files/lib-bloom-user-url-bloom.md`
 - `files/lib-discovery-types.md`
@@ -122,6 +125,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/lib-email-send-newsletter.md`
 - `files/lib-send-idempotency.md`
 - `files/lib-pipeline-send-user-newsletter.md`
+- `files/lib-quotes-select-personalized-quote.md`
 - `files/scripts-prune-inbound-idempotency.md`
 - `files/scripts-setup-supabase-cron.md`
 - `files/public-onboarding-quick-sparks-txt.md`
@@ -133,6 +137,8 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/tests-discovery-manual-eval-integration.md`
 - `files/tests-discovery-live-exa-integration.md`
 - `files/tests-summary-writer.md`
+- `files/tests-ai-quote-prompts.md`
+- `files/tests-quote-selection.md`
 - `files/tests-bloom-user-url-bloom.md`
 - `files/tests-email-render-newsletter.md`
 - `files/tests-email-send-newsletter.md`
@@ -143,6 +149,11 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/tests-hyper-full-system-live-integration.md`
 - `files/tests-hyper-reply-evolution-live-integration.md`
 - `files/tests-hyper-query-system-live-integration.md`
+- `files/lib-feedback-click-token.md`
+- `files/app-api-feedback-click-route.md`
+- `files/tests-feedback-click-token.md`
+- `files/tests-feedback-click-route.md`
+- `files/tests-hyper-quote-selection-live-integration.md`
 
 ## Conventions
 

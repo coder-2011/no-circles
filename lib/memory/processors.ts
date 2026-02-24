@@ -169,6 +169,13 @@ function parseBulletLines(section: string): string[] {
   );
 }
 
+function parseBulletLinesPreserveOrder(section: string): string[] {
+  return section
+    .split("\n")
+    .map((line) => cleanLine(line))
+    .filter((line) => Boolean(line) && line !== "-");
+}
+
 function parseTopicLines(section: string): string[] {
   return uniqueLines(
     section
@@ -385,7 +392,40 @@ export function buildFallbackReplyMemory(currentMemory: string, inboundReplyText
   });
 }
 
-async function generateWithFallback(prompt: string, fallbackMemory: string): Promise<string> {
+export function appendRecentFeedbackLines(currentMemory: string, feedbackLines: string[]): string {
+  const nextFeedbackLines = feedbackLines.map((line) => cleanLine(line)).filter(Boolean);
+  if (nextFeedbackLines.length === 0) {
+    const validatedCurrent = validateMemoryText(currentMemory);
+    return validatedCurrent.ok
+      ? validatedCurrent.memoryText
+      : buildFallbackMemory({
+          PERSONALITY: "- Evolving learner profile",
+          ACTIVE_INTERESTS: "- General curiosity",
+          SUPPRESSED_INTERESTS: "-",
+          RECENT_FEEDBACK: "-"
+        });
+  }
+
+  const sections = parseSections(currentMemory);
+  if (sections) {
+    const existingFeedback = parseBulletLinesPreserveOrder(sections.RECENT_FEEDBACK);
+    return buildFallbackMemory({
+      PERSONALITY: sections.PERSONALITY,
+      ACTIVE_INTERESTS: sections.ACTIVE_INTERESTS,
+      SUPPRESSED_INTERESTS: sections.SUPPRESSED_INTERESTS,
+      RECENT_FEEDBACK: toBullets([...existingFeedback, ...nextFeedbackLines])
+    });
+  }
+
+  return buildFallbackMemory({
+    PERSONALITY: "- Evolving learner profile",
+    ACTIVE_INTERESTS: "- General curiosity",
+    SUPPRESSED_INTERESTS: "-",
+    RECENT_FEEDBACK: toBullets(nextFeedbackLines)
+  });
+}
+
+async function generateOnboardingMemoryRequired(prompt: string): Promise<string> {
   for (let attempt = 0; attempt < MEMORY_MODEL_RETRIES; attempt += 1) {
     try {
       const generated = await callMemoryModel({ systemPrompt: prompt });
@@ -412,19 +452,7 @@ async function generateWithFallback(prompt: string, fallbackMemory: string): Pro
     }
   }
 
-  logMemoryEvent("warn", "onboarding_fallback_used", {
-    reason: "model_unavailable_or_invalid_output"
-  });
-  return fallbackMemory;
-}
-
-async function generateOnboardingMemoryRequired(prompt: string, fallbackMemory: string): Promise<string> {
-  const generated = await generateWithFallback(prompt, fallbackMemory);
-  if (generated === fallbackMemory) {
-    throw new Error("ONBOARDING_MODEL_REQUIRED");
-  }
-
-  return generated;
+  throw new Error("ONBOARDING_MODEL_REQUIRED");
 }
 
 async function generateReplyMemoryWithFallback(
@@ -478,9 +506,8 @@ async function generateReplyMemoryWithFallback(
 }
 
 export async function formatOnboardingMemory(brainDumpText: string): Promise<string> {
-  const fallbackMemory = buildFallbackOnboardingMemory(brainDumpText);
   const prompt = buildOnboardingMemoryPrompt(brainDumpText);
-  const generated = await generateOnboardingMemoryRequired(prompt, fallbackMemory);
+  const generated = await generateOnboardingMemoryRequired(prompt);
   return normalizeCanonicalMemoryTopics(generated);
 }
 

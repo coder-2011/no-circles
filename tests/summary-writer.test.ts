@@ -92,7 +92,7 @@ describe("generateNewsletterSummaries", () => {
     );
   });
 
-  it("retries once and then falls back to local summary when model is invalid", async () => {
+  it("retries once and then skips item when fallback detail is insufficient", async () => {
     process.env.ANTHROPIC_API_KEY = "test-key";
     process.env.ANTHROPIC_SUMMARY_MODEL = "claude-haiku-4-5";
 
@@ -115,10 +115,7 @@ describe("generateNewsletterSummaries", () => {
     const result = await generateNewsletterSummaries({ items: [sourceItems[0]], targetWords: 50 });
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(result).toHaveLength(1);
-    expect(result[0].title).toBe("Original A");
-    expect(result[0].url).toBe("https://example.com/a");
-    expect(result[0].summary).toBe("INSUFFICIENT_SOURCE_DETAIL");
+    expect(result).toHaveLength(0);
   });
 
   it("honors custom word range when provided", async () => {
@@ -219,6 +216,29 @@ describe("generateNewsletterSummaries", () => {
     expect(result[0].summary).toBe(
       "The article explains a new retrieval system that reduces latency in production workloads. It compares implementation tradeoffs between recall, latency, and infra cost."
     );
+  });
+
+  it("skips item immediately when highlights are missing", async () => {
+    process.env.ANTHROPIC_API_KEY = "test-key";
+    process.env.ANTHROPIC_SUMMARY_MODEL = "claude-haiku-4-5";
+
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await generateNewsletterSummaries({
+      items: [
+        {
+          url: "https://example.com/empty",
+          title: "No Highlights",
+          highlights: []
+        }
+      ],
+      minWords: 20,
+      maxWords: 40
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(0);
+    expect(result).toHaveLength(0);
   });
 
   it("processes one model call per item in order", async () => {

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MEMORY_WORD_CAP, countWords, parseSections } from "@/lib/memory/contract";
-import { buildFallbackReplyMemory, mergeReplyIntoMemory } from "@/lib/memory/processors";
+import { appendRecentFeedbackLines, buildFallbackReplyMemory, mergeReplyIntoMemory } from "@/lib/memory/processors";
 
 const originalAnthropicApiKey = process.env.ANTHROPIC_API_KEY;
 const originalAnthropicMemoryModel = process.env.ANTHROPIC_MEMORY_MODEL;
@@ -536,5 +536,36 @@ describe("structured reply memory updates", () => {
     expect(sections?.ACTIVE_INTERESTS.toLowerCase()).toContain("software architecture");
     expect(sections?.SUPPRESSED_INTERESTS.toLowerCase()).toContain("technical product strategy");
     expect(sections?.SUPPRESSED_INTERESTS.toLowerCase()).not.toContain("software architecture");
+  });
+
+  it("appends explicit feedback lines in order to RECENT_FEEDBACK", () => {
+    const currentMemory = [
+      "PERSONALITY:",
+      "- Curious engineer",
+      "",
+      "ACTIVE_INTERESTS:",
+      "- AI",
+      "",
+      "SUPPRESSED_INTERESTS:",
+      "-",
+      "",
+      "RECENT_FEEDBACK:",
+      "- Wants practical examples"
+    ].join("\n");
+
+    const updated = appendRecentFeedbackLines(currentMemory, [
+      "+ https://example.com/alpha [issue:abc; item:1]",
+      "- https://example.com/beta [issue:abc; item:2]"
+    ]);
+    const sections = parseSections(updated);
+
+    expect(sections).not.toBeNull();
+    const recentFeedback = sections?.RECENT_FEEDBACK ?? "";
+    expect(recentFeedback).toContain("Wants practical examples");
+    expect(recentFeedback).toContain("+ https://example.com/alpha [issue:abc; item:1]");
+    expect(recentFeedback).toContain("- https://example.com/beta [issue:abc; item:2]");
+    expect(recentFeedback.indexOf("+ https://example.com/alpha [issue:abc; item:1]")).toBeLessThan(
+      recentFeedback.indexOf("- https://example.com/beta [issue:abc; item:2]")
+    );
   });
 });

@@ -61,6 +61,14 @@ const user = {
   sentUrlBloomBits: null
 };
 
+const selectedQuote = {
+  text: "Stay close to concrete evidence and update your map when reality changes.",
+  author: "No Circles",
+  category: "learning",
+  sourceDataset: "jstet/quotes-500k",
+  rowIndex: 42
+};
+
 const getFinalHighlightsByUrlFn = async (args: { urls: string[] }) => {
   return new Map(args.urls.map((url) => [url, [`Highlight for ${url}`]]));
 };
@@ -78,6 +86,12 @@ describe("sendUserNewsletter", () => {
     const sendNewsletterFn = vi.fn(async () => ({ ok: true, providerMessageId: "msg_1", attempts: 1, error: null }));
     const markIdempotencyFailedFn = vi.fn(async () => undefined);
     const persistSendSuccessFn = vi.fn(async () => undefined);
+    const selectQuoteFn = vi.fn(async () => selectedQuote);
+    const renderNewsletterFn = vi.fn(() => ({
+      subject: "Daily",
+      html: "<p>daily</p>",
+      text: "daily"
+    }));
 
     const result = await sendUserNewsletter(
       {
@@ -89,6 +103,9 @@ describe("sendUserNewsletter", () => {
         runDiscoveryFn,
         getFinalHighlightsByUrlFn,
         generateSummariesFn,
+        selectQuoteFn,
+        renderNewsletterFn,
+        selectThemeTemplateFn: () => "07-merlot-ink",
         sendNewsletterFn,
         reserveIdempotencyFn: async () => ({ outcome: "claimed", status: "processing", providerMessageId: null }),
         markIdempotencyFailedFn,
@@ -103,6 +120,12 @@ describe("sendUserNewsletter", () => {
     expect(summaryInputItems?.[9]?.isSerendipitous).toBe(true);
     expect(summaryInputItems?.[0]?.isSerendipitous).toBe(false);
     expect(sendNewsletterFn).toHaveBeenCalledTimes(1);
+    expect(renderNewsletterFn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        themeTemplate: "07-merlot-ink"
+      })
+    );
+    expect(selectQuoteFn).toHaveBeenCalledTimes(1);
     expect(markIdempotencyFailedFn).not.toHaveBeenCalled();
     expect(persistSendSuccessFn).toHaveBeenCalledTimes(1);
 
@@ -132,6 +155,7 @@ describe("sendUserNewsletter", () => {
 
   it("marks failed and returns send_failed when provider fails twice", async () => {
     const markIdempotencyFailedFn = vi.fn(async () => undefined);
+    const selectQuoteFn = vi.fn(async () => selectedQuote);
 
     const result = await sendUserNewsletter(
       {
@@ -144,6 +168,7 @@ describe("sendUserNewsletter", () => {
           makeDiscoveryResult(Array.from({ length: 10 }).map((_, index) => `https://example.com/${index + 1}`)),
         getFinalHighlightsByUrlFn,
         generateSummariesFn: async ({ items }) => items.map((item) => ({ title: item.title, summary: "summary", url: item.url })),
+        selectQuoteFn,
         sendNewsletterFn: async () => ({ ok: false, providerMessageId: null, attempts: 2, error: "provider down" }),
         reserveIdempotencyFn: async () => ({ outcome: "claimed", status: "processing", providerMessageId: null }),
         markIdempotencyFailedFn
@@ -173,6 +198,7 @@ describe("sendUserNewsletter", () => {
     );
 
     expect(result.status).toBe("sent");
+    expect(result.itemCount).toBe(0);
     expect(result.providerMessageId).toBe("msg_existing");
     expect(sendNewsletterFn).not.toHaveBeenCalled();
   });
@@ -202,6 +228,7 @@ describe("sendUserNewsletter", () => {
 
   it("proceeds with send when failed idempotency row is reclaimed", async () => {
     const sendNewsletterFn = vi.fn(async () => ({ ok: true, providerMessageId: "msg_retry", attempts: 1, error: null }));
+    const selectQuoteFn = vi.fn(async () => selectedQuote);
 
     const result = await sendUserNewsletter(
       {
@@ -214,6 +241,7 @@ describe("sendUserNewsletter", () => {
           makeDiscoveryResult(Array.from({ length: 10 }).map((_, index) => `https://example.com/${index + 1}`)),
         getFinalHighlightsByUrlFn,
         generateSummariesFn: async ({ items }) => items.map((item) => ({ title: item.title, summary: "summary", url: item.url })),
+        selectQuoteFn,
         reserveIdempotencyFn: async () => ({ outcome: "retryable_failed_claimed", status: "processing", providerMessageId: null }),
         persistSendSuccessFn: async () => undefined,
         sendNewsletterFn
@@ -243,6 +271,50 @@ describe("sendUserNewsletter", () => {
     expect(result.error).toBe("INSUFFICIENT_EXA_HIGHLIGHTS");
   });
 
+  it("drops entries with missing highlights and still sends remaining items", async () => {
+    const renderNewsletterFn = vi.fn(() => ({
+      subject: "Daily",
+      html: "<p>daily</p>",
+      text: "daily"
+    }));
+
+    const result = await sendUserNewsletter(
+      {
+        userId: user.id,
+        runAtUtc: new Date("2026-02-16T18:00:00.000Z")
+      },
+      {
+        loadUserFn: async () => user,
+        runDiscoveryFn: async () =>
+          makeDiscoveryResult(Array.from({ length: 10 }).map((_, index) => `https://example.com/${index + 1}`)),
+        getFinalHighlightsByUrlFn: async () =>
+          new Map(
+            Array.from({ length: 8 }).map((_, index) => {
+              const url = `https://example.com/${index + 1}`;
+              return [url, [`Highlight for ${url}`]];
+            })
+          ),
+        generateSummariesFn: async ({ items }) => items.map((item) => ({ title: item.title, summary: "summary", url: item.url })),
+        selectQuoteFn: async () => selectedQuote,
+        reserveIdempotencyFn: async () => ({ outcome: "claimed", status: "processing", providerMessageId: null }),
+        renderNewsletterFn,
+        sendNewsletterFn: async () => ({ ok: true, providerMessageId: "msg_partial", attempts: 1, error: null }),
+        persistSendSuccessFn: async () => undefined
+      }
+    );
+
+    expect(result.status).toBe("sent");
+    expect(result.itemCount).toBe(8);
+    expect(renderNewsletterFn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        items: expect.arrayContaining([
+          expect.objectContaining({ url: "https://example.com/1" }),
+          expect.objectContaining({ url: "https://example.com/8" })
+        ])
+      })
+    );
+  });
+
   it("supports welcome variant with configurable target item count", async () => {
     const renderNewsletterFn = vi.fn(() => ({
       subject: "Welcome to No Circles - your first issue",
@@ -263,8 +335,10 @@ describe("sendUserNewsletter", () => {
           makeDiscoveryResult(Array.from({ length: 5 }).map((_, index) => `https://example.com/welcome-${index + 1}`)),
         getFinalHighlightsByUrlFn,
         generateSummariesFn: async ({ items }) => items.map((item) => ({ title: item.title, summary: "summary", url: item.url })),
+        selectQuoteFn: async () => selectedQuote,
         reserveIdempotencyFn: async () => ({ outcome: "claimed", status: "processing", providerMessageId: null }),
         renderNewsletterFn,
+        selectThemeTemplateFn: () => "10-mint-fig",
         sendNewsletterFn: async () => ({ ok: true, providerMessageId: "msg_welcome", attempts: 1, error: null }),
         persistSendSuccessFn: async () => undefined
       }
@@ -275,6 +349,7 @@ describe("sendUserNewsletter", () => {
     expect(renderNewsletterFn).toHaveBeenCalledWith(
       expect.objectContaining({
         variant: "welcome",
+        themeTemplate: "10-mint-fig",
         items: expect.any(Array)
       })
     );

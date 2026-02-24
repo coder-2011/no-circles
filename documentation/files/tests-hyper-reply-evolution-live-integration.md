@@ -24,8 +24,8 @@ If any required env var is missing, test is auto-skipped.
 10. If both strict and relaxed discovery fail for either phase, log the skip reason and exit without failing this live smoke test.
 
 Runtime knobs:
-- strict discovery: `maxRetries=1`, `perTopicResults=4`, `requireUrlExcerpt=true`, `targetCount=10`
-- relaxed discovery fallback: `maxRetries=2`, `perTopicResults=7`, `requireUrlExcerpt=false`, `targetCount=10`
+- strict discovery: `maxAttempts=1` (legacy alias `maxRetries=1`), `perTopicResults=4`, `requireUrlExcerpt=true`, `targetCount=10`
+- relaxed discovery fallback: `maxAttempts=2` (legacy alias `maxRetries=2`), `perTopicResults=7`, `requireUrlExcerpt=false`, `targetCount=10`
 - summary target: `targetWords=100`
 - test timeout: `420000ms` (7 minutes)
 

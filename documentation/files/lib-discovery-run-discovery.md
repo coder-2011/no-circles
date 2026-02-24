@@ -10,7 +10,7 @@ Implementation split:
 ## Input
 `DiscoveryRunInput`:
 - `interestMemoryText` (required)
-- optional knobs: `targetCount`, `maxRetries`, `maxTopics`, `perTopicResults`, `earlyStopBuffer`, `maxPerDomain`
+- optional knobs: `targetCount`, `maxAttempts` (preferred), legacy `maxRetries`, `maxTopics`, `perTopicResults`, `earlyStopBuffer`, `maxPerDomain`
 
 Optional dependency hook:
 - `includeCandidate(candidate) -> boolean` for downstream candidate-gating policies (for example Bloom anti-repeat checks).
@@ -74,9 +74,10 @@ Default `earlyStopBuffer` is `2` and default per-domain cap is `3`.
 Default `perTopicResults` is `7` (attempts 2+ increase by `+2` each).
 
 ## Retry Strategy
-- Attempt 1: base query, base `perTopicResults`
-- Attempt 2+: widened query text + larger `numResults`
-- Max attempts: `maxRetries` (default 3)
+- Attempt 1: query all planned topics.
+- Attempt 2+: retry only topics that still have zero viable selector-eligible candidates from prior attempts.
+- `perTopicResults` increases by `+2` per attempt.
+- Max attempts: `maxAttempts` (default 3; legacy alias `maxRetries` supported)
 
 ## Error Codes
 - `NO_ACTIVE_TOPICS`
@@ -98,4 +99,3 @@ Default `perTopicResults` is `7` (attempts 2+ increase by `+2` each).
 - `INSUFFICIENT_CORE_TOPIC_ALLOCATION:<actual>/<target>`
 - `INSUFFICIENT_SERENDIPITY_ALLOCATION:<actual>/<target>`
 - `CANDIDATE_FILTERED_<n>`
-- `DIVERSITY_CARD_FAILED`

@@ -16,7 +16,6 @@ import {
 } from "@/lib/discovery/types";
 export type { DiscoveryRunResult } from "@/lib/discovery/types";
 import {
-  buildAttemptQuery,
   buildDiversityCard,
   dedupeCandidates,
   filterNonSuppressed,
@@ -258,7 +257,7 @@ export async function runDiscovery(
   } = {}
 ): Promise<DiscoveryRunResult> {
   const targetCount = input.targetCount ?? DEFAULT_DISCOVERY_TARGET_COUNT;
-  const maxRetries = input.maxRetries ?? DEFAULT_DISCOVERY_MAX_RETRIES;
+  const maxAttempts = input.maxAttempts ?? input.maxRetries ?? DEFAULT_DISCOVERY_MAX_RETRIES;
   const maxTopics = input.maxTopics ?? DEFAULT_MAX_TOPICS;
   const basePerTopicResults = input.perTopicResults ?? DEFAULT_PER_TOPIC_RESULTS;
   const earlyStopBuffer = input.earlyStopBuffer ?? DEFAULT_EARLY_STOP_BUFFER;
@@ -289,14 +288,20 @@ export async function runDiscovery(
   let attemptsUsed = 0;
   let earlyStopped = false;
   const alreadySelected: Array<{ topic: string; title: string }> = [];
+  let pendingTopicRanks = new Set(topics.map((topic) => topic.topicRank));
 
-  for (let attempt = 0; attempt < maxRetries; attempt += 1) {
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    const topicsThisAttempt = topics.filter((topic) => pendingTopicRanks.has(topic.topicRank));
+    if (topicsThisAttempt.length === 0) {
+      break;
+    }
+
     attemptsUsed = attempt + 1;
     const perTopicResults = basePerTopicResults + attempt * 2;
+    const satisfiedTopicRanks = new Set<number>();
 
-    for (const topic of topics) {
-      const fallbackQuery = buildAttemptQuery(topic, attempt);
-      let baseQuery = fallbackQuery;
+    for (const topic of topicsThisAttempt) {
+      let baseQuery = topic.topic;
       let querySource: "haiku" | "fallback" = "fallback";
 
       try {
@@ -380,6 +385,8 @@ export async function runDiscovery(
           continue;
         }
 
+        satisfiedTopicRanks.add(topic.topicRank);
+
         let results = selectorEligibleCandidates;
         if (selectorEligibleCandidates.length > 1) {
           try {
@@ -446,6 +453,10 @@ export async function runDiscovery(
       }
     }
 
+    for (const topicRank of satisfiedTopicRanks) {
+      pendingTopicRanks.delete(topicRank);
+    }
+
     if (earlyStopped) {
       break;
     }
@@ -509,10 +520,6 @@ export async function runDiscovery(
 
   if (candidateFilterExcludedCount > 0) {
     warnings.push(`CANDIDATE_FILTERED_${candidateFilterExcludedCount}`);
-  }
-
-  if (!diversityCard.passes && finalItems.length > 0) {
-    warnings.push("DIVERSITY_CARD_FAILED");
   }
 
   return {

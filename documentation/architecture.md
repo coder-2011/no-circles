@@ -70,16 +70,17 @@ This system is a website-first, email-delivered personalized newsletter product.
    - transforms `brain_dump_text` into canonical memory text via onboarding processor
    - stores send-time settings and identity fields
 4. User is marked ready for daily generation.
-5. On first successful onboarding insert, system attempts immediate welcome issue send (short first issue) and then continues normal daily schedule.
+5. On first successful onboarding insert, system attempts two immediate lifecycle-attached sends: (a) standalone welcome intro email, then (b) separate welcome issue send (short first issue), then continues normal daily schedule.
 
 ### 2) Daily Newsletter Generation Flow
 1. Supabase `pg_cron` executes `net.http_post(...)` every minute to call `POST /api/cron/generate-next` with `CRON_SECRET`.
 2. Backend reads `users.interest_memory_text`.
 3. System runs discovery and applies Bloom anti-repeat gating on candidate canonical URLs before final item selection.
 4. System composes final `{ title, summary, url }` item payloads.
-5. Newsletter template is rendered and sent via Resend.
-5. Footer message includes ongoing calibration instruction (no special first-week mode), e.g. reply as much as the user wants to improve curation.
-6. On successful send, sent canonical URLs are hashed into per-user Bloom state and `users.last_issue_sent_at` is updated.
+5. System selects one personalized quote from `jstet/quotes-500k` (sample 50 deterministically per user/day, pre-filter, Claude chooses 1).
+6. Newsletter template is rendered and sent via Resend.
+7. Footer message includes ongoing calibration instruction (no special first-week mode), e.g. reply as much as the user wants to improve curation.
+8. On successful send, sent canonical URLs are hashed into per-user Bloom state and `users.last_issue_sent_at` is updated.
 
 ### 3) Inbound Reply Update Flow
 1. User replies to newsletter email.
@@ -93,6 +94,7 @@ This system is a website-first, email-delivered personalized newsletter product.
 ### 4) Idempotency and Duplicate Handling
 - Cron flow must be idempotent to prevent duplicate sends if a scheduled trigger runs twice.
 - Inbound webhook handling must be idempotent to prevent applying the same reply update more than once.
+- In-email feedback click handling is idempotent via signed token `jti` reservation in `processed_webhooks`.
 - Duplicate-prevention for content is enforced via per-user Bloom membership checks before send.
 
 ## API Contracts (V1)
@@ -155,6 +157,28 @@ V1 intentionally excludes a manual regenerate endpoint.
 - **Response**:
   - `{ ok: true, status: "updated", user_id: string }`
   - or `{ ok: true, status: "ignored" }` (unknown sender/empty text/already processed)
+
+### 4) In-Email Item Feedback Click
+- **Endpoint**: `GET /api/feedback/click?token=...`
+- **Auth**: signed token (`HMAC` with `FEEDBACK_LINK_SECRET`)
+- **Purpose**: capture one-click per-item feedback (`more_like_this` / `less_like_this`) from newsletter email links.
+- **Token claims**:
+  - `uid` (user id)
+  - `url` (item URL)
+  - `title` (item title)
+  - `ft` (`more_like_this` | `less_like_this`)
+  - `jti` (deterministic idempotency key)
+  - `exp` (expiry)
+- **Behavior**:
+  - validates signature + expiry
+  - reserves `processed_webhooks(provider=\"feedback_click\", webhook_id=jti)` to dedupe repeats
+  - appends one explicit line to `RECENT_FEEDBACK` (`+` or `-` + URL metadata)
+  - returns direct HTML confirmation (no redirect)
+- **Response**:
+  - `200` confirmation page for success or duplicate no-op
+  - `400` invalid/expired token
+  - `404` user not found
+  - `500` processing/config error
 
 ### Error Envelope (All Endpoints)
 - Standard response shape for failures:
