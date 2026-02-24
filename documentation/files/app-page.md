@@ -14,6 +14,7 @@ Landing/auth-entry client page for the product.
 8. Presents clear above-the-fold product messaging in a styled hero copy box focused on un-googleable discovery: ten high-signal niche long-form reads each morning plus a principle statement about unexpected ideas.
 9. Renders a populated `Sample Daily Brief` section with ten realistic newsletter items (title + outbound link + neutral summary) as a static, curated exemplar.
 10. Shows a pricing notice directly below the sample brief clarifying free access through mid-March and planned minimal at-cost billing afterward (no profit margin).
+11. Pins a floating top-right auth CTA while scrolling so users can trigger `Get started` (or `Continue onboarding` when signed in) without returning to the hero section.
 
 ## Why It Exists
 - Provides the single public entrypoint for authentication.
