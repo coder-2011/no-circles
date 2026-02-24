@@ -143,13 +143,25 @@ async function buildDiscoveryTopics(args: {
   serendipityTargetCount: number;
 }> {
   const pools = extractTopicPoolsFromMemory(args.interestMemoryText);
+  const isSuppressedTopic = (topic: string): boolean => {
+    const normalizedTopic = topic.toLowerCase();
+    return pools.suppressedTopics.some((suppressed) => {
+      const normalizedSuppressed = suppressed.toLowerCase();
+      return (
+        normalizedSuppressed === normalizedTopic ||
+        normalizedSuppressed.includes(normalizedTopic) ||
+        normalizedTopic.includes(normalizedSuppressed)
+      );
+    });
+  };
+  const activeTopicsSansSuppressed = pools.activeTopics.filter((topic) => !isSuppressedTopic(topic));
 
   // Preserve legacy fallback when ACTIVE_INTERESTS is empty.
-  if (pools.activeTopics.length === 0) {
+  if (activeTopicsSansSuppressed.length === 0) {
     const fallbackTopics = deriveTopicsFromMemory({
       interestMemoryText: args.interestMemoryText,
       maxTopics: args.maxTopics
-    });
+    }).filter((topic) => !isSuppressedTopic(topic.topic));
     return {
       topics: fallbackTopics,
       activeTopics: fallbackTopics.map((topic) => topic.topic),
@@ -159,9 +171,9 @@ async function buildDiscoveryTopics(args: {
     };
   }
 
-  const desiredSerendipityTargetCount = resolveSerendipityTargetCount(pools.activeTopics.length, args.targetCount);
-  const activeTopicLimit = Math.max(1, Math.min(pools.activeTopics.length, args.maxTopics));
-  const activeTopics = selectActiveTopicsRandomly(pools.activeTopics, activeTopicLimit);
+  const desiredSerendipityTargetCount = resolveSerendipityTargetCount(activeTopicsSansSuppressed.length, args.targetCount);
+  const activeTopicLimit = Math.max(1, Math.min(activeTopicsSansSuppressed.length, args.maxTopics));
+  const activeTopics = selectActiveTopicsRandomly(activeTopicsSansSuppressed, activeTopicLimit);
   const serendipityTargetCount = desiredSerendipityTargetCount;
   const serendipityLimit = Math.max(0, args.maxTopics - activeTopics.length);
   const serendipityTopics = serendipityLimit > 0
@@ -211,6 +223,14 @@ function buildPerTopicQuotas(topics: string[], targetCount: number): Map<string,
   return quotas;
 }
 
+function sortCandidatesForSelection(candidates: DiscoveryCandidate[]): DiscoveryCandidate[] {
+  return [...candidates].sort((a, b) => {
+    if (a.topicRank !== b.topicRank) return a.topicRank - b.topicRank;
+    if (a.resultRank !== b.resultRank) return a.resultRank - b.resultRank;
+    return a.canonicalUrl.localeCompare(b.canonicalUrl);
+  });
+}
+
 function selectByTopicQuotas(args: {
   candidates: DiscoveryCandidate[];
   topicQuotas: Map<string, number>;
@@ -219,11 +239,7 @@ function selectByTopicQuotas(args: {
   const selectedUrls = new Set<string>();
   const perTopicCount = new Map<string, number>();
 
-  const ordered = [...args.candidates].sort((a, b) => {
-    if (a.topicRank !== b.topicRank) return a.topicRank - b.topicRank;
-    if (a.resultRank !== b.resultRank) return a.resultRank - b.resultRank;
-    return a.canonicalUrl.localeCompare(b.canonicalUrl);
-  });
+  const ordered = sortCandidatesForSelection(args.candidates);
 
   for (const candidate of ordered) {
     const quota = args.topicQuotas.get(candidate.topic) ?? 0;
@@ -239,6 +255,33 @@ function selectByTopicQuotas(args: {
   }
 
   return selected;
+}
+
+function backfillFromQualityPool(args: {
+  selected: DiscoveryCandidate[];
+  qualityPool: DiscoveryCandidate[];
+  targetCount: number;
+}): DiscoveryCandidate[] {
+  if (args.selected.length >= args.targetCount) {
+    return args.selected;
+  }
+
+  const selectedUrls = new Set(args.selected.map((candidate) => candidate.canonicalUrl));
+  const filled = [...args.selected];
+
+  for (const candidate of sortCandidatesForSelection(args.qualityPool)) {
+    if (filled.length >= args.targetCount) {
+      break;
+    }
+    if (selectedUrls.has(candidate.canonicalUrl)) {
+      continue;
+    }
+
+    filled.push(candidate);
+    selectedUrls.add(candidate.canonicalUrl);
+  }
+
+  return filled;
 }
 
 export async function runDiscovery(
@@ -288,7 +331,7 @@ export async function runDiscovery(
   let attemptsUsed = 0;
   let earlyStopped = false;
   const alreadySelected: Array<{ topic: string; title: string }> = [];
-  let pendingTopicRanks = new Set(topics.map((topic) => topic.topicRank));
+  const pendingTopicRanks = new Set(topics.map((topic) => topic.topicRank));
 
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     const topicsThisAttempt = topics.filter((topic) => pendingTopicRanks.has(topic.topicRank));
@@ -478,7 +521,12 @@ export async function runDiscovery(
     candidates: serendipityPool,
     topicQuotas: serendipityTopicQuotas
   });
-  const selected = [...selectedCore, ...selectedSerendipity];
+  const selectedBeforeBackfill = [...selectedCore, ...selectedSerendipity];
+  const selected = backfillFromQualityPool({
+    selected: selectedBeforeBackfill,
+    qualityPool: qualityFiltered,
+    targetCount
+  });
   logDiscoveryDebug("post_filter_stage_counts", {
     deduped_count: deduped.length,
     non_suppressed_count: nonSuppressed.length,
@@ -493,6 +541,10 @@ export async function runDiscovery(
     quality_pool_diagnostics: qualityDiagnostics,
     warnings
   });
+
+  if (selected.length > selectedBeforeBackfill.length) {
+    warnings.push(`BACKFILLED_FROM_QUALITY_POOL_${selected.length - selectedBeforeBackfill.length}`);
+  }
 
   if (selectedCore.length < topicPlan.coreTargetCount) {
     warnings.push(`INSUFFICIENT_CORE_TOPIC_ALLOCATION:${selectedCore.length}/${topicPlan.coreTargetCount}`);
