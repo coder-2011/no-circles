@@ -11,6 +11,7 @@ Renders onboarding UI as a presentational component driven by controller props.
 - omit manual preferred-name editing in UI (controller submits OAuth/session-derived preferred name)
 - render timezone options from controller so browser-detected timezone can appear even when outside curated list
 - render minimal dictation controls (`Dictate` / `Stop dictation`) for brain-dump voice input
+- keep textarea focus when toggling dictation so users can continue typing during active recording
 - show larger brain-dump guidance text and intentionally no example placeholder text
 - autofocus the brain-dump textarea on load
 - render save/sign-out controls, save badge, and lightweight slower-fall confetti celebration (multi-color particle variation) when onboarding save succeeds

@@ -199,6 +199,10 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
                   <button
                     className="rounded-md border border-[#B8AA84] bg-[#FFF8E8] px-3 py-1.5 text-xs font-medium text-[#3F4E38] transition hover:bg-[#F2E7CC] disabled:opacity-50"
                     disabled={controller.dictationState === "warming" || controller.dictationState === "stopping"}
+                    onMouseDown={(event) => {
+                      // Keep textarea focus/caret so typing can continue while dictation runs.
+                      event.preventDefault();
+                    }}
                     onClick={() => {
                       if (controller.dictationState === "recording") {
                         void controller.stopDictation();
