@@ -1,5 +1,32 @@
 set shell := ["bash", "-cu"]
 
+# Taskwarrior helpers (project-scoped)
+task-next:
+	task rc:.taskrc project:no-circles next
+
+task-add description:
+	task rc:.taskrc add project:no-circles "{{description}}"
+
+task-add-pri description priority:
+	task rc:.taskrc add project:no-circles priority:{{priority}} "{{description}}"
+
+task-done id:
+	task rc:.taskrc {{id}} done
+
+task-work:
+	task rc:.taskrc project:no-circles all
+
+task-ready:
+	task rc:.taskrc project:no-circles status:pending or status:waiting
+
+task-overdue:
+	task rc:.taskrc project:no-circles overdue
+
+task-sync-prompts:
+	cp .codex/prompts/taskwarrior-daily.md /Users/namanchetwani/.codex/prompts/taskwarrior-daily.md
+	cp .codex/prompts/taskwarrior-planning.md /Users/namanchetwani/.codex/prompts/taskwarrior-planning.md
+	cp .codex/prompts/taskwarrior-review.md /Users/namanchetwani/.codex/prompts/taskwarrior-review.md
+
 # Show git status + branch quickly
 repo-state:
 	git branch --show-current

@@ -148,6 +148,14 @@ Build a website-first, personalized daily newsletter system that curates 10 high
   - `just state-tail50`
   - `just state-atomic "<message>"`
   - `just state-session-summary "<done>" "<blockers>" "<next>"`
+  - `just task-next`
+  - `just task-add "<description>"`
+  - `just task-add-pri "<description>" "<priority>"`
+  - `just task-done <id>`
+  - `just task-work`
+  - `just task-ready`
+  - `just task-overdue`
+  - `just task-sync-prompts`
   - `just install`
   - `just dev`
   - `just build`
@@ -165,6 +173,24 @@ Quick refs: `tmux new -d -s codex-shell`, `tmux attach -t codex-shell`, `tmux li
 ## oracle
 Bundle prompt+files for a second model when stuck/buggy/review.
 Run once/session before first use: `npx -y @steipete/oracle --help`.
+
+## Taskwarrior Workflow (Required)
+- Use Taskwarrior as the default execution tracker for scoped implementation work.
+- Prefer project tag/field: `project:no-circles`.
+- Start each implementation pass by checking `task next` and ending by marking completed tasks `done`.
+- Keep tasks small and outcome-oriented; avoid vague entries.
+- Prompt templates for planning/triage/live updates must live in:
+  - local: `.codex/prompts/`
+  - global: `/Users/namanchetwani/.codex/prompts/`
+- Prefer `just task-*` shortcuts over raw `task` commands when available.
+
+## Intent Mapping (Required)
+- Treat natural-language phrasing like "I have a task...", "add a task...", "track this task...", or close variants as Taskwarrior intent.
+- Treat natural-language phrasing like "I have an idea...", "capture this idea...", "note this idea...", or close variants as ideas backlog intent (for example `documentation/ideas.md`), unless explicitly requested as an actionable task.
+- If wording is ambiguous between idea vs task, prefer:
+  1. actionable/near-term phrasing -> Taskwarrior task
+  2. exploratory/brainstorm phrasing -> ideas backlog entry
+- If needed, store both: idea in `documentation/ideas.md` and actionable execution item in Taskwarrior.
 
 ## Engineering Quality Bar
 - Keep quality bar high for every change.
