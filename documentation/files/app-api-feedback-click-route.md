@@ -15,8 +15,8 @@ Handles signed email click feedback (`More like this` / `Less like this`) with i
 6. Does not redirect; response is direct HTML for in-email click flow.
 
 ## Memory Append Format
-- `+ <title> | <url>`
-- `- <title> | <url>`
+- `+ [more_like_this] <title>`
+- `- [less_like_this] <title>`
 
 ## Failure Modes
 - Invalid/missing token -> `400`

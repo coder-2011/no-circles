@@ -172,7 +172,7 @@ V1 intentionally excludes a manual regenerate endpoint.
 - **Behavior**:
   - validates signature + expiry
   - reserves `processed_webhooks(provider=\"feedback_click\", webhook_id=jti)` to dedupe repeats
-  - appends one explicit line to `RECENT_FEEDBACK` (`+` or `-` + URL metadata)
+  - appends one explicit line to `RECENT_FEEDBACK` (`+/- [feedback_type] <title>`)
   - returns direct HTML confirmation (no redirect)
 - **Response**:
   - `200` confirmation page for success or duplicate no-op
