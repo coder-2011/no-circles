@@ -280,6 +280,30 @@ Result:
 - never auto-overwrite core interests from single forwarded issues
 - clear retention and deletion controls for forwarded content
 
+## Easy Brief Sharing System
+- Make it frictionless for users to share a daily brief (or single item) with other people.
+- Product intent:
+- turn high-quality briefs into organic distribution loops.
+- let users share signal, not screenshots or copied fragments.
+- MVP behavior:
+- add a `Share Brief` action that generates a clean public web page for that issue
+- support per-item share links (`Share this item`) in email and web
+- include attribution + subscribe CTA on shared pages
+- Guardrails:
+- user-level privacy control (public share on/off)
+- redact private user-only metadata from shared pages
+- stable canonical URLs to avoid duplicate pages
+
+## Open Source Strategy (Build in Public)
+- Consider open sourcing core parts of No-Circles early.
+- Rationale:
+- defensibility will come more from execution quality, product iteration speed, taste, and distribution than code secrecy.
+- open source can accelerate trust, contributor pull, and technical credibility.
+- MVP direction:
+- open source non-sensitive core modules first (rendering, ranking helpers, contracts, tests)
+- keep secrets, abuse controls, and provider keys in private config layers
+- publish clear contribution guidelines and architecture docs for external contributors
+
 ## Variable Rewards (Serendipity Jackpot)
 - If every email has identical structure and payoff, it becomes background noise.
 - Use the serendipity slice to occasionally include a "Jackpot" link that is unusually aligned with a deep, obscure user interest.
