@@ -116,7 +116,7 @@ describe("GET /api/feedback/click", () => {
     expect(reserveWebhookEventMock).toHaveBeenCalledWith("feedback_click", expect.any(String));
     expect(appendRecentFeedbackLinesMock).toHaveBeenCalledWith(
       expect.any(String),
-      [expect.stringContaining("+ Example One | https://example.com/1")]
+      [expect.stringContaining("+ [more_like_this] Example One")]
     );
   });
 

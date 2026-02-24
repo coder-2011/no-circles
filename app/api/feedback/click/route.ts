@@ -41,7 +41,7 @@ function htmlResponse(message: string, status = 200): Response {
 
 function feedbackLine(args: { feedbackType: "more_like_this" | "less_like_this"; url: string; title: string }): string {
   const marker = args.feedbackType === "more_like_this" ? "+" : "-";
-  return `${marker} ${args.title} | ${args.url}`;
+  return `${marker} [${args.feedbackType}] ${args.title}`;
 }
 
 export async function GET(request: Request) {
