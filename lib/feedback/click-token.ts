@@ -166,24 +166,30 @@ export function buildFeedbackClickUrl(args: { baseUrl: string; token: string }):
   return base.toString();
 }
 
-export function resolveFeedbackBaseUrl(): string | null {
-  const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  if (configured) {
-    try {
-      return new URL(configured).origin;
-    } catch {
-      return null;
-    }
+function isLocalhostHost(hostname: string): boolean {
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+}
+
+function normalizePublicOrigin(value: string | undefined): string | null {
+  const candidate = value?.trim();
+  if (!candidate) {
+    return null;
   }
 
-  const vercelUrl = process.env.VERCEL_URL?.trim();
-  if (vercelUrl) {
-    try {
-      return new URL(`https://${vercelUrl}`).origin;
-    } catch {
+  try {
+    const parsed = new URL(candidate.startsWith("http://") || candidate.startsWith("https://") ? candidate : `https://${candidate}`);
+    if (isLocalhostHost(parsed.hostname)) {
       return null;
     }
+    return parsed.origin;
+  } catch {
+    return null;
   }
+}
+
+export function resolveFeedbackBaseUrl(): string | null {
+  const configuredSite = normalizePublicOrigin(process.env.NEXT_PUBLIC_SITE_URL);
+  if (configuredSite) return configuredSite;
 
   return null;
 }

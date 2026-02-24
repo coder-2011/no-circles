@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildFeedbackClickUrl,
   createFeedbackClickToken,
+  resolveFeedbackBaseUrl,
   verifyFeedbackClickToken
 } from "@/lib/feedback/click-token";
 
@@ -85,5 +86,18 @@ describe("feedback click token", () => {
     });
 
     expect(url).toBe("https://nocircles.app/api/feedback/click?token=abc");
+  });
+
+  it("uses NEXT_PUBLIC_SITE_URL when provided", () => {
+    process.env.NEXT_PUBLIC_SITE_URL = "https://www.no-circles.com";
+    expect(resolveFeedbackBaseUrl()).toBe("https://www.no-circles.com");
+    delete process.env.NEXT_PUBLIC_SITE_URL;
+  });
+
+  it("returns null for localhost NEXT_PUBLIC_SITE_URL", () => {
+    process.env.NEXT_PUBLIC_SITE_URL = "http://localhost:3000";
+    expect(resolveFeedbackBaseUrl()).toBeNull();
+
+    delete process.env.NEXT_PUBLIC_SITE_URL;
   });
 });

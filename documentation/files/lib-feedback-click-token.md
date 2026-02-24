@@ -28,5 +28,5 @@ Builds and verifies signed email click tokens for per-item preference feedback l
 - Default token TTL: 21 days.
 
 ## Notes
-- `resolveFeedbackBaseUrl()` prefers `NEXT_PUBLIC_SITE_URL`, then `VERCEL_URL`.
+- `resolveFeedbackBaseUrl()` uses only `NEXT_PUBLIC_SITE_URL` and rejects localhost origins for email link safety.
 - URL builder targets `GET /api/feedback/click` for email-safe one-click flows.
