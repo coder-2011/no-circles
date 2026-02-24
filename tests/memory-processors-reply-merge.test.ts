@@ -568,4 +568,41 @@ describe("structured reply memory updates", () => {
       recentFeedback.indexOf("- https://example.com/beta [issue:abc; item:2]")
     );
   });
+
+  it("caps explicit feedback append to the latest 10 lines", () => {
+    const existingLines = Array.from({ length: 9 }, (_, index) => `- Existing feedback ${index + 1}`);
+    const currentMemory = [
+      "PERSONALITY:",
+      "- Curious engineer",
+      "",
+      "ACTIVE_INTERESTS:",
+      "- AI",
+      "",
+      "SUPPRESSED_INTERESTS:",
+      "-",
+      "",
+      "RECENT_FEEDBACK:",
+      ...existingLines
+    ].join("\n");
+
+    const updated = appendRecentFeedbackLines(currentMemory, [
+      "+ [more_like_this] New feedback A",
+      "- [less_like_this] New feedback B",
+      "+ [more_like_this] New feedback C"
+    ]);
+    const sections = parseSections(updated);
+    const recentFeedback = sections?.RECENT_FEEDBACK ?? "";
+    const bulletLines = recentFeedback
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line.startsWith("- "));
+
+    expect(bulletLines.length).toBe(10);
+    expect(recentFeedback).not.toContain("Existing feedback 1");
+    expect(recentFeedback).not.toContain("Existing feedback 2");
+    expect(recentFeedback).toContain("Existing feedback 3");
+    expect(recentFeedback).toContain("[more_like_this] New feedback A");
+    expect(recentFeedback).toContain("[less_like_this] New feedback B");
+    expect(recentFeedback).toContain("[more_like_this] New feedback C");
+  });
 });

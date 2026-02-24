@@ -18,7 +18,7 @@ type GenerateMemoryArgs = {
 
 const ANTHROPIC_MESSAGES_API_URL = "https://api.anthropic.com/v1/messages";
 const MEMORY_MODEL_RETRIES = 2;
-const MAX_RECENT_FEEDBACK_LINES = 8;
+const MAX_RECENT_FEEDBACK_LINES = 10;
 const ANTHROPIC_AUTH_ERROR = "ANTHROPIC_AUTH_FAILED";
 
 function logMemoryEvent(level: "info" | "warn", event: string, details: Record<string, unknown>) {
@@ -409,19 +409,21 @@ export function appendRecentFeedbackLines(currentMemory: string, feedbackLines: 
   const sections = parseSections(currentMemory);
   if (sections) {
     const existingFeedback = parseBulletLinesPreserveOrder(sections.RECENT_FEEDBACK);
+    const condensedFeedback = [...existingFeedback, ...nextFeedbackLines].slice(-MAX_RECENT_FEEDBACK_LINES);
     return buildFallbackMemory({
       PERSONALITY: sections.PERSONALITY,
       ACTIVE_INTERESTS: sections.ACTIVE_INTERESTS,
       SUPPRESSED_INTERESTS: sections.SUPPRESSED_INTERESTS,
-      RECENT_FEEDBACK: toBullets([...existingFeedback, ...nextFeedbackLines])
+      RECENT_FEEDBACK: toBullets(condensedFeedback)
     });
   }
 
+  const condensedFeedback = nextFeedbackLines.slice(-MAX_RECENT_FEEDBACK_LINES);
   return buildFallbackMemory({
     PERSONALITY: "- Evolving learner profile",
     ACTIVE_INTERESTS: "- General curiosity",
     SUPPRESSED_INTERESTS: "-",
-    RECENT_FEEDBACK: toBullets(nextFeedbackLines)
+    RECENT_FEEDBACK: toBullets(condensedFeedback)
   });
 }
 

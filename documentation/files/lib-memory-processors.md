@@ -19,9 +19,10 @@ Builds onboarding/reply memory updates through a shared processing flow.
 6. Onboarding is model-required; if model output is invalid/unavailable after retries, throw `ONBOARDING_MODEL_REQUIRED` (no onboarding fallback write).
 7. Reply path falls back to deterministic local formatter when model output is invalid/unavailable.
 8. Reply fallback is non-destructive: preserve existing `PERSONALITY`, `ACTIVE_INTERESTS`, and `SUPPRESSED_INTERESTS`, and append the new reply to `RECENT_FEEDBACK`.
-9. Explicit feedback append path supports direct ordered line appends to `RECENT_FEEDBACK` (used by in-email click endpoint).
-10. Normalize canonical memory topic lines (split merged topic bullets and remove active/suppressed overlaps).
-11. Reuse shared lane parser from `lib/memory/active-interest-lanes.ts` to keep lane semantics aligned with discovery.
+9. `RECENT_FEEDBACK` is capped to the latest `10` lines in both reply fallback and explicit feedback-append paths.
+10. Explicit feedback append path supports direct ordered line appends to `RECENT_FEEDBACK` (used by in-email click endpoint).
+11. Normalize canonical memory topic lines (split merged topic bullets and remove active/suppressed overlaps).
+12. Reuse shared lane parser from `lib/memory/active-interest-lanes.ts` to keep lane semantics aligned with discovery.
 
 ## Observability (Lightweight)
 - Emits structured JSON logs to stdout/stderr for model and fallback outcomes.
