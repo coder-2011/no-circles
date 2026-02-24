@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getBrowserSupabaseClient } from "@/lib/auth/browser-client";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { Fanwood_Text } from "next/font/google";
+import { Fraunces, Sora } from "next/font/google";
 
 type AuthState = "loading" | "signed_in" | "signed_out" | "error";
 type SampleBriefItem = {
@@ -76,9 +76,14 @@ const SAMPLE_DAILY_BRIEF: SampleBriefItem[] = [
   }
 ];
 
-const topTitleFont = Fanwood_Text({
+const displayFont = Fraunces({
   subsets: ["latin"],
-  weight: "400"
+  weight: ["500", "600"]
+});
+
+const interfaceFont = Sora({
+  subsets: ["latin"],
+  weight: ["500", "600"]
 });
 
 function resolveSiteOrigin(): string {
@@ -246,34 +251,34 @@ export default function HomePage() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_15%,rgba(61,111,73,0.14),transparent_40%),radial-gradient(circle_at_82%_8%,rgba(198,182,137,0.24),transparent_36%),radial-gradient(circle_at_70%_86%,rgba(93,131,89,0.12),transparent_40%)]" />
       <div className="fixed right-4 top-4 z-40">
         <button
-          className="rounded-lg border border-[#3D6F49] bg-[#3D6F49] px-4 py-2.5 text-sm font-semibold text-[#F3ECD8] shadow-sm transition hover:bg-[#315E3E] disabled:cursor-not-allowed disabled:opacity-60 md:px-5 md:py-3 md:text-base"
+          className={`${interfaceFont.className} rounded-lg border border-[#3D6F49] bg-[#3D6F49] px-4 py-2.5 text-sm font-semibold text-[#F3ECD8] shadow-sm transition hover:bg-[#315E3E] disabled:cursor-not-allowed disabled:opacity-60 md:px-5 md:py-3 md:text-base`}
           disabled={authState === "loading"}
           onClick={signInWithGoogle}
           type="button"
         >
-          {authState === "signed_in" ? "Continue onboarding" : "Get started"}
+          Get started
         </button>
       </div>
       <div className="relative mx-auto w-full max-w-7xl space-y-10">
         <section className="rounded-3xl border border-[#C9BD9A] bg-[#F8F3E4] p-8 shadow-sm md:p-10">
-          <div className={`${topTitleFont.className} text-center text-[45px] font-bold leading-none text-[#2B3125] md:text-[57px]`}>
+          <div className={`${displayFont.className} text-center text-[45px] font-semibold leading-none text-[#2B3125] md:text-[57px]`}>
             The No-Circles Project
           </div>
-          <h1 className="mt-5 text-[36px] font-normal leading-tight text-[#2B3125] md:text-[48px]">
+          <h1 className={`${displayFont.className} mt-5 text-[36px] font-medium leading-tight text-[#2B3125] md:text-[48px]`}>
             Find what search would never show you.
           </h1>
           <div className="mt-6 flex flex-wrap gap-3">
             <button
-              className="rounded-lg border border-[#3D6F49] bg-[#3D6F49] px-5 py-3 text-base font-medium text-[#F3ECD8] transition hover:bg-[#315E3E] disabled:opacity-60"
+              className={`${interfaceFont.className} rounded-lg border border-[#3D6F49] bg-[#3D6F49] px-5 py-3 text-base font-medium text-[#F3ECD8] transition hover:bg-[#315E3E] disabled:opacity-60`}
               disabled={authState === "loading"}
               onClick={signInWithGoogle}
               type="button"
             >
-              Get started
+              Distract Me Intelligently
             </button>
             {authState === "signed_in" ? (
               <button
-                className="rounded-lg border border-[#A49671] bg-[#EFE7D0] px-5 py-3 text-base font-medium text-[#374230] transition hover:bg-[#E5DCC3]"
+                className={`${interfaceFont.className} rounded-lg border border-[#A49671] bg-[#EFE7D0] px-5 py-3 text-base font-medium text-[#374230] transition hover:bg-[#E5DCC3]`}
                 onClick={signOut}
                 type="button"
               >
@@ -291,7 +296,7 @@ export default function HomePage() {
                 Daily: 10 reads
               </span>
               <p className="max-w-3xl pt-8 text-[1.45rem] font-semibold leading-[1.35] text-[#374230] md:pt-6 md:text-[1.95rem]">
-                No-Circles curates 10 niche long-form pieces every morning, for unexpected but meaningful discovery.
+                No-Circles curates 10 niche long-form pieces every morning, for unexpected, meaningful discovery.
               </p>
               <p className="mt-4 max-w-3xl text-lg leading-[1.55] text-[#4A5641] md:text-xl">
                 And when your interests change or you choose a new side quest, you reply to the email and your daily
@@ -318,7 +323,9 @@ export default function HomePage() {
         </section>
 
         <section className="rounded-3xl border border-[#C9BD9A] bg-[#FBF7EB] p-8 text-[#2D3426] shadow-sm md:p-10">
-          <h2 className="text-2xl font-semibold leading-tight text-[#2D3426] md:text-3xl">Sample Daily Brief</h2>
+          <h2 className={`${displayFont.className} text-2xl font-semibold leading-tight text-[#2D3426] md:text-3xl`}>
+            Sample Daily Brief
+          </h2>
           <div className="mt-5 space-y-5 text-[#4A5641]">
             <ol className="space-y-5">
               {SAMPLE_DAILY_BRIEF.map((item, index) => (
@@ -338,9 +345,6 @@ export default function HomePage() {
           </div>
         </section>
       </div>
-      <p className="pointer-events-none fixed bottom-4 right-4 text-xs font-medium text-[#6B775D]/90">
-        built by Naman Chetwani
-      </p>
     </main>
   );
 }
