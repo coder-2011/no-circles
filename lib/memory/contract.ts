@@ -5,7 +5,7 @@ export const MEMORY_HEADERS = [
   "RECENT_FEEDBACK"
 ] as const;
 
-export const MEMORY_WORD_CAP = 800;
+export const MEMORY_WORD_CAP = 400;
 
 type MemoryHeader = (typeof MEMORY_HEADERS)[number];
 

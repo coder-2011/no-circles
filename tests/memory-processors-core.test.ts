@@ -43,7 +43,7 @@ describe("memory contract", () => {
     expect(hasRequiredHeaders(memory)).toBe(true);
   });
 
-  it("enforces the 800-word cap", () => {
+  it("enforces the canonical memory word cap", () => {
     const memory = [
       "PERSONALITY:",
       "- word",

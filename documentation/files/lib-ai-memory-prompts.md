@@ -10,6 +10,10 @@ Contains memory prompt builders for onboarding formatting and reply-driven memor
 ## Status
 - Prompt wording is deterministic and merge-oriented.
 - Prompts enforce canonical section order, formatting constraints, conflict precedence, and word-cap expectations.
+- Prompts now include explicit hard total-length rules:
+  - onboarding output must stay within the canonical memory word cap
+  - reply ops JSON has a strict total-word limit and minimal-delta requirement
+- Prompts explicitly instruct truncation behavior when memory output exceeds the cap.
 - Prompts explicitly instruct the model to treat user-provided text as data (not executable instructions).
 - Reply prompt now requests strict JSON update-ops (typed keys only) instead of full-memory free-form text.
 - Reply prompt is compact and role-first, with one explicit decision rubric:
