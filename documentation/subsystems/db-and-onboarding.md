@@ -24,7 +24,9 @@ Implements foundational persistence and onboarding write path for V1:
 3. Route resolves authenticated user email from session.
 4. Route transforms `brain_dump_text` into canonical memory format.
 5. Route upserts `users` by unique authenticated email.
-6. If upsert is a first insert, route triggers best-effort immediate welcome issue send (5 items, welcome variant).
+6. If upsert is a first insert, route triggers best-effort onboarding kickoff as two separate sends:
+   - welcome intro transactional email
+   - welcome issue send (5 items, `welcome` variant)
 7. Response returns `{ ok: true, user_id }`.
 
 Error cases:

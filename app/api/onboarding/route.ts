@@ -3,6 +3,7 @@ import { sql } from "drizzle-orm";
 import { getAuthenticatedUserEmail } from "@/lib/auth/server-user";
 import { db } from "@/lib/db/client";
 import { users } from "@/lib/db/schema";
+import { sendTransactionalEmail } from "@/lib/email/send-newsletter";
 import { formatOnboardingMemory } from "@/lib/memory/processors";
 import { onboardingSchema } from "@/lib/schemas";
 import { sendUserNewsletter } from "@/lib/pipeline/send-user-newsletter";
@@ -18,6 +19,43 @@ function isJsonContentType(request: Request): boolean {
 
 function payloadBytes(value: string): number {
   return new TextEncoder().encode(value).length;
+}
+
+function resolveGreetingName(value: string): string {
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : "there";
+}
+
+function renderWelcomeIntroEmail(preferredName: string): { subject: string; html: string; text: string } {
+  const greetingName = resolveGreetingName(preferredName);
+  const subject = "Welcome to The No-Circles Project";
+  const html = [
+    `<div style=\"font-family: 'Source Sans 3', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: #F3ECD8; color: #2D3426; max-width: 720px; margin: 0 auto; padding: 24px;\">`,
+    `<div style=\"border: 1px solid #C9BD9A; background: #FBF7EB; border-radius: 18px; padding: 20px;\">`,
+    `<h2 style=\"margin: 0 0 8px; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 34px; line-height: 1.15; color: #2B3125;\">Hi ${greetingName},</h2>`,
+    `<p style=\"line-height: 1.6; color: #4A5641; margin: 0 0 12px;\">Hey, what’s up, I’m Naman, the solo dev behind The No-Circles Project.</p>`,
+    `<p style=\"line-height: 1.6; color: #4A5641; margin: 0 0 12px;\">I built this because most of us end up reading the same things as everyone else in our field, and that usually leads to similar ideas.</p>`,
+    `<p style=\"line-height: 1.6; color: #4A5641; margin: 0 0 12px;\">The No-Circles Project is my attempt to break that pattern. If you want to come up with great ideas, you can't just read what everyone else in your field is reading.</p>`,
+    `<p style=\"line-height: 1.6; color: #4A5641; margin: 0 0 12px;\">Your first brief arrives as a separate email right after this one.</p>`,
+    `<p style=\"line-height: 1.6; color: #2D3426; margin: 0;\"><strong>TLDR; If we give you better inputs, you make better ideas.</strong></p>`,
+    `</div>`,
+    `</div>`
+  ].join("\n");
+  const text = [
+    `Hi ${greetingName},`,
+    "",
+    "Hey, what’s up, I’m Naman, the solo dev behind The No-Circles Project.",
+    "",
+    "I built this because most of us end up reading the same things as everyone else in our field, and that usually leads to similar ideas.",
+    "",
+    "The No-Circles Project is my attempt to break that pattern. If you want to come up with great ideas, you can't just read what everyone else in your field is reading.",
+    "",
+    "Your first brief arrives as a separate email right after this one.",
+    "",
+    "TLDR; If we give you better inputs, you make better ideas."
+  ].join("\n");
+
+  return { subject, html, text };
 }
 
 export async function POST(request: Request) {
@@ -123,6 +161,28 @@ export async function POST(request: Request) {
 
     if (upsertedUser.wasInserted) {
       after(async () => {
+        try {
+          const introEmail = renderWelcomeIntroEmail(preferred_name);
+          const introResult = await sendTransactionalEmail({
+            to: authenticatedEmail,
+            subject: introEmail.subject,
+            html: introEmail.html,
+            text: introEmail.text
+          });
+
+          if (!introResult.ok) {
+            logWarn("onboarding", "welcome_intro_not_sent", {
+              user_id: upsertedUser.id,
+              error: introResult.error ?? null
+            });
+          }
+        } catch (error) {
+          logError("onboarding", "welcome_intro_failed", {
+            user_id: upsertedUser.id,
+            error
+          });
+        }
+
         try {
           const result = await sendUserNewsletter({
             userId: upsertedUser.id,

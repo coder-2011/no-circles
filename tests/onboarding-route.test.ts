@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const {
   getAuthenticatedUserEmailMock,
   formatOnboardingMemoryMock,
+  sendTransactionalEmailMock,
   sendUserNewsletterMock,
   afterMock,
   returningMock,
@@ -12,6 +13,7 @@ const {
 } = vi.hoisted(() => {
   const getAuthenticatedUserEmail = vi.fn();
   const formatOnboardingMemory = vi.fn();
+  const sendTransactionalEmail = vi.fn(async () => ({ ok: true, providerMessageId: "intro_1", attempts: 1, error: null }));
   const sendUserNewsletter = vi.fn(async () => ({ status: "sent", providerMessageId: "msg_1" }));
   const after = vi.fn((callback: () => Promise<void> | void) => {
     void callback();
@@ -24,6 +26,7 @@ const {
   return {
     getAuthenticatedUserEmailMock: getAuthenticatedUserEmail,
     formatOnboardingMemoryMock: formatOnboardingMemory,
+    sendTransactionalEmailMock: sendTransactionalEmail,
     sendUserNewsletterMock: sendUserNewsletter,
     afterMock: after,
     returningMock: returning,
@@ -43,6 +46,10 @@ vi.mock("@/lib/memory/processors", () => ({
 
 vi.mock("@/lib/pipeline/send-user-newsletter", () => ({
   sendUserNewsletter: sendUserNewsletterMock
+}));
+
+vi.mock("@/lib/email/send-newsletter", () => ({
+  sendTransactionalEmail: sendTransactionalEmailMock
 }));
 
 vi.mock("@/lib/db/client", () => ({
@@ -80,6 +87,7 @@ describe("POST /api/onboarding", () => {
     valuesMock.mockClear();
     onConflictDoUpdateMock.mockClear();
     returningMock.mockClear();
+    sendTransactionalEmailMock.mockClear();
     sendUserNewsletterMock.mockClear();
     afterMock.mockClear();
   });
@@ -342,6 +350,13 @@ describe("POST /api/onboarding", () => {
     const response = await POST(request);
     expect(response.status).toBe(200);
     expect(afterMock).toHaveBeenCalledTimes(1);
+    expect(sendTransactionalEmailMock).toHaveBeenCalledTimes(1);
+    expect(sendTransactionalEmailMock).toHaveBeenCalledWith({
+      to: "new-user@example.com",
+      subject: "Welcome to The No-Circles Project",
+      html: expect.stringContaining("Your first brief arrives as a separate email right after this one."),
+      text: expect.stringContaining("Your first brief arrives as a separate email right after this one.")
+    });
     expect(sendUserNewsletterMock).toHaveBeenCalledTimes(1);
     expect(sendUserNewsletterMock).toHaveBeenCalledWith({
       userId: "user-new",
@@ -349,6 +364,7 @@ describe("POST /api/onboarding", () => {
       targetItemCount: 5,
       issueVariant: "welcome"
     });
+    expect(sendTransactionalEmailMock.mock.invocationCallOrder[0]).toBeLessThan(sendUserNewsletterMock.mock.invocationCallOrder[0]);
   });
 
   it("returns 500 when onboarding memory processing fails", async () => {
