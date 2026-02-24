@@ -5,28 +5,27 @@ describe("buildReplyMemoryPrompt", () => {
   it("includes hard section-ownership constraints to reduce cross-section duplication", () => {
     const prompt = buildReplyMemoryPrompt("ACTIVE_INTERESTS:\n-\nSUPPRESSED_INTERESTS:\n-", "less ai");
 
-    expect(prompt).toContain("Section ownership (hard constraints):");
-    expect(prompt).toContain("PERSONALITY is for stable user traits only");
-    expect(prompt).toContain("A topic must have one home at a time");
-    expect(prompt).toContain("Do not duplicate the same topic idea across multiple sections");
+    expect(prompt).toContain("Consistency rules:");
+    expect(prompt).toContain("PERSONALITY is stable traits only, not topics.");
+    expect(prompt).toContain("Keep each topic in one home (active or suppressed, never both).");
+    expect(prompt).toContain("Avoid duplicate entries within and across arrays.");
   });
 
   it("instructs intensity inference with core/side/suppressed outcomes", () => {
     const prompt = buildReplyMemoryPrompt("ACTIVE_INTERESTS:\n- AI", "less ai");
 
-    expect(prompt).toContain("Interest intensity inference:");
-    expect(prompt).toContain("Infer user intent probabilistically from wording and context");
+    expect(prompt).toContain("Decision policy:");
+    expect(prompt).toContain("Look out for acronym mentions and classify them deliberately.");
     expect(prompt).toContain("move_core_to_side");
     expect(prompt).toContain("move_side_to_core");
-    expect(prompt).toContain("For uncertain language, prefer reversible changes (side lane) over suppression.");
+    expect(prompt).toContain("If uncertain between suppress vs keep, prefer reversible behavior (side lane) over suppression.");
   });
 
-  it("includes hard-stop cascade guidance for parent/subtopic cases", () => {
+  it("includes hard-stop and re-enable suppression guidance", () => {
     const prompt = buildReplyMemoryPrompt("ACTIVE_INTERESTS:\n- philosophy of physics", "scrap philosophy");
 
-    expect(prompt).toContain("Hierarchy and overlap handling (hard constraints):");
-    expect(prompt).toContain("If user hard-stops a parent topic, also hard-stop active subtopics");
-    expect(prompt).toContain("Example: 'scrap philosophy' should also remove/suppress 'philosophy of physics'.");
-    expect(prompt).toContain("If user hard-stops a subtopic only, do not remove parent or sibling topics");
+    expect(prompt).toContain("Suppression policy: hard stop language -> remove_active + add_suppressed.");
+    expect(prompt).toContain("Re-enable language -> remove_suppressed plus add_active/add_active_core/add_active_side as implied.");
+    expect(prompt).toContain('Reply: Stop startup funding news, bring crypto back.');
   });
 });
