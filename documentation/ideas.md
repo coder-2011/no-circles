@@ -264,6 +264,22 @@ Result:
 - keep contrast and accessibility thresholds strict across all color variants.
 - constrain palette to brand-safe tones so variation does not look random or off-brand.
 
+## Service Email Relay (Send Newsletter Anywhere)
+- Let each user generate a personal No-Circles service email that can receive forwarded newsletters from any sender/source.
+- Product intent:
+- make No-Circles the inbox layer for external newsletter intake, not only original outbound sends.
+- allow users to centralize high-signal content in one place without changing their existing subscriptions.
+- MVP behavior:
+- create a per-user relay address (for example `u_<token>@in.no-circles.com`)
+- user forwards or subscribes external newsletters to that address
+- inbound pipeline parses content/links and stores items as a "captured feed" stream
+- optionally merge captured themes into user interest memory with bounded weights
+- Guardrails:
+- require explicit user ownership/consent for relay setup
+- strict sender validation and spam/rate controls
+- never auto-overwrite core interests from single forwarded issues
+- clear retention and deletion controls for forwarded content
+
 ## Variable Rewards (Serendipity Jackpot)
 - If every email has identical structure and payoff, it becomes background noise.
 - Use the serendipity slice to occasionally include a "Jackpot" link that is unusually aligned with a deep, obscure user interest.
