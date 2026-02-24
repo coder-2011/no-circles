@@ -36,7 +36,7 @@ select cron.schedule(
       'authorization', 'Bearer CRON_SECRET_VALUE',
       'content-type', 'application/json'
     ),
-    body := '{"batch_size":3}'::jsonb
+    body := '{"batch_size":10}'::jsonb
   );
   $$
 );
