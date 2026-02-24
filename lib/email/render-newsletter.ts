@@ -340,8 +340,8 @@ export function renderNewsletter(args: RenderNewsletterArgs): RenderedNewsletter
       const feedbackActions = feedbackLinks
         ? [
             `<div style=\"margin: 10px 0 0;\">`,
-            `<a href=\"${escapeHtml(feedbackLinks.moreLikeThisUrl)}\" style=\"display: inline-block; margin-right: 8px; border: 1px solid ${theme.feedbackMoreBorder}; border-radius: 999px; background: ${theme.feedbackMoreBackground}; color: ${theme.feedbackMoreText}; text-decoration: none; padding: 4px 10px; font-size: 12px;\">More like this</a>`,
-            `<a href=\"${escapeHtml(feedbackLinks.lessLikeThisUrl)}\" style=\"display: inline-block; border: 1px solid ${theme.feedbackLessBorder}; border-radius: 999px; background: ${theme.feedbackLessBackground}; color: ${theme.feedbackLessText}; text-decoration: none; padding: 4px 10px; font-size: 12px;\">Less like this</a>`,
+            `<a href=\"${escapeHtml(feedbackLinks.moreLikeThisUrl)}\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"display: inline-block; margin-right: 8px; border: 1px solid ${theme.feedbackMoreBorder}; border-radius: 999px; background: ${theme.feedbackMoreBackground}; color: ${theme.feedbackMoreText}; text-decoration: none; padding: 4px 10px; font-size: 12px;\">More like this</a>`,
+            `<a href=\"${escapeHtml(feedbackLinks.lessLikeThisUrl)}\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"display: inline-block; border: 1px solid ${theme.feedbackLessBorder}; border-radius: 999px; background: ${theme.feedbackLessBackground}; color: ${theme.feedbackLessText}; text-decoration: none; padding: 4px 10px; font-size: 12px;\">Less like this</a>`,
             `</div>`
           ].join("\n")
         : "";

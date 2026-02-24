@@ -101,6 +101,8 @@ describe("renderNewsletter", () => {
 
     expect(rendered.html).toContain(">More like this</a>");
     expect(rendered.html).toContain(">Less like this</a>");
+    expect(rendered.html).toContain('target="_blank"');
+    expect(rendered.html).toContain('rel="noopener noreferrer"');
     expect(rendered.text).toContain("More like this: https://nocircles.app/api/feedback/click?token=more");
     expect(rendered.text).toContain("Less like this: https://nocircles.app/api/feedback/click?token=less");
   });
