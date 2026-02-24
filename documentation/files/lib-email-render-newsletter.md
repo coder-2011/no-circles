@@ -16,7 +16,7 @@ Renders final newsletter content into subject + HTML + plain text from curated e
 ## Behavior
 - builds date-aware daily subject (`Your daily brief for ...`) or welcome subject (`Welcome to No Circles - your first issue`)
 - renders exactly the provided item list order
-- renders each item as a bordered card and keeps title as clickable hyperlink to the item URL
+- renders each item as a bordered card and keeps only the title as the clickable hyperlink to the item URL (no duplicate raw URL link row beneath summary)
 - when `isSerendipitous` is true, renders a small inline note indicating the item is a serendipity/new-territory pick
 - when `quote` is provided, renders an inline `Quote of the Day` section directly above the reply-adaptation footer line in both HTML and plain text outputs
 - when feedback links are provided, renders per-item in-email actions (`More like this`, `Less like this`) in HTML and includes equivalent link lines in plain text output

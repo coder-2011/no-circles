@@ -352,7 +352,6 @@ export function renderNewsletter(args: RenderNewsletterArgs): RenderedNewsletter
         `</h3>`,
         serendipityNote,
         `<p style=\"margin: 0 0 8px; line-height: 1.6; color: ${theme.bodyText}; font-size: 15px;\">${escapeHtml(item.summary)}</p>`,
-        `<p style=\"margin: 0;\"><a href=\"${escapeHtml(item.url)}\" style=\"color: ${theme.urlText}; font-size: 13px;\">${escapeHtml(item.url)}</a></p>`,
         feedbackActions,
         `</section>`
       ].join("\n");
