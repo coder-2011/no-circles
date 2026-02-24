@@ -304,6 +304,19 @@ Result:
 - keep secrets, abuse controls, and provider keys in private config layers
 - publish clear contribution guidelines and architecture docs for external contributors
 
+## The "Guerrilla Bookmark" (Library/Bookstore Infiltration)
+- Casual intellectual readers spend time in physical bookstores, libraries, and cafes reading dense non-fiction.
+- The execution:
+- design and print ~500 beautiful, minimalist, heavy-cardstock bookmarks that feel like high-end typography, not ads.
+- The drop:
+- place bookmarks in dense sections (for example Philosophy, History, Evolutionary Biology) inside complex books (for example Gödel, Escher, Bach, Machiavelli, or dense historical biographies).
+- The user experience:
+- a reader opens a book and finds a quiet, non-pushy note:
+- "The internet is too loud. This bookmark is a reminder to read slowly. If you want 10 quiet, factual, slop-free links like this book delivered to your inbox every morning, email a single word to [hello@yourdomain.com]."
+- Why it works:
+- feels like serendipitous offline discovery
+- captures users in a deep-focus context where No-Circles value proposition is immediately legible
+
 ## Variable Rewards (Serendipity Jackpot)
 - If every email has identical structure and payoff, it becomes background noise.
 - Use the serendipity slice to occasionally include a "Jackpot" link that is unusually aligned with a deep, obscure user interest.
