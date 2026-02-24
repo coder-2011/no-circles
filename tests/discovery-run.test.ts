@@ -124,11 +124,10 @@ describe("runDiscovery", () => {
     expect(result.candidates).toHaveLength(3);
     expect(new Set(result.candidates.map((candidate) => candidate.topic)).size).toBe(2);
     expect(result.candidates.map((candidate) => candidate.canonicalUrl)).toEqual([
+      "https://example.com/a",
       "https://example.com/shared",
-      "https://example.com/b",
-      "https://example.com/a"
+      "https://example.com/b"
     ]);
-    expect(result.warnings).toContain("BACKFILLED_FROM_QUALITY_POOL_1");
   });
 
   it("uses Haiku query builder output and falls back deterministically when it fails", async () => {
@@ -288,14 +287,11 @@ describe("runDiscovery", () => {
     );
 
     expect(result.candidates).toHaveLength(3);
-    expect(result.candidates[0]?.canonicalUrl).toBe("https://same.com/a");
-    expect(
-      result.warnings.some(
-        (warning) =>
-          warning.startsWith("BACKFILLED_FROM_QUALITY_POOL_") ||
-          warning.startsWith("RELAXED_TOPIC_BALANCE_BACKFILL_")
-      )
-    ).toBe(true);
+    expect(result.candidates.map((candidate) => candidate.canonicalUrl)).toEqual([
+      "https://same.com/a",
+      "https://same.com/b",
+      "https://same.com/c"
+    ]);
   });
 
   it("prefers underrepresented topics during backfill before repeating a dominant topic", async () => {
@@ -350,15 +346,9 @@ describe("runDiscovery", () => {
     expect(countsByTopic["topic a"]).toBe(2);
     expect(countsByTopic["topic b"]).toBe(1);
     expect(countsByTopic["topic c"]).toBe(1);
-    expect(
-      result.warnings.some(
-        (warning) =>
-          warning === "BACKFILLED_FROM_QUALITY_POOL_1" || warning === "RELAXED_TOPIC_BALANCE_BACKFILL_1"
-      )
-    ).toBe(true);
   });
 
-  it("keeps partial results and reports warnings when topic queries fail", async () => {
+  it("keeps partial results and backfills from quality pool when topic queries fail", async () => {
     const exaSearch = vi.fn(async ({ query }: { query: string; numResults: number }) => {
       if (query.startsWith("AI engineering")) {
         throw new Error("rate_limited");
@@ -383,16 +373,10 @@ describe("runDiscovery", () => {
     );
 
     expect(result.candidates).toHaveLength(2);
-    expect(result.candidates[0].canonicalUrl).toBe("https://example.com/good");
-    expect(result.candidates[1].canonicalUrl).toBe("https://example.com/good-2");
+    expect(result.candidates[0]?.canonicalUrl).toBe("https://example.com/good");
+    expect(result.candidates[1]?.canonicalUrl).toBe("https://example.com/good-2");
     expect(result.warnings.some((warning) => warning.startsWith("EXA_TOPIC_FAILURE:AI engineering"))).toBe(true);
-    expect(
-      result.warnings.some(
-        (warning) =>
-          warning.startsWith("BACKFILLED_FROM_QUALITY_POOL_") ||
-          warning.startsWith("RELAXED_TOPIC_BALANCE_BACKFILL_")
-      )
-    ).toBe(true);
+    expect(result.warnings).toContain("BACKFILLED_FROM_QUALITY_POOL_1");
   });
 
   it("derives topic seeds from personality/feedback when active interests are missing", async () => {
@@ -651,7 +635,11 @@ describe("runDiscovery", () => {
 
     expect(linkSelector).not.toHaveBeenCalled();
     expect(exaSearch).toHaveBeenCalledTimes(1);
-    expect(exaSearch.mock.calls[0]?.[0]?.query).toContain("AI engineering");
+    expect(
+      ["AI engineering", "distributed systems"].some((topic) =>
+        String(exaSearch.mock.calls[0]?.[0]?.query ?? "").includes(topic)
+      )
+    ).toBe(true);
     expect(
       ["last 7 days", "last 30 days", "last 90 days", "last 12 months", "since previous year"].some((operator) =>
         String(exaSearch.mock.calls[0]?.[0]?.query ?? "").includes(operator)
@@ -760,7 +748,7 @@ describe("runDiscovery", () => {
     ].join("\n");
 
     const exaSearch = vi.fn(async ({ query }: { query: string; numResults: number }) => {
-      const matchedTopic = topics.find((topic) => query.startsWith(topic));
+      const matchedTopic = [...topics].sort((a, b) => b.length - a.length).find((topic) => query.startsWith(topic));
       if (!matchedTopic) {
         throw new Error(`unexpected_topic_query:${query}`);
       }

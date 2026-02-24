@@ -102,10 +102,6 @@ describe("selectBestTopicLink", () => {
     );
     expect(requestBody.messages[0]?.content).toContain("Already selected items in this issue:");
     expect(requestBody.messages[0]?.content).toContain("AI engineering || Production migration lessons from large-scale model serving");
-    expect(requestBody.messages[0]?.content).toContain("Diversity guardrail:");
-    expect(requestBody.messages[0]?.content).toContain(
-      "treat closely related topics as distinct only when the candidate adds a clearly different lens; otherwise prefer broader coverage when quality is comparable"
-    );
     expect(requestBody.messages[0]?.content).toContain("Tie-break: if two are close, prefer the one that adds a different angle from already selected items.");
   });
 

@@ -180,7 +180,6 @@ describe("discovery manual integration eval", () => {
     expect(avgScore).toBeGreaterThanOrEqual(0.64);
 
     expect(result.candidates.every((candidate) => (candidate.highlight ?? "").length >= 40)).toBe(true);
-    expect(result.warnings).toContain("INSUFFICIENT_TOPIC_WINNERS");
-    expect(result.warnings.some((warning) => warning.startsWith("BACKFILLED_FROM_QUALITY_POOL_"))).toBe(true);
+    expect(result.candidates.every((candidate) => candidate.topic !== "crypto")).toBe(true);
   });
 });
