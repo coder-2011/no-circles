@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { outboundSendIdempotency, users } from "@/lib/db/schema";
+import { users } from "@/lib/db/schema";
 import { runDiscovery, type DiscoveryRunResult } from "@/lib/discovery/run-discovery";
 import { getFinalHighlightsByUrl } from "@/lib/discovery/exa-contents";
 import {
@@ -11,7 +11,7 @@ import {
   normalizeBloomStateFromUserRow,
   type UserBloomState
 } from "@/lib/bloom/user-url-bloom";
-import { generateNewsletterSummaries, type NewsletterSummaryItem } from "@/lib/summary/writer";
+import { generateNewsletterSummaries } from "@/lib/summary/writer";
 import {
   pickRandomNewsletterThemeTemplate,
   renderNewsletter,
@@ -26,6 +26,7 @@ import {
 } from "@/lib/feedback/click-token";
 import {
   buildOutboundIdempotencyKey,
+  markOutboundSendIdempotencySent,
   markOutboundSendIdempotencyFailed,
   reserveOutboundSendIdempotency,
   type ReserveOutboundSendResult
@@ -63,12 +64,11 @@ type SendPipelineDeps = {
   sendNewsletterFn?: typeof sendNewsletter;
   loadUserFn?: (userId: string) => Promise<PipelineUser | null>;
   reserveIdempotencyFn?: (args: { userId: string; idempotencyKey: string; localIssueDate: string }) => Promise<ReserveOutboundSendResult>;
+  markIdempotencySentFn?: (args: { idempotencyKey: string; providerMessageId?: string | null }) => Promise<void>;
   markIdempotencyFailedFn?: (args: { idempotencyKey: string; reason: string }) => Promise<void>;
   persistSendSuccessFn?: (args: {
     userId: string;
     runAtUtc: Date;
-    idempotencyKey: string;
-    providerMessageId: string | null;
     bloomState: UserBloomState;
   }) => Promise<void>;
 };
@@ -121,31 +121,20 @@ export async function sendUserNewsletter(
 
   const loadUserFn = deps.loadUserFn ?? loadUser;
   const reserveIdempotencyFn = deps.reserveIdempotencyFn ?? reserveOutboundSendIdempotency;
+  const markIdempotencySentFn = deps.markIdempotencySentFn ?? markOutboundSendIdempotencySent;
   const markIdempotencyFailedFn = deps.markIdempotencyFailedFn ?? markOutboundSendIdempotencyFailed;
   const targetItemCount = args.targetItemCount ?? DEFAULT_TARGET_ITEM_COUNT;
   const issueVariant = args.issueVariant ?? "daily";
   const persistSendSuccessFn =
     deps.persistSendSuccessFn ??
     (async (params) => {
-      await db.transaction(async (tx) => {
-        await tx
-          .update(users)
-          .set({
-            lastIssueSentAt: params.runAtUtc,
-            sentUrlBloomBits: encodeBloomBitsBase64(params.bloomState)
-          })
-          .where(eq(users.id, params.userId));
-
-        await tx
-          .update(outboundSendIdempotency)
-          .set({
-            status: "sent",
-            providerMessageId: params.providerMessageId,
-            failureReason: null,
-            updatedAt: new Date()
-          })
-          .where(eq(outboundSendIdempotency.idempotencyKey, params.idempotencyKey));
-      });
+      await db
+        .update(users)
+        .set({
+          lastIssueSentAt: params.runAtUtc,
+          sentUrlBloomBits: encodeBloomBitsBase64(params.bloomState)
+        })
+        .where(eq(users.id, params.userId));
     });
 
   const user = await loadUserFn(args.userId);
@@ -318,12 +307,14 @@ export async function sendUserNewsletter(
     };
   }
 
-  let summaries: NewsletterSummaryItem[];
   const serendipityTopicSet = new Set(discovery.serendipityTopics ?? []);
   const summaryInputCandidates = candidatesWithHighlights.slice(0, targetItemCount);
+  let idempotencyMarkedSent = false;
+  let sentProviderMessageId: string | null = null;
+  let sentSummaryCount = 0;
 
   try {
-    summaries = await generateSummariesFn({
+    const summaries = await generateSummariesFn({
       items: summaryInputCandidates.map((candidate) => ({
         url: candidate.url,
         title: candidate.title ?? "Untitled",
@@ -333,165 +324,231 @@ export async function sendUserNewsletter(
       })),
       targetWords: 100
     });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "SUMMARY_FAILED";
-    await markIdempotencyFailedFn({ idempotencyKey, reason: message });
+    sentSummaryCount = summaries.length;
 
-    return {
-      status: "send_failed",
-      userId: user.id,
-      runAtUtc: args.runAtUtc.toISOString(),
-      itemCount: 0,
-      idempotencyKey,
-      error: message
-    };
-  }
+    if (summaries.length === 0) {
+      await markIdempotencyFailedFn({
+        idempotencyKey,
+        reason: "SUMMARY_EMPTY_AFTER_CONTEXT_FILTER"
+      });
 
-  if (summaries.length === 0) {
-    await markIdempotencyFailedFn({
-      idempotencyKey,
-      reason: "SUMMARY_EMPTY_AFTER_CONTEXT_FILTER"
-    });
+      return {
+        status: "insufficient_content",
+        userId: user.id,
+        runAtUtc: args.runAtUtc.toISOString(),
+        itemCount: summaries.length,
+        idempotencyKey,
+        error: "SUMMARY_EMPTY_AFTER_CONTEXT_FILTER"
+      };
+    }
 
-    return {
-      status: "insufficient_content",
-      userId: user.id,
-      runAtUtc: args.runAtUtc.toISOString(),
-      itemCount: summaries.length,
-      idempotencyKey,
-      error: "SUMMARY_EMPTY_AFTER_CONTEXT_FILTER"
-    };
-  }
+    let quote: PersonalizedQuote | null = null;
+    try {
+      quote = await selectQuoteFn({
+        userId: user.id,
+        localIssueDate,
+        interestMemoryText: user.interestMemoryText,
+        candidateCount: 50,
+        shortlistCount: 20
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "QUOTE_SELECTION_FAILED";
+      logError("send_pipeline", "quote_selection_failed", {
+        user_id: user.id,
+        run_at_utc: args.runAtUtc.toISOString(),
+        error: message
+      });
+    }
 
-  let quote: PersonalizedQuote | null = null;
-  try {
-    quote = await selectQuoteFn({
-      userId: user.id,
-      localIssueDate,
-      interestMemoryText: user.interestMemoryText,
-      candidateCount: 50,
-      shortlistCount: 20
-    });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "QUOTE_SELECTION_FAILED";
-    logError("send_pipeline", "quote_selection_failed", {
-      user_id: user.id,
-      run_at_utc: args.runAtUtc.toISOString(),
-      error: message
-    });
-  }
+    const selectedThemeTemplate = selectThemeTemplateFn();
 
-  const selectedThemeTemplate = selectThemeTemplateFn();
-
-  const rendered = renderNewsletterFn({
-    preferredName: user.preferredName,
-    timezone: user.timezone,
-    runAtUtc: args.runAtUtc,
-    items: summaries,
-    feedbackLinksByItemUrl: (() => {
-      const secret = process.env.FEEDBACK_LINK_SECRET?.trim();
-      const baseUrl = resolveFeedbackBaseUrl();
-      if (!secret || !baseUrl) {
-        if (!secret) {
-          logPipeline("feedback_links_disabled_missing_secret", {
-            user_id: user.id,
-            run_at_utc: args.runAtUtc.toISOString()
-          });
-        }
-
-        if (!baseUrl) {
-          logPipeline("feedback_links_disabled_missing_base_url", {
-            user_id: user.id,
-            run_at_utc: args.runAtUtc.toISOString()
-          });
-        }
-
-        return undefined;
-      }
-
-      const linksByUrl: Record<string, { moreLikeThisUrl: string; lessLikeThisUrl: string }> = {};
-      for (let index = 0; index < summaries.length; index += 1) {
-        const summary = summaries[index];
-        if (!summary) {
-          continue;
-        }
-
-        const moreLikeToken = createFeedbackClickToken({
-          userId: user.id,
-          url: summary.url,
-          title: summary.title,
-          feedbackType: "more_like_this",
-          secret
-        });
-        const lessLikeToken = createFeedbackClickToken({
-          userId: user.id,
-          url: summary.url,
-          title: summary.title,
-          feedbackType: "less_like_this",
-          secret
-        });
-
-        linksByUrl[summary.url] = {
-          moreLikeThisUrl: buildFeedbackClickUrl({ baseUrl, token: moreLikeToken }),
-          lessLikeThisUrl: buildFeedbackClickUrl({ baseUrl, token: lessLikeToken })
-        };
-      }
-
-      return linksByUrl;
-    })(),
-    quote,
-    variant: issueVariant,
-    themeTemplate: selectedThemeTemplate
-  });
-
-  const sendResult = await sendNewsletterFn({
-    to: user.email,
-    subject: rendered.subject,
-    html: rendered.html,
-    text: rendered.text,
-    idempotencyKey
-  });
-
-  if (!sendResult.ok) {
-    const reason = sendResult.error ?? "SEND_PROVIDER_FAILURE";
-    await markIdempotencyFailedFn({ idempotencyKey, reason });
-
-    logPipeline("send_failed", {
-      user_id: user.id,
-      run_at_utc: args.runAtUtc.toISOString(),
-      attempts: sendResult.attempts,
-      reason
-    });
-
-    return {
-      status: "send_failed",
-      userId: user.id,
-      runAtUtc: args.runAtUtc.toISOString(),
-      itemCount: summaries.length,
-      idempotencyKey,
-      error: reason
-    };
-  }
-
-  const sentCanonicalUrls = summaryInputCandidates.map((candidate) => candidate.canonicalUrl);
-  const bloomAfterSend = addCanonicalUrls(bloomState, sentCanonicalUrls);
-
-  try {
-    await persistSendSuccessFn({
-      userId: user.id,
+    const rendered = renderNewsletterFn({
+      preferredName: user.preferredName,
+      timezone: user.timezone,
       runAtUtc: args.runAtUtc,
-      idempotencyKey,
-      providerMessageId: sendResult.providerMessageId,
-      bloomState: bloomAfterSend
-    });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "POST_SEND_DB_UPDATE_FAILED";
-    await markIdempotencyFailedFn({ idempotencyKey, reason: message });
+      items: summaries,
+      feedbackLinksByItemUrl: (() => {
+        const secret = process.env.FEEDBACK_LINK_SECRET?.trim();
+        const baseUrl = resolveFeedbackBaseUrl();
+        if (!secret || !baseUrl) {
+          if (!secret) {
+            logPipeline("feedback_links_disabled_missing_secret", {
+              user_id: user.id,
+              run_at_utc: args.runAtUtc.toISOString()
+            });
+          }
 
-    logError("send_pipeline", "post_send_db_update_failed", {
+          if (!baseUrl) {
+            logPipeline("feedback_links_disabled_missing_base_url", {
+              user_id: user.id,
+              run_at_utc: args.runAtUtc.toISOString()
+            });
+          }
+
+          return undefined;
+        }
+
+        const linksByUrl: Record<string, { moreLikeThisUrl: string; lessLikeThisUrl: string }> = {};
+        for (let index = 0; index < summaries.length; index += 1) {
+          const summary = summaries[index];
+          if (!summary) {
+            continue;
+          }
+
+          const moreLikeToken = createFeedbackClickToken({
+            userId: user.id,
+            url: summary.url,
+            title: summary.title,
+            feedbackType: "more_like_this",
+            secret
+          });
+          const lessLikeToken = createFeedbackClickToken({
+            userId: user.id,
+            url: summary.url,
+            title: summary.title,
+            feedbackType: "less_like_this",
+            secret
+          });
+
+          linksByUrl[summary.url] = {
+            moreLikeThisUrl: buildFeedbackClickUrl({ baseUrl, token: moreLikeToken }),
+            lessLikeThisUrl: buildFeedbackClickUrl({ baseUrl, token: lessLikeToken })
+          };
+        }
+
+        return linksByUrl;
+      })(),
+      quote,
+      variant: issueVariant,
+      themeTemplate: selectedThemeTemplate
+    });
+
+    const sendResult = await sendNewsletterFn({
+      to: user.email,
+      subject: rendered.subject,
+      html: rendered.html,
+      text: rendered.text,
+      idempotencyKey
+    });
+
+    if (!sendResult.ok) {
+      const reason = sendResult.error ?? "SEND_PROVIDER_FAILURE";
+      await markIdempotencyFailedFn({ idempotencyKey, reason });
+
+      logPipeline("send_failed", {
+        user_id: user.id,
+        run_at_utc: args.runAtUtc.toISOString(),
+        attempts: sendResult.attempts,
+        reason
+      });
+
+      return {
+        status: "send_failed",
+        userId: user.id,
+        runAtUtc: args.runAtUtc.toISOString(),
+        itemCount: summaries.length,
+        idempotencyKey,
+        error: reason
+      };
+    }
+
+    sentProviderMessageId = sendResult.providerMessageId ?? null;
+    try {
+      await markIdempotencySentFn({
+        idempotencyKey,
+        providerMessageId: sentProviderMessageId
+      });
+      idempotencyMarkedSent = true;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "POST_SEND_IDEMPOTENCY_MARK_SENT_FAILED";
+      logError("send_pipeline", "post_send_idempotency_mark_sent_failed", {
+        user_id: user.id,
+        run_at_utc: args.runAtUtc.toISOString(),
+        idempotency_key: idempotencyKey,
+        provider_message_id: sentProviderMessageId,
+        error: message
+      });
+
+      return {
+        status: "send_failed",
+        userId: user.id,
+        runAtUtc: args.runAtUtc.toISOString(),
+        itemCount: summaries.length,
+        idempotencyKey,
+        providerMessageId: sentProviderMessageId,
+        error: `POST_SEND_IDEMPOTENCY_MARK_SENT_FAILED:${message}`
+      };
+    }
+
+    const sentCanonicalUrls = summaryInputCandidates.map((candidate) => candidate.canonicalUrl);
+    const bloomAfterSend = addCanonicalUrls(bloomState, sentCanonicalUrls);
+
+    try {
+      await persistSendSuccessFn({
+        userId: user.id,
+        runAtUtc: args.runAtUtc,
+        bloomState: bloomAfterSend
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "POST_SEND_USER_STATE_UPDATE_FAILED";
+      logError("send_pipeline", "post_send_user_state_update_failed", {
+        user_id: user.id,
+        run_at_utc: args.runAtUtc.toISOString(),
+        idempotency_key: idempotencyKey,
+        provider_message_id: sentProviderMessageId,
+        error: message
+      });
+
+      return {
+        status: "sent",
+        userId: user.id,
+        runAtUtc: args.runAtUtc.toISOString(),
+        itemCount: summaries.length,
+        idempotencyKey,
+        providerMessageId: sentProviderMessageId,
+        error: `POST_SEND_USER_STATE_UPDATE_FAILED:${message}`
+      };
+    }
+
+    logPipeline("sent", {
+      user_id: user.id,
+      run_at_utc: args.runAtUtc.toISOString(),
+      item_count: summaries.length,
+      issue_variant: issueVariant,
+      theme_template: selectedThemeTemplate,
+      provider_message_id: sentProviderMessageId,
+      bloom_count_estimate: bloomAfterSend.count
+    });
+
+    return {
+      status: "sent",
+      userId: user.id,
+      runAtUtc: args.runAtUtc.toISOString(),
+      itemCount: summaries.length,
+      idempotencyKey,
+      providerMessageId: sentProviderMessageId
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "PIPELINE_UNHANDLED_ERROR";
+    if (!idempotencyMarkedSent) {
+      try {
+        await markIdempotencyFailedFn({ idempotencyKey, reason: message });
+      } catch (markError) {
+        logError("send_pipeline", "mark_idempotency_failed_after_unhandled_error_failed", {
+          user_id: user.id,
+          run_at_utc: args.runAtUtc.toISOString(),
+          idempotency_key: idempotencyKey,
+          original_error: message,
+          mark_failed_error: markError instanceof Error ? markError.message : "UNKNOWN_MARK_FAILED_ERROR"
+        });
+      }
+    }
+
+    logError("send_pipeline", "pipeline_unhandled_error", {
       user_id: user.id,
       run_at_utc: args.runAtUtc.toISOString(),
       idempotency_key: idempotencyKey,
+      idempotency_marked_sent: idempotencyMarkedSent,
       error: message
     });
 
@@ -499,29 +556,10 @@ export async function sendUserNewsletter(
       status: "send_failed",
       userId: user.id,
       runAtUtc: args.runAtUtc.toISOString(),
-      itemCount: summaries.length,
+      itemCount: sentSummaryCount,
       idempotencyKey,
-      providerMessageId: sendResult.providerMessageId,
+      providerMessageId: sentProviderMessageId,
       error: message
     };
   }
-
-  logPipeline("sent", {
-    user_id: user.id,
-    run_at_utc: args.runAtUtc.toISOString(),
-    item_count: summaries.length,
-    issue_variant: issueVariant,
-    theme_template: selectedThemeTemplate,
-    provider_message_id: sendResult.providerMessageId,
-    bloom_count_estimate: bloomAfterSend.count
-  });
-
-  return {
-    status: "sent",
-    userId: user.id,
-    runAtUtc: args.runAtUtc.toISOString(),
-    itemCount: summaries.length,
-    idempotencyKey,
-    providerMessageId: sendResult.providerMessageId
-  };
 }

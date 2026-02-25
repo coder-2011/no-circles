@@ -179,6 +179,69 @@ describe("sendUserNewsletter", () => {
     expect(markIdempotencyFailedFn).toHaveBeenCalledTimes(1);
   });
 
+  it("marks failed when send function throws after idempotency reservation", async () => {
+    const markIdempotencyFailedFn = vi.fn(async () => undefined);
+    const selectQuoteFn = vi.fn(async () => selectedQuote);
+
+    const result = await sendUserNewsletter(
+      {
+        userId: user.id,
+        runAtUtc: new Date("2026-02-16T18:00:00.000Z")
+      },
+      {
+        loadUserFn: async () => user,
+        runDiscoveryFn: async () =>
+          makeDiscoveryResult(Array.from({ length: 10 }).map((_, index) => `https://example.com/${index + 1}`)),
+        getFinalHighlightsByUrlFn,
+        generateSummariesFn: async ({ items }) => items.map((item) => ({ title: item.title, summary: "summary", url: item.url })),
+        selectQuoteFn,
+        reserveIdempotencyFn: async () => ({ outcome: "claimed", status: "processing", providerMessageId: null }),
+        markIdempotencyFailedFn,
+        sendNewsletterFn: async () => {
+          throw new Error("MISSING_RESEND_FROM_EMAIL");
+        }
+      }
+    );
+
+    expect(result.status).toBe("send_failed");
+    expect(result.error).toBe("MISSING_RESEND_FROM_EMAIL");
+    expect(markIdempotencyFailedFn).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns sent when post-send user-state persistence fails after idempotency is marked sent", async () => {
+    const markIdempotencyFailedFn = vi.fn(async () => undefined);
+    const markIdempotencySentFn = vi.fn(async () => undefined);
+    const selectQuoteFn = vi.fn(async () => selectedQuote);
+
+    const result = await sendUserNewsletter(
+      {
+        userId: user.id,
+        runAtUtc: new Date("2026-02-16T18:00:00.000Z")
+      },
+      {
+        loadUserFn: async () => user,
+        runDiscoveryFn: async () =>
+          makeDiscoveryResult(Array.from({ length: 10 }).map((_, index) => `https://example.com/${index + 1}`)),
+        getFinalHighlightsByUrlFn,
+        generateSummariesFn: async ({ items }) => items.map((item) => ({ title: item.title, summary: "summary", url: item.url })),
+        selectQuoteFn,
+        reserveIdempotencyFn: async () => ({ outcome: "claimed", status: "processing", providerMessageId: null }),
+        markIdempotencySentFn,
+        markIdempotencyFailedFn,
+        sendNewsletterFn: async () => ({ ok: true, providerMessageId: "msg_post_send", attempts: 1, error: null }),
+        persistSendSuccessFn: async () => {
+          throw new Error("USERS_UPDATE_FAILED");
+        }
+      }
+    );
+
+    expect(result.status).toBe("sent");
+    expect(result.providerMessageId).toBe("msg_post_send");
+    expect(result.error).toContain("POST_SEND_USER_STATE_UPDATE_FAILED");
+    expect(markIdempotencySentFn).toHaveBeenCalledTimes(1);
+    expect(markIdempotencyFailedFn).not.toHaveBeenCalled();
+  });
+
   it("returns sent without duplicate send only when existing idempotency row is already sent", async () => {
     const sendNewsletterFn = vi.fn();
 

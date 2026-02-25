@@ -18,10 +18,12 @@ Orchestrates PR9 single-user runtime: discovery -> Bloom gate -> summary -> pers
 11. Build signed per-item feedback links (`more_like_this` / `less_like_this`) when `FEEDBACK_LINK_SECRET` and public site origin are available.
 12. Randomly select one curated email theme template (`pickRandomNewsletterThemeTemplate`) for this send.
 13. Render + send email (retry-once handled by send module) with available high-signal items; supports `daily` and `welcome` render variants.
-14. On success, transactionally persist:
+14. After provider acceptance, mark outbound idempotency row as `sent` immediately (`provider_message_id` persisted first).
+15. Persist user delivery state:
    - `users.last_issue_sent_at`
    - Bloom bits (`users.sent_url_bloom_bits`)
-   - idempotency status `sent` + provider id
+16. If post-send user-state persistence fails after idempotency has been marked `sent`, pipeline logs error and returns `sent` (with error detail) to avoid duplicate resend retries.
+17. Any unexpected unhandled exception after idempotency reservation is caught; when idempotency is not yet marked `sent`, pipeline marks idempotency `failed` before returning `send_failed`.
 
 ## Feedback Link Notes
 - Link generation uses deterministic token payload claims (`user_id`, `issue_id`, `url`, `feedback_type`, `item_position`) with expiry.

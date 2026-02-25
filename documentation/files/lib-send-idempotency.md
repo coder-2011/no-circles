@@ -19,3 +19,4 @@ Handles outbound newsletter idempotency reservation/status updates for PR9.
   - `already_sent` (safe replay; pipeline returns `sent` without duplicate provider call)
   - `already_processing` (active in-flight send; pipeline must not report `sent`)
 - reservation is computed in one SQL statement (insert + failed-reclaim + existing-status read), then runtime-validated before returning typed outcome
+- `markOutboundSendIdempotencySent(...)` is called immediately after provider acceptance so retries do not duplicate-send when later user-state persistence fails.
