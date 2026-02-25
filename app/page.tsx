@@ -287,12 +287,12 @@ export default function HomePage() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_15%,rgba(61,111,73,0.14),transparent_40%),radial-gradient(circle_at_82%_8%,rgba(198,182,137,0.24),transparent_36%),radial-gradient(circle_at_70%_86%,rgba(93,131,89,0.12),transparent_40%)]" />
       <div className="fixed right-4 top-4 z-40">
         <button
-          className={`${interfaceFont.className} rounded-lg border border-[#3D6F49] bg-[#3D6F49] px-4 py-2.5 text-sm font-semibold text-[#F3ECD8] shadow-sm transition hover:bg-[#315E3E] disabled:cursor-not-allowed disabled:opacity-60 md:px-5 md:py-3 md:text-base`}
+          className={`${interfaceFont.className} rounded-lg border border-[#3D6F49] bg-[#3D6F49] px-4 py-2.5 text-base font-medium text-[#F3ECD8] shadow-sm transition hover:bg-[#315E3E] disabled:cursor-not-allowed disabled:opacity-60 md:px-5 md:py-3`}
           disabled={authState === "loading"}
           onClick={signInWithGoogle}
           type="button"
         >
-          Get started
+          Get Started
         </button>
       </div>
       <div className="relative mx-auto w-full max-w-7xl space-y-10">
