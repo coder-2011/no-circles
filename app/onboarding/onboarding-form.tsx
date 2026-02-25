@@ -263,19 +263,12 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
                 </span>
               </div>
               <div className="mt-2">
-                <p className="text-sm font-semibold uppercase tracking-[0.12em] text-[#5F6E54]">Quick Sparks</p>
-                <p className="mt-1 text-sm text-[#6B775D]">
+                <p className="text-base font-semibold uppercase tracking-[0.12em] text-[#5F6E54]">Quick Sparks</p>
+                <p className="mt-1 text-base text-[#6B775D]">
                   Popular starter interests. Tap any Quick Spark to add it to your brain dump.
                 </p>
               </div>
-              <div className="mt-3 flex items-center gap-2">
-                <button
-                  className="rounded-md border border-[#CDBF98] bg-[#F6EFD9] px-3 py-1.5 text-xs font-semibold text-[#4F5D45] transition hover:bg-[#ECE2C8]"
-                  onClick={controller.toggleQuickSparksExpanded}
-                  type="button"
-                >
-                  {controller.quickSparksExpanded ? "Hide" : "More"}
-                </button>
+              <div className="mt-3 flex items-center justify-end">
                 <button
                   aria-label="Refresh quick sparks"
                   className="group inline-flex h-10 w-10 items-center justify-center rounded-md border border-[#CDBF98] bg-[#F6EFD9] text-[#4F5D45] transition hover:bg-[#ECE2C8]"
@@ -299,7 +292,7 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
                   </svg>
                 </button>
               </div>
-              <div className="mt-4 flex flex-wrap gap-2.5">
+              <div className="mt-3 flex flex-wrap gap-2.5">
                 {controller.quickSparks.map((spark) => (
                   <button
                     className="rounded-full border border-[#CDBF98] bg-[#F6EFD9] px-3.5 py-1.5 text-sm font-medium text-[#4F5D45] transition hover:bg-[#ECE2C8]"
@@ -312,7 +305,15 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
                 ))}
               </div>
               {controller.quickSparksExpanded ? (
-                <div className="mt-2 max-h-32 overflow-y-auto rounded-lg border border-[#D7CCAE] bg-[#FFF8E8] p-2">
+                <div
+                  className="mt-2 max-h-44 overflow-y-auto rounded-lg border border-[#D7CCAE] bg-[#FFF8E8] p-2"
+                  onScroll={(event) => {
+                    const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
+                    if (scrollHeight - scrollTop - clientHeight <= 40) {
+                      controller.loadMoreQuickSparksDrawer();
+                    }
+                  }}
+                >
                   <div className="flex flex-wrap gap-2">
                     {controller.quickSparksDrawer.map((spark) => (
                       <button
@@ -327,6 +328,15 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
                   </div>
                 </div>
               ) : null}
+              <div className="mt-4">
+                <button
+                  className="rounded-md border border-[#D6B24A] bg-[#efcd73] px-3 py-1.5 text-sm font-semibold text-[#2D3426] transition hover:bg-[#e7c15d]"
+                  onClick={controller.toggleQuickSparksExpanded}
+                  type="button"
+                >
+                  {controller.quickSparksExpanded ? "Hide spark stash" : "Open spark stash"}
+                </button>
+              </div>
               <span className="mt-1 block text-xs text-[#6B775D]">
                 {controller.dictationState === "warming" && "Preparing microphone..."}
                 {controller.dictationState === "recording" && "Listening..."}

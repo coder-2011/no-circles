@@ -37,6 +37,7 @@ function resolveSiteOrigin(): string {
 }
 
 const CELEBRATION_HIDE_MS = 3400;
+const QUICK_SPARKS_SCROLL_LOAD_COUNT = 12;
 
 export type OnboardingController = {
   authState: AuthState;
@@ -69,6 +70,7 @@ export type OnboardingController = {
   appendQuickSpark: (spark: string) => void;
   toggleQuickSparksExpanded: () => void;
   refreshQuickSparks: () => void;
+  loadMoreQuickSparksDrawer: () => void;
   startDictation: () => Promise<void>;
   stopDictation: () => Promise<void>;
 };
@@ -392,6 +394,16 @@ export function useOnboardingController(): OnboardingController {
 
   function refreshQuickSparks() {
     rotateQuickSparksBatch();
+  }
+
+  function loadMoreQuickSparksDrawer() {
+    const nextDrawerBatch = pullQuickSparks(QUICK_SPARKS_SCROLL_LOAD_COUNT);
+    if (nextDrawerBatch.length === 0) {
+      return;
+    }
+
+    setQuickSparksDrawer((current) => [...current, ...nextDrawerBatch]);
+    persistQuickSparksDeck();
   }
 
   function toggleQuickSparksExpanded() {
@@ -1014,6 +1026,7 @@ export function useOnboardingController(): OnboardingController {
     appendQuickSpark,
     toggleQuickSparksExpanded,
     refreshQuickSparks,
+    loadMoreQuickSparksDrawer,
     startDictation,
     stopDictation
   };
