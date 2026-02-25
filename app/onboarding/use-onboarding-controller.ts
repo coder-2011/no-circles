@@ -15,16 +15,18 @@ import {
   type DictationState,
   type AuthState,
   getDetectedTimezone,
+  isLegacyAutoDefaultSendTimeDraft,
   isDeepgramTokenUsable,
   getPreferredNameFromOAuthProfile,
   getPreferredNameFromEmail,
   initialSendTimeFromLocalNow,
   INTEREST_QUICK_SPARKS,
+  type OnboardingPrefsDraft,
   ONBOARDING_PREFS_DRAFT_KEY,
+  ONBOARDING_PREFS_DRAFT_SCHEMA_VERSION,
   ONBOARDING_REAUTH_RECOVERY_KEY,
   ONBOARDING_QUICK_SPARKS_DECK_KEY,
   ONBOARDING_QUICK_SPARKS_DRAWER_COUNT,
-  ONBOARDING_QUICK_SPARKS_SCROLL_LOAD_COUNT,
   ONBOARDING_QUICK_SPARKS_URL,
   ONBOARDING_QUICK_SPARKS_VISIBLE_COUNT,
   parseSendTime,
@@ -78,7 +80,6 @@ export type OnboardingController = {
   appendQuickSpark: (spark: string) => void;
   toggleQuickSparksExpanded: () => void;
   refreshQuickSparks: () => void;
-  loadMoreQuickSparksDrawer: () => void;
   primeDictation: () => void;
   startDictation: () => Promise<void>;
   stopDictation: () => Promise<void>;
@@ -304,21 +305,9 @@ export function useOnboardingController(): OnboardingController {
       return;
     }
 
-    let parsed:
-      | {
-          timezone?: string;
-          sendHour12?: string;
-          sendMinute?: string;
-          sendMeridiem?: "AM" | "PM";
-        }
-      | null = null;
+    let parsed: OnboardingPrefsDraft | null = null;
     try {
-      parsed = JSON.parse(savedPrefs) as {
-        timezone?: string;
-        sendHour12?: string;
-        sendMinute?: string;
-        sendMeridiem?: "AM" | "PM";
-      };
+      parsed = JSON.parse(savedPrefs) as OnboardingPrefsDraft;
     } catch {
       window.localStorage.removeItem(ONBOARDING_PREFS_DRAFT_KEY);
       return;
@@ -328,16 +317,18 @@ export function useOnboardingController(): OnboardingController {
       return;
     }
 
+    const shouldIgnoreLegacySendTime = isLegacyAutoDefaultSendTimeDraft(parsed);
+
     if (typeof parsed.timezone === "string" && parsed.timezone.trim()) {
       setTimezone(parsed.timezone);
     }
-    if (typeof parsed.sendHour12 === "string" && parsed.sendHour12.trim()) {
+    if (!shouldIgnoreLegacySendTime && typeof parsed.sendHour12 === "string" && parsed.sendHour12.trim()) {
       setSendHour12(parsed.sendHour12);
     }
-    if (typeof parsed.sendMinute === "string" && parsed.sendMinute.trim()) {
+    if (!shouldIgnoreLegacySendTime && typeof parsed.sendMinute === "string" && parsed.sendMinute.trim()) {
       setSendMinute(parsed.sendMinute);
     }
-    if (parsed.sendMeridiem === "AM" || parsed.sendMeridiem === "PM") {
+    if (!shouldIgnoreLegacySendTime && (parsed.sendMeridiem === "AM" || parsed.sendMeridiem === "PM")) {
       setSendMeridiem(parsed.sendMeridiem);
     }
   }, []);
@@ -367,6 +358,7 @@ export function useOnboardingController(): OnboardingController {
       window.localStorage.setItem(
         ONBOARDING_PREFS_DRAFT_KEY,
         JSON.stringify({
+          schemaVersion: ONBOARDING_PREFS_DRAFT_SCHEMA_VERSION,
           timezone,
           sendHour12,
           sendMinute,
@@ -527,16 +519,6 @@ export function useOnboardingController(): OnboardingController {
 
   function refreshQuickSparks() {
     rotateQuickSparksBatch();
-  }
-
-  function loadMoreQuickSparksDrawer() {
-    const nextDrawerBatch = pullQuickSparks(ONBOARDING_QUICK_SPARKS_SCROLL_LOAD_COUNT);
-    if (nextDrawerBatch.length === 0) {
-      return;
-    }
-
-    setQuickSparksDrawer((current) => [...current, ...nextDrawerBatch]);
-    persistQuickSparksDeck();
   }
 
   function toggleQuickSparksExpanded() {
@@ -1141,7 +1123,6 @@ export function useOnboardingController(): OnboardingController {
     appendQuickSpark,
     toggleQuickSparksExpanded,
     refreshQuickSparks,
-    loadMoreQuickSparksDrawer,
     primeDictation,
     startDictation,
     stopDictation

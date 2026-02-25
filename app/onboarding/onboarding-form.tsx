@@ -164,14 +164,17 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
               </label>
             </div>
 
-            <label className="block">
-              <span className="mb-2 block text-base font-medium text-[#3E4A36]">Interest brain dump</span>
+            <div className="block">
+              <label className="mb-2 block text-base font-medium text-[#3E4A36]" htmlFor="brain_dump_text">
+                Interest brain dump
+              </label>
               <p className="mb-2 text-base leading-7 text-[#5E6B54]">
                 This is your raw preference input. Mention what you want more of, less of, and what kind of insight is useful to you.
               </p>
               <textarea
                 autoFocus
                 className="h-56 w-full rounded-lg border border-[#C7BA95] bg-[#FFFDF8] px-4 py-3 text-base leading-7 focus:border-[#3D6F49] focus:outline-none"
+                id="brain_dump_text"
                 onChange={(event) => controller.setBrainDumpText(event.target.value)}
                 onFocus={() => {
                   controller.primeDictation();
@@ -273,16 +276,48 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
                 </span>
               </div>
               <div className="mt-2">
-                <p className="text-base font-semibold uppercase tracking-[0.12em] text-[#5F6E54]">Quick Sparks</p>
+                <p className="text-base font-bold uppercase tracking-[0.12em] text-[#5F6E54] underline decoration-[#5F6E54] decoration-2 underline-offset-2">Quick Sparks</p>
                 <p className="mt-1 text-base text-[#6B775D]">
                   Popular starter interests. Tap any Quick Spark to add it to your brain dump.
                 </p>
               </div>
-              <div className="mt-3 flex items-center justify-end">
+              <div className="mt-3 flex items-start justify-end gap-2">
+                <div className="flex flex-col items-end text-[11px] font-semibold text-[#6B775D]">
+                  <span>Reload for more</span>
+                  <svg
+                    aria-hidden="true"
+                    className="h-5 w-9"
+                    fill="none"
+                    viewBox="0 0 36 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M2 18c11 0 11-12 22-12"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1.75"
+                    />
+                    <path
+                      d="m21 3 5 3-5 3"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1.75"
+                    />
+                  </svg>
+                </div>
                 <button
                   aria-label="Refresh quick sparks"
                   className="group inline-flex h-10 w-10 items-center justify-center rounded-md border border-[#CDBF98] bg-[#F6EFD9] text-[#4F5D45] transition hover:bg-[#ECE2C8]"
-                  onClick={controller.refreshQuickSparks}
+                  onMouseDown={(event) => {
+                    // Preserve textarea focus/caret when rotating quick sparks.
+                    event.preventDefault();
+                  }}
+                  onClick={(event) => {
+                    controller.refreshQuickSparks();
+                    event.currentTarget.blur();
+                  }}
                   type="button"
                 >
                   <svg
@@ -303,10 +338,10 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
                 </button>
               </div>
               <div className="mt-3 flex flex-wrap gap-2.5">
-                {controller.quickSparks.map((spark) => (
+                {controller.quickSparks.map((spark, index) => (
                   <button
                     className="rounded-full border border-[#CDBF98] bg-[#F6EFD9] px-3.5 py-1.5 text-sm font-medium text-[#4F5D45] transition hover:bg-[#ECE2C8]"
-                    key={spark}
+                    key={`${spark}-${index}`}
                     onClick={() => controller.appendQuickSpark(spark)}
                     type="button"
                   >
@@ -316,19 +351,13 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
               </div>
               {controller.quickSparksExpanded ? (
                 <div
-                  className="mt-2 max-h-44 overflow-y-auto rounded-lg border border-[#D7CCAE] bg-[#FFF8E8] p-2"
-                  onScroll={(event) => {
-                    const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
-                    if (scrollHeight - scrollTop - clientHeight <= 40) {
-                      controller.loadMoreQuickSparksDrawer();
-                    }
-                  }}
+                  className="mt-2 min-h-56 rounded-lg border border-[#D7CCAE] bg-[#FFF8E8] p-2"
                 >
-                  <div className="flex flex-wrap gap-2">
-                    {controller.quickSparksDrawer.map((spark) => (
+                  <div className="flex flex-wrap content-start gap-2">
+                    {controller.quickSparksDrawer.map((spark, index) => (
                       <button
                         className="rounded-full border border-[#CDBF98] bg-[#F6EFD9] px-3 py-1.5 text-xs font-medium text-[#4F5D45] transition hover:bg-[#ECE2C8]"
-                        key={spark}
+                        key={`${spark}-${index}`}
                         onClick={() => controller.appendQuickSpark(spark)}
                         type="button"
                       >
@@ -355,7 +384,7 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
               {controller.dictationError ? (
                 <span className="mt-2 block text-xs text-rose-700">{controller.dictationError}</span>
               ) : null}
-            </label>
+            </div>
 
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex flex-wrap items-center gap-3">

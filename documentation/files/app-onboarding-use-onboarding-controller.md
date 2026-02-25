@@ -24,13 +24,14 @@ Encapsulates onboarding page state, side effects, and action handlers as a reusa
   - sign-out
   - submit
   - quick-spark append
-  - quick-spark deck controls (expand/collapse toggle + `Refresh` + scroll-near-bottom append)
+  - quick-spark deck controls (expand/collapse toggle + `Refresh`)
   - optimistic Deepgram warmup (`primeDictation`) for high-intent interactions
   - Deepgram dictation start/stop for brain-dump voice input
 
 ## Notes
 - `send_time_local` is derived from hour/minute/meridiem state via `buildSendTime`, avoiding redundant state syncing.
+- onboarding prefs draft writes include a schema version, and legacy unschematized `6:00 PM` auto-default drafts are ignored so current default `8:00 AM` local is preserved.
 - auth bootstrap reads from Supabase `getSession()` for lower-latency client-side state initialization.
 - Deepgram dictation warmup prefetches both token + dictation module with cooldown gating; start flow reuses cached token when it is still outside safety window.
 - Deepgram dictation helpers are lazy-imported and promise-deduped, so parallel warmup/start interactions do not trigger duplicate module loads.
-- quick-sparks are loaded from `public/onboarding-quick-sparks.txt` and consumed from a persisted non-repeating deck (`unseen` -> `seen`) so refreshes and scroll-appends avoid repeats until the pool is exhausted.
+- quick-sparks are loaded from `public/onboarding-quick-sparks.txt` and consumed from a persisted non-repeating deck (`unseen` -> `seen`) so refreshes avoid repeats until the pool is exhausted.

@@ -5,6 +5,7 @@ export type DictationState = "idle" | "warming" | "recording" | "stopping";
 export const BRAIN_DUMP_WORD_LIMIT = 1000;
 export const BRAIN_DUMP_DRAFT_KEY = "onboarding_brain_dump_draft_v1";
 export const ONBOARDING_PREFS_DRAFT_KEY = "onboarding_prefs_draft_v1";
+export const ONBOARDING_PREFS_DRAFT_SCHEMA_VERSION = 2;
 export const ONBOARDING_REAUTH_RECOVERY_KEY = "onboarding_reauth_recovery_v1";
 export const ONBOARDING_QUICK_SPARKS_URL = "/onboarding-quick-sparks.txt";
 export const ONBOARDING_QUICK_SPARKS_DECK_KEY = "onboarding_quick_sparks_deck_v1";
@@ -210,6 +211,22 @@ export function buildTimezoneOptions(selectedTimezone: string): string[] {
 
 export function initialSendTimeFromLocalNow(): string {
   return "08:00";
+}
+
+export type OnboardingPrefsDraft = {
+  timezone?: string;
+  sendHour12?: string;
+  sendMinute?: string;
+  sendMeridiem?: "AM" | "PM";
+  schemaVersion?: number;
+};
+
+export function isLegacyAutoDefaultSendTimeDraft(draft: OnboardingPrefsDraft): boolean {
+  if (draft.schemaVersion === ONBOARDING_PREFS_DRAFT_SCHEMA_VERSION) {
+    return false;
+  }
+
+  return draft.sendHour12 === "6" && draft.sendMinute === "00" && draft.sendMeridiem === "PM";
 }
 
 export function countWords(text: string): number {

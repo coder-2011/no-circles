@@ -6,7 +6,7 @@ Holds onboarding constants and small pure utilities used by the page controller 
 ## Contents
 - shared UI/data constants:
   - word-limit + localStorage draft key
-  - onboarding prefs draft key
+  - onboarding prefs draft key + schema version
   - curated timezones
   - quick-spark suggestions
   - quick-sparks deck key + visible/drawer batch sizes
@@ -25,6 +25,7 @@ Holds onboarding constants and small pure utilities used by the page controller 
   - `getPreferredNameFromOAuthProfile` for persisted preferred-name inference from OAuth profile metadata
   - `getDetectedTimezone` + `buildTimezoneOptions` for browser timezone defaults
   - `initialSendTimeFromLocalNow` for fixed onboarding default send-time (`08:00` local)
+  - `isLegacyAutoDefaultSendTimeDraft` for onboarding prefs draft migration from old unschematized `6:00 PM` auto-defaults
   - `shuffleQuickSparks` for non-repeating deck batching
   - `resolveDeepgramTokenExpiryAtMs` for token cache expiry normalization
   - `isDeepgramTokenUsable` for safety-window-aware token reuse checks
