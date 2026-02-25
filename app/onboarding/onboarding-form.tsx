@@ -173,6 +173,9 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
                 autoFocus
                 className="h-56 w-full rounded-lg border border-[#C7BA95] bg-[#FFFDF8] px-4 py-3 text-base leading-7 focus:border-[#3D6F49] focus:outline-none"
                 onChange={(event) => controller.setBrainDumpText(event.target.value)}
+                onFocus={() => {
+                  controller.primeDictation();
+                }}
                 onKeyDown={(event) => {
                   if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
                     event.preventDefault();
@@ -199,7 +202,14 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
                   <button
                     className="rounded-md border border-[#B8AA84] bg-[#FFF8E8] px-3 py-1.5 text-xs font-medium text-[#3F4E38] transition hover:bg-[#F2E7CC] disabled:opacity-50"
                     disabled={controller.dictationState === "warming" || controller.dictationState === "stopping"}
+                    onFocus={() => {
+                      controller.primeDictation();
+                    }}
+                    onMouseEnter={() => {
+                      controller.primeDictation();
+                    }}
                     onMouseDown={(event) => {
+                      controller.primeDictation();
                       // Keep textarea focus/caret so typing can continue while dictation runs.
                       event.preventDefault();
                     }}

@@ -10,8 +10,12 @@ import {
   buildTimezoneOptions,
   buildSendTime,
   countWords,
+  DEEPGRAM_TOKEN_REUSE_SAFETY_WINDOW_MS,
+  DICTATION_WARMUP_COOLDOWN_MS,
+  type DictationState,
   type AuthState,
   getDetectedTimezone,
+  isDeepgramTokenUsable,
   getPreferredNameFromOAuthProfile,
   getPreferredNameFromEmail,
   initialSendTimeFromLocalNow,
@@ -20,24 +24,28 @@ import {
   ONBOARDING_REAUTH_RECOVERY_KEY,
   ONBOARDING_QUICK_SPARKS_DECK_KEY,
   ONBOARDING_QUICK_SPARKS_DRAWER_COUNT,
+  ONBOARDING_QUICK_SPARKS_SCROLL_LOAD_COUNT,
   ONBOARDING_QUICK_SPARKS_URL,
   ONBOARDING_QUICK_SPARKS_VISIBLE_COUNT,
   parseSendTime,
+  resolveDeepgramTokenExpiryAtMs,
   shuffleQuickSparks,
+  shouldWarmupDictation,
   type SubmitState,
   truncateToWordLimit
 } from "@/app/onboarding/onboarding-config";
 
 type DictationModule = typeof import("@/app/onboarding/deepgram-dictation");
 
-type DictationState = "idle" | "warming" | "recording" | "stopping";
-
 function resolveSiteOrigin(): string {
   return window.location.origin;
 }
 
 const CELEBRATION_HIDE_MS = 3400;
-const QUICK_SPARKS_SCROLL_LOAD_COUNT = 12;
+
+type DeepgramTokenSuccess = { ok: true; accessToken: string; expiresAtMs: number };
+type DeepgramTokenFailure = { ok: false; status: number | null; serverMessage: string | null; networkError: boolean };
+type DeepgramTokenResult = DeepgramTokenSuccess | DeepgramTokenFailure;
 
 export type OnboardingController = {
   authState: AuthState;
@@ -71,6 +79,7 @@ export type OnboardingController = {
   toggleQuickSparksExpanded: () => void;
   refreshQuickSparks: () => void;
   loadMoreQuickSparksDrawer: () => void;
+  primeDictation: () => void;
   startDictation: () => Promise<void>;
   stopDictation: () => Promise<void>;
 };
@@ -128,6 +137,10 @@ export function useOnboardingController(): OnboardingController {
   const dictationStateRef = useRef<DictationState>("idle");
   const brainDumpTextRef = useRef("");
   const dictationModuleRef = useRef<DictationModule | null>(null);
+  const dictationModuleLoadPromiseRef = useRef<Promise<DictationModule> | null>(null);
+  const deepgramTokenCacheRef = useRef<{ accessToken: string; expiresAtMs: number } | null>(null);
+  const deepgramTokenRequestPromiseRef = useRef<Promise<DeepgramTokenResult> | null>(null);
+  const lastDictationWarmupAtMsRef = useRef(0);
   const quickSparksPoolRef = useRef<string[]>([...INTEREST_QUICK_SPARKS]);
   const quickSparksUnseenRef = useRef<string[]>([]);
   const quickSparksSeenRef = useRef<string[]>([]);
@@ -160,9 +173,129 @@ export function useOnboardingController(): OnboardingController {
       return dictationModuleRef.current;
     }
 
-    const loadedDictationModule = await import("@/app/onboarding/deepgram-dictation");
-    dictationModuleRef.current = loadedDictationModule;
-    return loadedDictationModule;
+    if (dictationModuleLoadPromiseRef.current) {
+      return dictationModuleLoadPromiseRef.current;
+    }
+
+    const loadPromise = import("@/app/onboarding/deepgram-dictation")
+      .then((loadedDictationModule) => {
+        dictationModuleRef.current = loadedDictationModule;
+        return loadedDictationModule;
+      })
+      .finally(() => {
+        dictationModuleLoadPromiseRef.current = null;
+      });
+
+    dictationModuleLoadPromiseRef.current = loadPromise;
+    return loadPromise;
+  }
+
+  function buildDeepgramTokenFailureMessage(result: DeepgramTokenFailure): string {
+    if (result.serverMessage) {
+      return result.serverMessage;
+    }
+
+    if (result.networkError) {
+      return "Failed to issue token. Could not reach /api/deepgram/token.";
+    }
+
+    if (typeof result.status === "number") {
+      return `Failed to issue token (HTTP ${result.status}).`;
+    }
+
+    return "Failed to issue token.";
+  }
+
+  async function issueDeepgramToken(): Promise<DeepgramTokenResult> {
+    const tokenResponse = await fetch("/api/deepgram/token", { method: "GET" }).catch(() => null);
+    const tokenRawBody = await tokenResponse?.text().catch(() => null);
+    let tokenBody: { ok: true; access_token: string; expires_in: number | null } | { ok: false; message?: string } | null = null;
+    if (tokenRawBody) {
+      try {
+        tokenBody = JSON.parse(tokenRawBody) as
+          | { ok: true; access_token: string; expires_in: number | null }
+          | { ok: false; message?: string };
+      } catch {
+        tokenBody = null;
+      }
+    }
+
+    if (!tokenResponse?.ok || !tokenBody || !("ok" in tokenBody) || tokenBody.ok !== true || !tokenBody.access_token) {
+      const serverMessage = tokenBody && "ok" in tokenBody && tokenBody.ok === false ? tokenBody.message ?? null : null;
+      return {
+        ok: false,
+        status: tokenResponse?.status ?? null,
+        serverMessage,
+        networkError: !tokenResponse
+      };
+    }
+
+    return {
+      ok: true,
+      accessToken: tokenBody.access_token,
+      expiresAtMs: resolveDeepgramTokenExpiryAtMs({
+        nowMs: Date.now(),
+        expiresInSeconds: tokenBody.expires_in
+      })
+    };
+  }
+
+  async function getDeepgramToken(): Promise<DeepgramTokenResult> {
+    const nowMs = Date.now();
+    const cachedToken = deepgramTokenCacheRef.current;
+    if (
+      cachedToken &&
+      isDeepgramTokenUsable({
+        nowMs,
+        expiresAtMs: cachedToken.expiresAtMs,
+        safetyWindowMs: DEEPGRAM_TOKEN_REUSE_SAFETY_WINDOW_MS
+      })
+    ) {
+      return { ok: true, accessToken: cachedToken.accessToken, expiresAtMs: cachedToken.expiresAtMs };
+    }
+
+    if (deepgramTokenRequestPromiseRef.current) {
+      return deepgramTokenRequestPromiseRef.current;
+    }
+
+    const requestPromise = issueDeepgramToken()
+      .then((result) => {
+        if (result.ok) {
+          deepgramTokenCacheRef.current = {
+            accessToken: result.accessToken,
+            expiresAtMs: result.expiresAtMs
+          };
+        }
+        return result;
+      })
+      .finally(() => {
+        deepgramTokenRequestPromiseRef.current = null;
+      });
+
+    deepgramTokenRequestPromiseRef.current = requestPromise;
+    return requestPromise;
+  }
+
+  function primeDictation() {
+    const nowMs = Date.now();
+    const shouldWarm = shouldWarmupDictation({
+      dictationState: dictationStateRef.current,
+      nowMs,
+      lastWarmupAtMs: lastDictationWarmupAtMsRef.current,
+      tokenExpiresAtMs: deepgramTokenCacheRef.current?.expiresAtMs ?? null,
+      tokenRequestInFlight: deepgramTokenRequestPromiseRef.current !== null,
+      moduleRequestInFlight: dictationModuleLoadPromiseRef.current !== null,
+      cooldownMs: DICTATION_WARMUP_COOLDOWN_MS,
+      tokenSafetyWindowMs: DEEPGRAM_TOKEN_REUSE_SAFETY_WINDOW_MS
+    });
+
+    if (!shouldWarm) {
+      return;
+    }
+
+    lastDictationWarmupAtMsRef.current = nowMs;
+    void getDeepgramToken();
+    void getDictationModule().catch(() => null);
   }
 
   useEffect(() => {
@@ -397,7 +530,7 @@ export function useOnboardingController(): OnboardingController {
   }
 
   function loadMoreQuickSparksDrawer() {
-    const nextDrawerBatch = pullQuickSparks(QUICK_SPARKS_SCROLL_LOAD_COUNT);
+    const nextDrawerBatch = pullQuickSparks(ONBOARDING_QUICK_SPARKS_SCROLL_LOAD_COUNT);
     if (nextDrawerBatch.length === 0) {
       return;
     }
@@ -595,37 +728,15 @@ export function useOnboardingController(): OnboardingController {
       return;
     }
 
-    const tokenResponse = await fetch("/api/deepgram/token", { method: "GET" }).catch(() => null);
-    const tokenRawBody = await tokenResponse?.text().catch(() => null);
-    let tokenBody: { ok: true; access_token: string } | { ok: false; message?: string } | null = null;
-    if (tokenRawBody) {
-      try {
-        tokenBody = JSON.parse(tokenRawBody) as { ok: true; access_token: string } | { ok: false; message?: string };
-      } catch {
-        tokenBody = null;
-      }
-    }
-
-    if (!tokenResponse?.ok || !tokenBody || !("ok" in tokenBody) || tokenBody.ok !== true || !tokenBody.access_token) {
+    const [tokenResult, dictationModule] = await Promise.all([getDeepgramToken(), getDictationModule().catch(() => null)]);
+    if (!tokenResult.ok) {
       stream.getTracks().forEach((track) => track.stop());
       setDictationMode("idle");
       setDictationLevels(Array.from({ length: 12 }, () => 0));
-      const serverMessage = tokenBody && "ok" in tokenBody && tokenBody.ok === false ? tokenBody.message : null;
-      if (serverMessage) {
-        setDictationError(serverMessage);
-        return;
-      }
-
-      if (!tokenResponse) {
-        setDictationError("Failed to issue token. Could not reach /api/deepgram/token.");
-        return;
-      }
-
-      setDictationError(`Failed to issue token (HTTP ${tokenResponse.status}).`);
+      setDictationError(buildDeepgramTokenFailureMessage(tokenResult));
       return;
     }
-    const accessToken = tokenBody.access_token;
-    const dictationModule = await getDictationModule().catch(() => null);
+
     if (!dictationModule) {
       stream.getTracks().forEach((track) => track.stop());
       setDictationMode("idle");
@@ -633,6 +744,7 @@ export function useOnboardingController(): OnboardingController {
       setDictationError("Failed to load dictation runtime. Refresh and try again.");
       return;
     }
+    const accessToken = tokenResult.accessToken;
 
     const connectionAttempt = await connectDeepgramWebSocket(accessToken, dictationModule);
     if (!connectionAttempt.ws) {
@@ -963,6 +1075,9 @@ export function useOnboardingController(): OnboardingController {
       mediaStreamRef.current = null;
       wsRef.current = null;
       meterAnimationFrameRef.current = null;
+      dictationModuleLoadPromiseRef.current = null;
+      deepgramTokenRequestPromiseRef.current = null;
+      deepgramTokenCacheRef.current = null;
 
       if (processor) {
         processor.disconnect();
@@ -1027,6 +1142,7 @@ export function useOnboardingController(): OnboardingController {
     toggleQuickSparksExpanded,
     refreshQuickSparks,
     loadMoreQuickSparksDrawer,
+    primeDictation,
     startDictation,
     stopDictation
   };

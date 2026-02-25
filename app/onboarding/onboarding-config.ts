@@ -1,5 +1,6 @@
 export type AuthState = "loading" | "signed_in" | "signed_out" | "error";
 export type SubmitState = "idle" | "saving" | "saved" | "error";
+export type DictationState = "idle" | "warming" | "recording" | "stopping";
 
 export const BRAIN_DUMP_WORD_LIMIT = 1000;
 export const BRAIN_DUMP_DRAFT_KEY = "onboarding_brain_dump_draft_v1";
@@ -9,6 +10,10 @@ export const ONBOARDING_QUICK_SPARKS_URL = "/onboarding-quick-sparks.txt";
 export const ONBOARDING_QUICK_SPARKS_DECK_KEY = "onboarding_quick_sparks_deck_v1";
 export const ONBOARDING_QUICK_SPARKS_VISIBLE_COUNT = 7;
 export const ONBOARDING_QUICK_SPARKS_DRAWER_COUNT = 21;
+export const ONBOARDING_QUICK_SPARKS_SCROLL_LOAD_COUNT = 12;
+export const DEEPGRAM_TOKEN_FALLBACK_TTL_SECONDS = 30;
+export const DEEPGRAM_TOKEN_REUSE_SAFETY_WINDOW_MS = 10_000;
+export const DICTATION_WARMUP_COOLDOWN_MS = 12_000;
 
 export const CURATED_TIMEZONES = [
   "America/Los_Angeles",
@@ -42,6 +47,69 @@ export function shuffleQuickSparks(items: string[]): string[] {
     next[j] = tmp;
   }
   return next;
+}
+
+export function resolveDeepgramTokenExpiryAtMs(args: {
+  nowMs: number;
+  expiresInSeconds: number | null | undefined;
+  fallbackTtlSeconds?: number;
+}): number {
+  const fallbackTtlSeconds = Math.max(1, Math.floor(args.fallbackTtlSeconds ?? DEEPGRAM_TOKEN_FALLBACK_TTL_SECONDS));
+  const ttlSeconds =
+    typeof args.expiresInSeconds === "number" && Number.isFinite(args.expiresInSeconds)
+      ? Math.max(1, Math.floor(args.expiresInSeconds))
+      : fallbackTtlSeconds;
+
+  return args.nowMs + ttlSeconds * 1000;
+}
+
+export function isDeepgramTokenUsable(args: {
+  nowMs: number;
+  expiresAtMs: number | null;
+  safetyWindowMs?: number;
+}): boolean {
+  if (typeof args.expiresAtMs !== "number" || !Number.isFinite(args.expiresAtMs)) {
+    return false;
+  }
+
+  const safetyWindowMs = Math.max(0, args.safetyWindowMs ?? DEEPGRAM_TOKEN_REUSE_SAFETY_WINDOW_MS);
+  return args.expiresAtMs - args.nowMs > safetyWindowMs;
+}
+
+export function shouldWarmupDictation(args: {
+  dictationState: DictationState;
+  nowMs: number;
+  lastWarmupAtMs: number;
+  tokenExpiresAtMs: number | null;
+  tokenRequestInFlight: boolean;
+  moduleRequestInFlight: boolean;
+  cooldownMs?: number;
+  tokenSafetyWindowMs?: number;
+}): boolean {
+  if (args.dictationState !== "idle") {
+    return false;
+  }
+
+  if (args.tokenRequestInFlight || args.moduleRequestInFlight) {
+    return false;
+  }
+
+  const cooldownMs = Math.max(0, args.cooldownMs ?? DICTATION_WARMUP_COOLDOWN_MS);
+  if (args.nowMs - args.lastWarmupAtMs < cooldownMs) {
+    return false;
+  }
+
+  if (
+    isDeepgramTokenUsable({
+      nowMs: args.nowMs,
+      expiresAtMs: args.tokenExpiresAtMs,
+      safetyWindowMs: args.tokenSafetyWindowMs
+    })
+  ) {
+    return false;
+  }
+
+  return true;
 }
 
 export const PREFERRED_NAME_SUGGESTIONS = [
@@ -140,14 +208,8 @@ export function buildTimezoneOptions(selectedTimezone: string): string[] {
   return [selectedTimezone, ...CURATED_TIMEZONES];
 }
 
-export function initialSendTimeFromLocalNow(now: Date = new Date()): string {
-  const localHour = now.getHours();
-  if (localHour < 6) {
-    return "08:00";
-  }
-
-  const nextHour = (localHour + 1) % 24;
-  return `${String(nextHour).padStart(2, "0")}:00`;
+export function initialSendTimeFromLocalNow(): string {
+  return "08:00";
 }
 
 export function countWords(text: string): number {

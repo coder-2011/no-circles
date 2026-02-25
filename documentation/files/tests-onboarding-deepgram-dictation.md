@@ -12,6 +12,10 @@ Covers pure helper behavior used by onboarding Deepgram dictation runtime.
 - Transcript state progression across interim and final chunks (`is_final` semantics).
 - Packet-size calculation at ~200ms cadence.
 - Audio conversion path: downsample 48k input to 16k and convert to binary linear16 bytes.
+- Onboarding optimistic-warmup helpers:
+  - token expiry normalization with default fallback TTL
+  - safety-window-aware token usability checks
+  - warmup gating behavior (idle-only, cooldown, and in-flight suppression)
 
 ## Why It Exists
-- Gives fast regression coverage for the highest-risk client dictation conversion logic without flaky browser audio integration tests.
+- Gives fast regression coverage for high-risk dictation runtime helpers and warmup gating logic without flaky browser audio integration tests.

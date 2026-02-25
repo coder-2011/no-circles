@@ -1,5 +1,12 @@
 import { afterEach, describe, expect, it } from "vitest";
 import {
+  DEEPGRAM_TOKEN_REUSE_SAFETY_WINDOW_MS,
+  DICTATION_WARMUP_COOLDOWN_MS,
+  isDeepgramTokenUsable,
+  resolveDeepgramTokenExpiryAtMs,
+  shouldWarmupDictation
+} from "@/app/onboarding/onboarding-config";
+import {
   appendTranscript,
   buildFinalDictationTranscript,
   buildDeepgramWebSocketUrl,
@@ -140,5 +147,47 @@ describe("deepgram-dictation helpers", () => {
     expect(getDeepgramPacketSize(48000)).toBe(9600);
     expect(getDeepgramPacketSize(16000)).toBe(3200);
     expect(getDeepgramPacketSize(0)).toBe(0);
+  });
+
+  it("resolves token expiry from Deepgram TTL with 30s fallback", () => {
+    expect(resolveDeepgramTokenExpiryAtMs({ nowMs: 10_000, expiresInSeconds: 45 })).toBe(55_000);
+    expect(resolveDeepgramTokenExpiryAtMs({ nowMs: 10_000, expiresInSeconds: null })).toBe(40_000);
+  });
+
+  it("treats cached token as unusable near safety window", () => {
+    expect(
+      isDeepgramTokenUsable({
+        nowMs: 50_000,
+        expiresAtMs: 61_001,
+        safetyWindowMs: DEEPGRAM_TOKEN_REUSE_SAFETY_WINDOW_MS
+      })
+    ).toBe(true);
+    expect(
+      isDeepgramTokenUsable({
+        nowMs: 50_000,
+        expiresAtMs: 59_999,
+        safetyWindowMs: DEEPGRAM_TOKEN_REUSE_SAFETY_WINDOW_MS
+      })
+    ).toBe(false);
+  });
+
+  it("only warms dictation when idle, outside cooldown, and not already ready", () => {
+    const baseArgs = {
+      dictationState: "idle" as const,
+      nowMs: 200_000,
+      lastWarmupAtMs: 150_000,
+      tokenExpiresAtMs: null,
+      tokenRequestInFlight: false,
+      moduleRequestInFlight: false,
+      cooldownMs: DICTATION_WARMUP_COOLDOWN_MS,
+      tokenSafetyWindowMs: DEEPGRAM_TOKEN_REUSE_SAFETY_WINDOW_MS
+    };
+
+    expect(shouldWarmupDictation(baseArgs)).toBe(true);
+    expect(shouldWarmupDictation({ ...baseArgs, dictationState: "recording" })).toBe(false);
+    expect(shouldWarmupDictation({ ...baseArgs, tokenRequestInFlight: true })).toBe(false);
+    expect(shouldWarmupDictation({ ...baseArgs, moduleRequestInFlight: true })).toBe(false);
+    expect(shouldWarmupDictation({ ...baseArgs, lastWarmupAtMs: 195_000 })).toBe(false);
+    expect(shouldWarmupDictation({ ...baseArgs, tokenExpiresAtMs: 240_000 })).toBe(false);
   });
 });

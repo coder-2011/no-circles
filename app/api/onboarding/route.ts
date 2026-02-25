@@ -160,29 +160,29 @@ export async function POST(request: Request) {
       });
 
     if (upsertedUser.wasInserted) {
-      after(async () => {
-        try {
-          const introEmail = renderWelcomeIntroEmail(preferred_name);
-          const introResult = await sendTransactionalEmail({
-            to: authenticatedEmail,
-            subject: introEmail.subject,
-            html: introEmail.html,
-            text: introEmail.text
-          });
+      try {
+        const introEmail = renderWelcomeIntroEmail(preferred_name);
+        const introResult = await sendTransactionalEmail({
+          to: authenticatedEmail,
+          subject: introEmail.subject,
+          html: introEmail.html,
+          text: introEmail.text
+        });
 
-          if (!introResult.ok) {
-            logWarn("onboarding", "welcome_intro_not_sent", {
-              user_id: upsertedUser.id,
-              error: introResult.error ?? null
-            });
-          }
-        } catch (error) {
-          logError("onboarding", "welcome_intro_failed", {
+        if (!introResult.ok) {
+          logWarn("onboarding", "welcome_intro_not_sent", {
             user_id: upsertedUser.id,
-            error
+            error: introResult.error ?? null
           });
         }
+      } catch (error) {
+        logError("onboarding", "welcome_intro_failed", {
+          user_id: upsertedUser.id,
+          error
+        });
+      }
 
+      after(async () => {
         try {
           const result = await sendUserNewsletter({
             userId: upsertedUser.id,

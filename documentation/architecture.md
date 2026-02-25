@@ -70,7 +70,7 @@ This system is a website-first, email-delivered personalized newsletter product.
    - transforms `brain_dump_text` into canonical memory text via onboarding processor
    - stores send-time settings and identity fields
 4. User is marked ready for daily generation.
-5. On first successful onboarding insert, system attempts two immediate lifecycle-attached sends: (a) standalone welcome intro email, then (b) separate welcome issue send (short first issue), then continues normal daily schedule.
+5. On first successful onboarding insert, system sends standalone welcome intro email immediately, then schedules separate welcome issue send (short first issue) via lifecycle-attached `after(...)`, then continues normal daily schedule.
 
 ### 2) Daily Newsletter Generation Flow
 1. Supabase `pg_cron` executes `net.http_post(...)` every minute to call `POST /api/cron/generate-next` with `CRON_SECRET`.

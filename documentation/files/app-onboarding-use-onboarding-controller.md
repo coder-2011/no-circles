@@ -18,17 +18,19 @@ Encapsulates onboarding page state, side effects, and action handlers as a reusa
 - include `callback_origin` query param in OAuth redirect URL so callback can explicitly preserve localhost final redirect in fallback-heavy environments
 - derive no-permission local defaults:
   - timezone from `Intl.DateTimeFormat().resolvedOptions().timeZone`
-  - send time from current local clock
+  - send time default fixed to `08:00` local
 - expose UX actions:
   - Google sign-in
   - sign-out
   - submit
   - quick-spark append
-  - quick-spark deck controls (`More/Hide`, `Refresh`)
+  - quick-spark deck controls (expand/collapse toggle + `Refresh` + scroll-near-bottom append)
+  - optimistic Deepgram warmup (`primeDictation`) for high-intent interactions
   - Deepgram dictation start/stop for brain-dump voice input
 
 ## Notes
 - `send_time_local` is derived from hour/minute/meridiem state via `buildSendTime`, avoiding redundant state syncing.
 - auth bootstrap reads from Supabase `getSession()` for lower-latency client-side state initialization.
-- Deepgram dictation helpers are lazy-imported on first dictation start, so onboarding initial bundle avoids loading audio/WebSocket transform utilities until needed.
-- quick-sparks are loaded from `public/onboarding-quick-sparks.txt` and consumed from a persisted non-repeating deck (`unseen` -> `seen`) so refreshes avoid repeats until the pool is exhausted.
+- Deepgram dictation warmup prefetches both token + dictation module with cooldown gating; start flow reuses cached token when it is still outside safety window.
+- Deepgram dictation helpers are lazy-imported and promise-deduped, so parallel warmup/start interactions do not trigger duplicate module loads.
+- quick-sparks are loaded from `public/onboarding-quick-sparks.txt` and consumed from a persisted non-repeating deck (`unseen` -> `seen`) so refreshes and scroll-appends avoid repeats until the pool is exhausted.

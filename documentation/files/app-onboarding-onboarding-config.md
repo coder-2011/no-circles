@@ -11,6 +11,7 @@ Holds onboarding constants and small pure utilities used by the page controller 
   - quick-spark suggestions
   - quick-sparks deck key + visible/drawer batch sizes
   - preferred-name placeholder suggestions
+  - Deepgram warmup constants (token fallback TTL, token-reuse safety window, warmup cooldown)
 - email-name inference pattern for `first.last` / `first_last` / `first-last`
 - onboarding state types:
   - `AuthState`
@@ -23,5 +24,8 @@ Holds onboarding constants and small pure utilities used by the page controller 
   - `getPreferredNameFromEmail` for lightweight suggested-name inference
   - `getPreferredNameFromOAuthProfile` for persisted preferred-name inference from OAuth profile metadata
   - `getDetectedTimezone` + `buildTimezoneOptions` for browser timezone defaults
-  - `initialSendTimeFromLocalNow` for no-permission local send-time default
+  - `initialSendTimeFromLocalNow` for fixed onboarding default send-time (`08:00` local)
   - `shuffleQuickSparks` for non-repeating deck batching
+  - `resolveDeepgramTokenExpiryAtMs` for token cache expiry normalization
+  - `isDeepgramTokenUsable` for safety-window-aware token reuse checks
+  - `shouldWarmupDictation` for optimistic warmup eligibility gating
