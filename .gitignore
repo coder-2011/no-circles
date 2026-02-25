@@ -30,3 +30,5 @@ playwright-report/
 .codex/STATE.md
 
 images/
+.vercel
+.env*.local
