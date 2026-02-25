@@ -1,5 +1,4 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { runDiscovery } from "@/lib/discovery/run-discovery";
 import { generateNewsletterSummaries } from "@/lib/summary/writer";
 
 vi.mock("@/lib/db/client", () => ({
@@ -159,26 +158,9 @@ describe("hyper integration: pipeline seam", () => {
     expect(firstUrls.every((url) => mightContainCanonicalUrl(bloomStateAfterFirst, url))).toBe(true);
   });
 
-  it("handles mixed model failures with one retry and preserves full output count", async () => {
+  it("handles mixed model failures with one retry and drops failed items", async () => {
     process.env.ANTHROPIC_API_KEY = "test-key";
     process.env.ANTHROPIC_SUMMARY_MODEL = "claude-haiku-4-5";
-
-    const exaSearch = vi.fn(async ({ query }: { query: string; numResults: number }) => {
-      const topic = query.split(" prefers ")[0]?.trim() || query;
-      const slug = topic.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-
-      return [
-        {
-          url: `https://example.com/${slug}`,
-          title: `${topic} report`,
-          highlights: [
-            `A practical report for ${topic} with concrete implementation details.`,
-            `It compares reliability, cost, and rollout tradeoffs.`
-          ],
-          score: 0.8
-        }
-      ];
-    });
 
     const forcedFailureUrls = new Set<string>();
     const fetchMock = vi.fn(async (requestUrl: string, init: RequestInit) => {
@@ -225,16 +207,30 @@ describe("hyper integration: pipeline seam", () => {
 
     vi.stubGlobal("fetch", fetchMock);
 
-    const discovery = await runDiscovery(
-      {
-        interestMemoryText: memory,
-        targetCount: 10,
-        maxRetries: 1,
-        maxTopics: 10,
-        perTopicResults: 1
-      },
-      { exaSearch }
-    );
+    const discovery = {
+      candidates: Array.from({ length: 10 }).map((_, index) => {
+        const url = `https://example.com/topic-${index + 1}`;
+        return {
+          url,
+          canonicalUrl: url,
+          title: `topic ${index + 1} report`,
+          highlight: `highlight ${index + 1}`,
+          highlights: [
+            `A practical report for topic ${index + 1} with concrete implementation details.`,
+            "It compares reliability, cost, and rollout tradeoffs."
+          ],
+          topic: `topic-${index + 1}`,
+          topicRank: index,
+          softSuppressed: false,
+          resultRank: 0,
+          sourceDomain: "example.com",
+          publishedAt: null,
+          exaScore: 0.8,
+          highlightScore: 0.7,
+          highlightScores: [0.7]
+        };
+      })
+    };
 
     const forcedTargets = [discovery.candidates[2]?.url, discovery.candidates[6]?.url].filter(
       (value): value is string => Boolean(value)
@@ -268,20 +264,20 @@ describe("hyper integration: pipeline seam", () => {
       content: toPrettyJson(summaries)
     });
 
-    expect(summaries).toHaveLength(10);
-    const fallbackWarnSeen = warnSpy.mock.calls.some((call) => String(call[0]).includes("summary_fallback_used"));
+    expect(summaries).toHaveLength(8);
+    const skipWarnSeen = warnSpy.mock.calls.some((call) => String(call[0]).includes("summary_skipped_after_model_failure"));
     const runCompleteEvents = infoSpy.mock.calls
       .map((call) => {
         try {
-          return JSON.parse(String(call[0])) as { event?: string; fallback_count?: number };
+          return JSON.parse(String(call[0])) as { event?: string; skipped_count?: number };
         } catch {
           return null;
         }
       })
-      .filter((event): event is { event?: string; fallback_count?: number } => event !== null);
-    const fallbackCount = runCompleteEvents.find((event) => event.event === "summary_run_complete")?.fallback_count ?? 0;
+      .filter((event): event is { event?: string; skipped_count?: number } => event !== null);
+    const skippedCount = runCompleteEvents.find((event) => event.event === "summary_run_complete")?.skipped_count ?? 0;
 
-    expect(fallbackWarnSeen).toBe(true);
-    expect(fallbackCount).toBeGreaterThan(0);
+    expect(skipWarnSeen).toBe(true);
+    expect(skippedCount).toBeGreaterThan(0);
   });
 });

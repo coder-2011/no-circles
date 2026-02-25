@@ -8,8 +8,8 @@ Validates PR6 -> PR8 seam under deterministic integration conditions.
 2. URL passthrough remains fixed from discovery to final output.
 3. Mixed model failure behavior:
    - one retry per item
-   - fallback summaries used when retries fail
-   - fallback count logged server-side
+   - failed items are dropped when retries fail quality/parse checks
+   - skipped-count telemetry is logged server-side
 
 ## Artifacts
 Writes per-run traces to:

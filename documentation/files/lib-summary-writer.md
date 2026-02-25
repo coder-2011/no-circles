@@ -35,14 +35,16 @@ Default word range when only target is provided:
    - For overlong summaries, trims at sentence boundary when possible.
    - Does not inject filler sentence padding for short outputs.
 5. Keep URL fixed from source item regardless of model output.
-6. Retry invalid/unavailable model output once.
-7. Treat placeholder/non-informative outputs (for example `Unable to generate summary...`) as invalid output.
-8. If still invalid, use deterministic highlight-based fallback only when highlight detail is sufficient.
-9. If highlights are missing or fallback detail is inadequate, skip the item entirely so low-signal summaries are never emitted.
+6. Retry non-quality model failures once (for example transport/schema/parse failures).
+7. Treat quality failures as terminal and skip item immediately:
+   - `summary = INSUFFICIENT_SOURCE_DETAIL`
+   - placeholder/non-informative outputs (for example `Unable to generate summary...`)
+   - empty summary after normalization
+8. Do **not** generate deterministic fallback summary text from highlights.
+9. If highlights are missing or model output fails quality checks, skip the item so low-signal summaries are never emitted.
 10. Emit structured logs:
-   - per-item fallback event (`summary_fallback_used`)
-   - per-item skip events (`summary_skipped_missing_highlights`, `summary_skipped_insufficient_highlights`)
-   - per-run counts (`summary_run_complete` with `fallback_count`)
+   - per-item skip events (`summary_skipped_missing_highlights`, `summary_skipped_after_model_failure`)
+   - per-run counts (`summary_run_complete` with `skipped_count`)
 
 ## Environment
 - `ANTHROPIC_API_KEY`

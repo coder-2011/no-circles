@@ -92,7 +92,7 @@ describe("generateNewsletterSummaries", () => {
     );
   });
 
-  it("retries once and then skips item when fallback detail is insufficient", async () => {
+  it("retries once for transport/parse failures and skips item when output stays invalid", async () => {
     process.env.ANTHROPIC_API_KEY = "test-key";
     process.env.ANTHROPIC_SUMMARY_MODEL = "claude-haiku-4-5";
 
@@ -184,7 +184,7 @@ describe("generateNewsletterSummaries", () => {
     expect(count).toBeLessThanOrEqual(120);
   });
 
-  it("rejects placeholder-style model summaries and falls back to deterministic highlight text", async () => {
+  it("rejects placeholder-style model summaries and drops the item", async () => {
     process.env.ANTHROPIC_API_KEY = "test-key";
     process.env.ANTHROPIC_SUMMARY_MODEL = "claude-haiku-4-5";
 
@@ -213,9 +213,38 @@ describe("generateNewsletterSummaries", () => {
       maxWords: 40
     });
 
-    expect(result[0].summary).toBe(
-      "The article explains a new retrieval system that reduces latency in production workloads. It compares implementation tradeoffs between recall, latency, and infra cost."
-    );
+    expect(result).toHaveLength(0);
+  });
+
+  it("drops item immediately when model returns INSUFFICIENT_SOURCE_DETAIL", async () => {
+    process.env.ANTHROPIC_API_KEY = "test-key";
+    process.env.ANTHROPIC_SUMMARY_MODEL = "claude-haiku-4-5";
+
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify({
+              title: "Original A",
+              summary: "INSUFFICIENT_SOURCE_DETAIL"
+            })
+          }
+        ]
+      })
+    }));
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await generateNewsletterSummaries({
+      items: [sourceItems[0]],
+      minWords: 20,
+      maxWords: 40
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(result).toHaveLength(0);
   });
 
   it("skips item immediately when highlights are missing", async () => {
