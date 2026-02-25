@@ -44,6 +44,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 ## Current File Docs
 
 - `files/app-api-cron-generate-next-route.md`
+- `files/app-api-sample-brief-route.md`
 - `files/app-api-deepgram-token-route.md`
 - `files/app-art-page.md`
 - `files/app-api-onboarding-route.md`
@@ -65,6 +66,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/lib-auth-browser-client.md`
 - `files/lib-schemas.md`
 - `files/lib-utils.md`
+- `files/lib-sample-brief-parse-newsletter-text.md`
 - `files/lib-observability-log.md`
 - `files/next-config.md`
 - `files/drizzle-config.md`
@@ -88,6 +90,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/tailwind-config.md`
 - `files/tests-onboarding.md`
 - `files/tests-onboarding-route.md`
+- `files/tests-sample-brief-parse-newsletter-text.md`
 - `files/tests-auth-callback-route.md`
 - `files/tests-onboarding-deepgram-dictation.md`
 - `files/tests-deepgram-token-route.md`

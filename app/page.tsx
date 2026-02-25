@@ -13,6 +13,15 @@ type SampleBriefItem = {
   summary: string;
 };
 
+type SampleBriefResponse =
+  | {
+      ok: true;
+      items: SampleBriefItem[];
+    }
+  | {
+      ok: false;
+    };
+
 const SAMPLE_DAILY_BRIEF: SampleBriefItem[] = [
   {
     title: "AI Update, February 20, 2026: AI News and Views From the Past Week",
@@ -112,6 +121,7 @@ export default function HomePage() {
   const [authState, setAuthState] = useState<AuthState>("loading");
   const [email, setEmail] = useState<string | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [sampleBriefItems, setSampleBriefItems] = useState<SampleBriefItem[]>(SAMPLE_DAILY_BRIEF);
   const [authClient] = useState<{ supabase: SupabaseClient | null; initError: string | null }>(() => {
     try {
       return { supabase: getBrowserSupabaseClient(), initError: null };
@@ -212,6 +222,25 @@ export default function HomePage() {
     window.history.replaceState(null, "", window.location.pathname);
   }, [authState]);
 
+  useEffect(() => {
+    let active = true;
+
+    void fetch("/api/sample-brief", { method: "GET" })
+      .then(async (response) => {
+        const body = (await response.json().catch(() => null)) as SampleBriefResponse | null;
+        if (!active || !response.ok || !body || !("ok" in body) || body.ok !== true || body.items.length === 0) {
+          return;
+        }
+
+        setSampleBriefItems(body.items);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   async function signInWithGoogle() {
     if (authState === "signed_in") {
       router.replace("/onboarding");
@@ -245,6 +274,13 @@ export default function HomePage() {
 
     router.replace("/");
   }
+
+  const currentDateLabel = new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric"
+  }).format(new Date());
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#F3ECD8] px-6 py-14 text-[#2D3426] md:px-10 md:py-20" id="top">
@@ -323,12 +359,17 @@ export default function HomePage() {
         </section>
 
         <section className="rounded-3xl border border-[#C9BD9A] bg-[#FBF7EB] p-8 text-[#2D3426] shadow-sm md:p-10">
-          <h2 className={`${displayFont.className} text-2xl font-semibold leading-tight text-[#2D3426] md:text-3xl`}>
-            Sample Daily Brief
-          </h2>
+          <div className="flex items-start justify-between gap-3">
+            <h2 className={`${displayFont.className} text-2xl font-semibold leading-tight text-[#2D3426] md:text-3xl`}>
+              Sample Daily Brief
+            </h2>
+            <p className={`${interfaceFont.className} rounded-full border border-[#CDBF98] bg-[#EFE5CD] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#5A6650]`}>
+              {currentDateLabel}
+            </p>
+          </div>
           <div className="mt-5 space-y-5 text-[#4A5641]">
             <ol className="space-y-5">
-              {SAMPLE_DAILY_BRIEF.map((item, index) => (
+              {sampleBriefItems.map((item, index) => (
                 <li className="rounded-xl border border-[#D8CFB4] bg-[#F7F2E2] p-4" key={item.url}>
                   <a
                     className="text-base font-semibold leading-6 text-[#2D3426] underline decoration-[#8B9A7A] decoration-2 underline-offset-4 hover:text-[#1E2519]"

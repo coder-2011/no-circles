@@ -12,9 +12,10 @@ Landing/auth-entry client page for the product.
 6. Supports local sign-out and client-side navigation back to `/`.
 7. Uses wider responsive layout bounds and larger typography/button sizing so primary content occupies more of the viewport.
 8. Presents clear above-the-fold product messaging in a styled hero copy box focused on un-googleable discovery: ten high-signal niche long-form reads each morning plus a principle statement about unexpected ideas.
-9. Renders a populated `Sample Daily Brief` section with ten realistic newsletter items (title + outbound link + neutral summary) as a static, curated exemplar.
-10. Shows a pricing notice directly below the sample brief clarifying free access through mid-March and planned minimal at-cost billing afterward (no profit margin).
-11. Pins a floating top-right auth CTA while scrolling so users can trigger `Get started` (or `Continue onboarding` when signed in) without returning to the hero section.
+9. Hydrates `Sample Daily Brief` content from `GET /api/sample-brief` (latest sent brief text for fixed source account) and falls back to static exemplar content when API data is unavailable.
+10. Shows the current date in the sample-brief header (top-right) while preserving existing homepage formatting.
+11. Shows a pricing notice directly below the sample brief clarifying free access through mid-March and planned minimal at-cost billing afterward (no profit margin), including monthly per-user usage tiers: lean `~$2.54`, base `~$3.89`, heavy `~$5.57`.
+12. Pins a floating top-right auth CTA while scrolling so users can trigger `Get started` (or `Continue onboarding` when signed in) without returning to the hero section.
 
 ## Why It Exists
 - Provides the single public entrypoint for authentication.
