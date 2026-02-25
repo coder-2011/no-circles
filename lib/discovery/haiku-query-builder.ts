@@ -41,7 +41,10 @@ function buildSystemPrompt(): string {
     "Return a single-line query string only.",
     "Be very creative, niche, and surprising in your angle selection.",
     "You have broad leeway to choose framing, terms, and direction.",
-    "Prefer concrete and specific language over generic phrasing when possible."
+    "Prefer concrete and specific language over generic phrasing when possible.",
+    "Interpret RECENT_FEEDBACK flags in USER_MEMORY as steering signals:",
+    "- '+ [more_like_this] ...' means increase adjacent coverage.",
+    "- '- [less_like_this] ...' means reduce or avoid adjacent coverage."
   ].join("\n");
 }
 

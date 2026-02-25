@@ -31,6 +31,7 @@ export function buildQuoteSelectionUserPrompt(args: BuildQuoteSelectionUserPromp
     "Task: choose exactly one quote from the candidate list.",
     "Selection objective:",
     "- fit the reader profile and most recent feedback",
+    "- interpret '+ [more_like_this] ...' as positive steering and '- [less_like_this] ...' as negative steering",
     "- prefer concrete, grounded, non-generic language",
     "- avoid hype, cliche, and motivational fluff",
     "- avoid quotes that conflict with recent feedback",
