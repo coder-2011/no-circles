@@ -70,18 +70,19 @@ hyper-query-system-live:
 	set -a; [ -f ./.env.local ] && . ./.env.local; set +a; \
 	npx vitest run --config vitest.hyper.config.ts tests/hyper/query-system-live.integration.test.ts
 
-# Count tracked code LOC on main branch (prefers origin/main when available)
+# Count tracked code LOC on default branch
+# Ref preference order: origin/master -> origin/main -> master -> main
 main-loc:
-	ref=$$(git rev-parse --verify origin/main >/dev/null 2>&1 && echo origin/main || echo main); \
-	git ls-tree -r --name-only $$ref \
-	| rg '\.(ts|tsx|js|jsx|mjs|cjs|css|sql)$$' \
-	| while read -r file; do git show "$$ref:$$file"; done \
+	ref=$(if git rev-parse --verify origin/master >/dev/null 2>&1; then echo origin/master; elif git rev-parse --verify origin/main >/dev/null 2>&1; then echo origin/main; elif git rev-parse --verify master >/dev/null 2>&1; then echo master; else echo main; fi); \
+	git ls-tree -r --name-only $ref \
+	| rg '\.(ts|tsx|js|jsx|mjs|cjs|css|sql)$' \
+	| while read -r file; do git show "$ref:$file"; done \
 	| wc -l
 
-# Alias: count tracked code LOC on main branch (prefers origin/main when available)
+# Alias: count tracked code LOC using the same default-branch resolution
 loc:
-	ref=$$(git rev-parse --verify origin/main >/dev/null 2>&1 && echo origin/main || echo main); \
-	git ls-tree -r --name-only $$ref \
-	| rg '\.(ts|tsx|js|jsx|mjs|cjs|css|sql)$$' \
-	| while read -r file; do git show "$$ref:$$file"; done \
+	ref=$(if git rev-parse --verify origin/master >/dev/null 2>&1; then echo origin/master; elif git rev-parse --verify origin/main >/dev/null 2>&1; then echo origin/main; elif git rev-parse --verify master >/dev/null 2>&1; then echo master; else echo main; fi); \
+	git ls-tree -r --name-only $ref \
+	| rg '\.(ts|tsx|js|jsx|mjs|cjs|css|sql)$' \
+	| while read -r file; do git show "$ref:$file"; done \
 	| wc -l
