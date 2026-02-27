@@ -5,6 +5,7 @@ import {
   resolveFeedbackBaseUrl,
   verifyFeedbackClickToken
 } from "@/lib/feedback/click-token";
+import { normalizeEnvString } from "@/lib/utils";
 
 describe("feedback click token", () => {
   const secret = "test_feedback_secret";
@@ -94,10 +95,22 @@ describe("feedback click token", () => {
     delete process.env.NEXT_PUBLIC_SITE_URL;
   });
 
+  it("normalizes quoted NEXT_PUBLIC_SITE_URL values", () => {
+    process.env.NEXT_PUBLIC_SITE_URL = "\"no-circles.com\"";
+    expect(resolveFeedbackBaseUrl()).toBe("https://no-circles.com");
+    delete process.env.NEXT_PUBLIC_SITE_URL;
+  });
+
   it("returns null for localhost NEXT_PUBLIC_SITE_URL", () => {
     process.env.NEXT_PUBLIC_SITE_URL = "http://localhost:3000";
     expect(resolveFeedbackBaseUrl()).toBeNull();
 
     delete process.env.NEXT_PUBLIC_SITE_URL;
+  });
+
+  it("normalizes wrapped env strings", () => {
+    expect(normalizeEnvString("\"https://no-circles.com\"")).toBe("https://no-circles.com");
+    expect(normalizeEnvString("'https://no-circles.com'")).toBe("https://no-circles.com");
+    expect(normalizeEnvString("  \"'https://no-circles.com'\"  ")).toBe("https://no-circles.com");
   });
 });

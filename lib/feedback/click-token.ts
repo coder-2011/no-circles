@@ -1,4 +1,5 @@
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
+import { normalizeEnvString } from "@/lib/utils";
 
 export const FEEDBACK_TOKEN_VERSION = 1;
 const FEEDBACK_ROUTE_PATH = "/api/feedback/click";
@@ -171,7 +172,7 @@ function isLocalhostHost(hostname: string): boolean {
 }
 
 function normalizePublicOrigin(value: string | undefined): string | null {
-  const candidate = value?.trim();
+  const candidate = normalizeEnvString(value);
   if (!candidate) {
     return null;
   }
