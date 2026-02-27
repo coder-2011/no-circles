@@ -1,0 +1,46 @@
+TOPIC: brain-computer-interfaces
+GENERATED_AT_UTC: 2026-02-27T09:04:14.941Z
+
+[
+  {
+    "title": "An emerging view of neural geometry in motor cortex supports high-performance decoding",
+    "url": "https://elifesciences.org/articles/89421",
+    "summary": "Research from Columbia University examined neural geometry in motor cortex to improve decoding performance. The study involved researchers across multiple departments including Biomedical Engineering, Neuroscience, and Statistics. The work was published in eLife in February 2025 and has received 9 citations, with 4,539 views and 353 downloads as of the publication date."
+  },
+  {
+    "title": "Material Damage to Multielectrode Arrays after Electrolytic",
+    "url": "https://elifesciences.org/reviewed-preprints/106452",
+    "summary": "The 96-channel Utah array has enabled systems-level neuroscience research and brain-computer interface development for motor decoding and neuroprosthetics. Electrolytic lesioning, which passes current through electrodes to create precise, controllable neuron loss, serves as a model for studying targeted brain damage. This technique has been used across species including non-human primates, cats, dogs, and humans since the 19th century."
+  },
+  {
+    "title": "Implementing intraoperative high-density electrocorticography during epilepsy surgery",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/39932297/",
+    "summary": "Intraoperative electrocorticography (ioECoG) during epilepsy surgery typically uses low-density electrode grids with 16-20 electrodes spaced 10 mm apart, covering approximately 20 cm² of cortex. High-density grids with 64 electrodes at 5 mm inter-electrode distance were evaluated to assess whether they could detect highly localized epileptic spikes and high-frequency oscillations (HFOs) and improve spike-onset localization, potentially altering presurgical hypotheses in clinical practice."
+  },
+  {
+    "title": "Long-term performance of intracortical microelectrode arrays in 14 BrainGate clinical trial participants",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/40630584/",
+    "summary": "A study examined long-term performance of intracortical microelectrode arrays in 14 participants from the BrainGate clinical trial. The research involved researchers from Stanford University, Brown University, and the VA Providence Healthcare System. Brain-computer interfaces using these arrays enabled people with paralysis to control computer cursors, operate prosthetic limbs, and communicate."
+  },
+  {
+    "title": "Quantifying physical degradation alongside recording and stimulation performance of intracortical microelectrodes",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11419230/",
+    "summary": "A study examined 980 intracortical microelectrodes chronically implanted in three human subjects over 956–2246 days. Researchers quantified physical degradation of the electrodes while measuring their recording and stimulation performance. The analysis combined scanning electron microscopy data collection with functional performance metrics gathered throughout and at the end of the implantation period."
+  }
+]
+
+WARNINGS:
+CANDIDATE_EXTRACTION_FAILED:brain-computer interfaces:https://www.frontiersin.org/journals/neuroscience/articles/10.3389/fnins.2021.667907/full
+CANDIDATE_EXTRACTION_FAILED:brain-computer interfaces:https://onlinelibrary.wiley.com/doi/10.1155/2015/346217
+CANDIDATE_EXTRACTION_FAILED:neural decoding:https://www.frontiersin.org/journals/neuroscience/articles/10.3389/fnins.2020.00926/full
+CANDIDATE_EXTRACTION_FAILED:neuroprosthetics:https://journals.sagepub.com/doi/full/10.1177/15459683251360052
+CANDIDATE_EXTRACTION_FAILED:signal processing for neural interfaces:https://www.frontiersin.org/journals/neuroscience/articles/10.3389/fnins.2025.1491844/full
+CANDIDATE_EXTRACTION_FAILED:signal processing for neural interfaces:https://www.frontiersin.org/journals/neuroscience/articles/10.3389/fnins.2023.1260675/full
+CANDIDATE_EXTRACTION_FAILED:clinical BCI applications:https://www.pnas.org/doi/10.1073/pnas.1611734114
+CANDIDATE_EXTRACTION_FAILED:clinical BCI applications:https://www.rdworldonline.com/5-neurotech-trends-to-watch-in-2025-from-paralysis-recovery-to-prosthetics-that-feel-and-beyond/
+CANDIDATE_EXTRACTION_FAILED:clinical BCI applications:https://onlinelibrary.wiley.com/doi/full/10.1002/ana.27287
+CANDIDATE_EXTRACTION_FAILED:neural plasticity and motor learning in BCI training:https://sites.stat.columbia.edu/liam/research/pubs/merel-fox-coadaptation.pdf
+CANDIDATE_EXTRACTION_FAILED:biocompatibility and chronic implant failure modes in neural interfaces:https://www.frontiersin.org/journals/bioengineering-and-biotechnology/articles/10.3389/fbioe.2024.1408088/full
+CANDIDATE_EXTRACTION_FAILED:biocompatibility and chronic implant failure modes in neural interfaces:https://cenl.ucsd.edu/pubs/Biomaterials2006.pdf
+CANDIDATE_LOW_SIGNAL_EXCERPT:biocompatibility and chronic implant failure modes in neural interfaces:https://en.wikipedia.org/wiki/Chronic_electrode_implant
+CANDIDATE_EXTRACTION_FAILED:biocompatibility and chronic implant failure modes in neural interfaces:https://www.frontiersin.org/journals/bioengineering-and-biotechnology/articles/10.3389/fbioe.2021.759711/full

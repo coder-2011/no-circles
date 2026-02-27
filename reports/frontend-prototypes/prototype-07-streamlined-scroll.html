@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Sora:wght@500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/mouse-follower@1/dist/mouse-follower.min.css" />
   <style>
     :root {
       --bg: #f8f3e7;
@@ -39,6 +40,7 @@
       background: var(--bg);
       color: var(--ink);
       font-family: "Sora", sans-serif;
+      cursor: none;
     }
 
     h1,
@@ -103,6 +105,23 @@
 
     .button-muted:hover {
       background: #e5dcc3;
+    }
+
+    .floating-cta {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 10000;
+      box-shadow: 0 6px 20px rgba(45, 52, 38, 0.14);
+    }
+
+    .cta-magnet {
+      will-change: transform;
+      transition: box-shadow 0.2s ease;
+    }
+
+    .cta-magnet.is-near {
+      box-shadow: 0 10px 26px rgba(61, 111, 73, 0.26);
     }
 
     .container {
@@ -244,6 +263,12 @@
       background: radial-gradient(circle at 40% 50%, rgba(125, 150, 104, 0.2), rgba(125, 150, 104, 0));
     }
 
+    .flow {
+      border-top: 1px solid rgba(201, 189, 154, 0.5);
+      padding-top: 1.7rem;
+      margin-top: 0.35rem;
+    }
+
     .sample {
       border: 1px solid rgba(201, 189, 154, 0.85);
       border-radius: 18px;
@@ -254,12 +279,29 @@
     .steps {
       margin-top: 1.1rem;
       display: grid;
-      gap: 1rem;
+      gap: 0;
     }
 
     .step {
-      position: relative;
-      padding: 0.35rem 0 0 2.5rem;
+      display: grid;
+      grid-template-columns: 2.2rem 1fr;
+      column-gap: 0.6rem;
+      align-items: start;
+      padding: 0.5rem 0;
+    }
+
+    .step + .step {
+      border-top: 1px solid rgba(201, 189, 154, 0.45);
+      padding-top: 0.9rem;
+    }
+
+    .step-num {
+      font-family: "Fraunces", serif;
+      font-size: 2rem;
+      line-height: 0.95;
+      color: rgba(61, 111, 73, 0.42);
+      letter-spacing: 0.01em;
+      padding-top: 0.02rem;
     }
 
     .step strong {
@@ -270,16 +312,8 @@
       margin-bottom: 0.18rem;
     }
 
-    .step::before {
-      content: attr(data-step);
-      position: absolute;
-      left: 0;
-      top: -0.15rem;
-      font-family: "Fraunces", serif;
-      font-size: 2.1rem;
-      line-height: 1;
-      color: rgba(61, 111, 73, 0.42);
-      letter-spacing: 0.01em;
+    .step-copy {
+      min-width: 0;
     }
 
     .step p {
@@ -374,6 +408,20 @@
 
       .steps {
         grid-template-columns: repeat(3, minmax(0, 1fr));
+        column-gap: 0.9rem;
+      }
+
+      .step {
+        grid-template-columns: 2rem 1fr;
+        padding: 0.2rem 0.15rem;
+      }
+
+      .step + .step {
+        border-top: 0;
+        border-left: 1px solid rgba(201, 189, 154, 0.45);
+        padding-top: 0.2rem;
+        padding-left: 1.1rem;
+        margin-left: 0.1rem;
       }
 
       .brief-item {
@@ -385,28 +433,66 @@
       }
     }
 
-    .cursor-trail-layer {
+    a,
+    button {
+      cursor: none;
+    }
+
+    .mf-cursor {
+      color: #3d6f49;
+      z-index: 9999;
+    }
+
+    .mf-cursor.-pointer .mf-cursor-inner {
+      transform: scale(0.42);
+      background-color: rgba(61, 111, 73, 0.28);
+    }
+
+    .mouse-tail-layer {
       position: fixed;
       inset: 0;
       pointer-events: none;
-      z-index: 9999;
-      overflow: hidden;
+      z-index: 9998;
     }
 
-    .cursor-trail-cell {
+    .mouse-tail-dot {
       position: absolute;
-      width: 12px;
-      height: 12px;
-      border: 1px solid rgba(140, 149, 133, 0.26);
-      background: transparent;
+      width: 14px;
+      height: 14px;
+      border: 1px solid rgba(61, 111, 73, 0.42);
+      background: rgba(239, 229, 205, 0.22);
+      border-radius: 3px;
       transform: translate3d(-999px, -999px, 0);
       will-change: transform, opacity;
       opacity: 0;
+      mix-blend-mode: multiply;
+    }
+
+    @media (pointer: coarse) {
+      body,
+      a,
+      button {
+        cursor: auto;
+      }
+
+      .mf-cursor {
+        display: none !important;
+      }
+
+      .mouse-tail-layer {
+        display: none;
+      }
+
+      .floating-cta {
+        position: static;
+        box-shadow: none;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="cursor-trail-layer" aria-hidden="true"></div>
+  <div class="mouse-tail-layer" aria-hidden="true"></div>
+  <button class="button floating-cta cta-magnet" type="button">Get Started</button>
   <main class="page" id="top">
     <div class="bg-glow"></div>
 
@@ -415,7 +501,7 @@
         <p class="brand">The No-Circles Project</p>
         <h1 class="headline">Find what search would never show you.</h1>
         <div class="hero-actions">
-          <button class="button" type="button">Distract Me Intelligently</button>
+          <button class="button cta-magnet" type="button">Distract Me Intelligently</button>
           <button class="button button-muted" type="button">Sign out</button>
         </div>
 
@@ -430,17 +516,26 @@
       <section class="panel flow" id="flow">
         <p class="kicker kicker-flow">Flow</p>
         <div class="steps">
-          <article class="step" data-step="01">
-            <strong>Tell us what you are into.</strong>
-            <p>Write one short brain dump during onboarding.</p>
+          <article class="step">
+            <span class="step-num">01</span>
+            <div class="step-copy">
+              <strong>Tell us what you are into.</strong>
+              <p>Write one short brain dump during onboarding.</p>
+            </div>
           </article>
-          <article class="step" data-step="02">
-            <strong>Get one daily issue.</strong>
-            <p>Every issue contains 10 concise, source-linked reads.</p>
+          <article class="step">
+            <span class="step-num">02</span>
+            <div class="step-copy">
+              <strong>Get one daily issue.</strong>
+              <p>Every issue contains 10 concise, source-linked reads.</p>
+            </div>
           </article>
-          <article class="step" data-step="03">
-            <strong>Reply to shape the next issue.</strong>
-            <p>Your response guides the next picks.</p>
+          <article class="step">
+            <span class="step-num">03</span>
+            <div class="step-copy">
+              <strong>Reply to shape the next issue.</strong>
+              <p>Your response guides the next picks.</p>
+            </div>
           </article>
         </div>
       </section>
@@ -475,97 +570,148 @@
             <p>The 2025-2029 outlook projects a high chance of record-level warming in at least one year.</p>
           </li>
         </ul>
-        <p class="warning">
-          No-Circles is free through mid-March. Then we plan a minimal at-cost subscription for infrastructure and API spend.
-        </p>
       </section>
+
+      <p class="warning">
+        No-Circles is free through mid-March. Then we plan a minimal at-cost subscription for infrastructure and API spend.
+      </p>
 
     </div>
   </main>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://unpkg.com/mouse-follower@1/dist/mouse-follower.min.js"></script>
   <script>
     (function () {
-      const layer = document.querySelector(".cursor-trail-layer");
+      if (!window.MouseFollower || !window.gsap) return;
+      if (window.matchMedia("(pointer: coarse)").matches) return;
+
+      window.MouseFollower.registerGSAP(window.gsap);
+
+      new window.MouseFollower({
+        speed: 0.45,
+        ease: "expo.out",
+        skewing: 0,
+        stickDelta: 0.1,
+        hideOnLeave: true,
+        hideTimeout: 180,
+        stateDetection: {
+          "-pointer": "a,button"
+        }
+      });
+    })();
+
+    (function () {
+      if (!window.gsap) return;
+      if (window.matchMedia("(pointer: coarse)").matches) return;
+
+      const magnets = Array.from(document.querySelectorAll(".cta-magnet"));
+      if (!magnets.length) return;
+
+      const maxOffset = 12;
+      const activationRadius = 96;
+      const animators = magnets.map((el) => ({
+        el,
+        xTo: window.gsap.quickTo(el, "x", { duration: 0.22, ease: "power2.out" }),
+        yTo: window.gsap.quickTo(el, "y", { duration: 0.22, ease: "power2.out" })
+      }));
+
+      window.addEventListener("mousemove", (event) => {
+        const x = event.clientX;
+        const y = event.clientY;
+
+        for (const item of animators) {
+          const rect = item.el.getBoundingClientRect();
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          const dx = x - cx;
+          const dy = y - cy;
+          const distance = Math.hypot(dx, dy);
+
+          if (distance < activationRadius && distance > 0) {
+            const strength = (activationRadius - distance) / activationRadius;
+            item.xTo((dx / distance) * maxOffset * strength);
+            item.yTo((dy / distance) * maxOffset * strength);
+            item.el.classList.add("is-near");
+          } else {
+            item.xTo(0);
+            item.yTo(0);
+            item.el.classList.remove("is-near");
+          }
+        }
+      }, { passive: true });
+
+      window.addEventListener("mouseleave", () => {
+        for (const item of animators) {
+          item.xTo(0);
+          item.yTo(0);
+          item.el.classList.remove("is-near");
+        }
+      }, { passive: true });
+    })();
+
+    (function () {
+      if (window.matchMedia("(pointer: coarse)").matches) return;
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+      const layer = document.querySelector(".mouse-tail-layer");
       if (!layer) return;
 
-      const cellSize = 12;
-      const grid = 10;
-      const spacing = 14;
-      const haloOffsets = [
-        { x: -spacing, y: 0 },
-        { x: 0, y: -spacing },
-        { x: spacing, y: 0 },
-        { x: 0, y: spacing },
-        { x: 0, y: 0 }
-      ];
+      const trail = [];
+      const size = 14;
+      const count = 8;
 
-      const layers = [
-        { x: -999, y: -999, easing: 0.52, opacity: 0.22, scale: 1 },
-        { x: -999, y: -999, easing: 0.3, opacity: 0.06, scale: 1 }
-      ];
-
-      const cells = [];
-      for (let layerIndex = 0; layerIndex < layers.length; layerIndex += 1) {
-        for (let i = 0; i < haloOffsets.length; i += 1) {
-          const cell = document.createElement("span");
-          cell.className = "cursor-trail-cell";
-          layer.appendChild(cell);
-          cells.push({ el: cell, layerIndex, offset: haloOffsets[i] });
-        }
+      for (let i = 0; i < count; i += 1) {
+        const dot = document.createElement("span");
+        dot.className = "mouse-tail-dot";
+        dot.style.transform += " rotate(45deg)";
+        layer.appendChild(dot);
+        trail.push({ el: dot, x: -999, y: -999 });
       }
 
       let targetX = -999;
       let targetY = -999;
       let visible = false;
 
-      function quantize(value) {
-        return Math.round(value / grid) * grid;
-      }
-
-      function onMove(event) {
-        targetX = quantize(event.clientX);
-        targetY = quantize(event.clientY);
+      window.addEventListener("mousemove", (event) => {
+        targetX = event.clientX;
+        targetY = event.clientY;
         visible = true;
-      }
+      }, { passive: true });
 
-      function onLeave() {
+      window.addEventListener("mouseleave", () => {
         visible = false;
-      }
+      }, { passive: true });
 
-      window.addEventListener("mousemove", onMove, { passive: true });
-      window.addEventListener("mouseleave", onLeave, { passive: true });
+      function render() {
+        for (let i = 0; i < trail.length; i += 1) {
+          const point = trail[i];
+          const leader = i === 0 ? { x: targetX, y: targetY } : trail[i - 1];
+          const easing = i === 0 ? 0.3 : 0.23;
 
-      function tick() {
-        let leaderX = targetX;
-        let leaderY = targetY;
+          point.x += (leader.x - point.x) * easing;
+          point.y += (leader.y - point.y) * easing;
 
-        for (let i = 0; i < layers.length; i += 1) {
-          const layerState = layers[i];
-          layerState.x += (leaderX - layerState.x) * layerState.easing;
-          layerState.y += (leaderY - layerState.y) * layerState.easing;
-          leaderX = layerState.x;
-          leaderY = layerState.y;
-        }
+          const opacity = visible ? Math.max(0, 0.52 - i * 0.06) : 0;
+          const scale = 1 - i * 0.08;
+          const rotation = 45 + i * 7;
 
-        for (let i = 0; i < cells.length; i += 1) {
-          const item = cells[i];
-          const layerState = layers[item.layerIndex];
-          const x = layerState.x + item.offset.x * layerState.scale;
-          const y = layerState.y + item.offset.y * layerState.scale;
-          const opacity = visible ? layerState.opacity : 0;
-
-          item.el.style.opacity = String(opacity);
-          item.el.style.transform =
+          point.el.style.opacity = String(opacity);
+          point.el.style.transform =
             "translate3d(" +
-            (x - cellSize / 2) +
+            (point.x - size / 2) +
             "px," +
-            (y - cellSize / 2) +
-            "px,0)";
+            (point.y - size / 2) +
+            "px,0) rotate(" +
+            rotation +
+            "deg) scale(" +
+            scale +
+            ")";
         }
 
-        requestAnimationFrame(tick);
+        requestAnimationFrame(render);
       }
 
-      requestAnimationFrame(tick);
+      requestAnimationFrame(render);
     })();
   </script>
 </body>
