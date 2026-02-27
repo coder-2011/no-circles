@@ -2,6 +2,7 @@ import { z } from "zod";
 import { buildQuoteSelectionUserPrompt, QUOTE_SELECTION_SYSTEM_PROMPT } from "@/lib/ai/quote-prompts";
 import { parseSections } from "@/lib/memory/contract";
 import { logInfo, logWarn } from "@/lib/observability/log";
+import { normalizeEnvString } from "@/lib/utils";
 
 const ANTHROPIC_MESSAGES_API_URL = "https://api.anthropic.com/v1/messages";
 const HF_DATASET_ROWS_API_URL = "https://datasets-server.huggingface.co/rows";
@@ -212,10 +213,10 @@ function filterQuoteCandidates(candidates: QuoteCandidate[]): QuoteCandidate[] {
 }
 
 async function fetchQuoteRows(args: { offset: number; length: number }): Promise<HfRowsFetchResult> {
-  const dataset = process.env.HF_QUOTES_DATASET?.trim() || DEFAULT_DATASET;
-  const config = process.env.HF_QUOTES_CONFIG?.trim() || DEFAULT_CONFIG;
-  const split = process.env.HF_QUOTES_SPLIT?.trim() || DEFAULT_SPLIT;
-  const baseUrl = process.env.HF_DATASET_ROWS_API_URL?.trim() || HF_DATASET_ROWS_API_URL;
+  const dataset = normalizeEnvString(process.env.HF_QUOTES_DATASET) || DEFAULT_DATASET;
+  const config = normalizeEnvString(process.env.HF_QUOTES_CONFIG) || DEFAULT_CONFIG;
+  const split = normalizeEnvString(process.env.HF_QUOTES_SPLIT) || DEFAULT_SPLIT;
+  const baseUrl = normalizeEnvString(process.env.HF_DATASET_ROWS_API_URL) || HF_DATASET_ROWS_API_URL;
 
   const url = new URL(baseUrl);
   url.searchParams.set("dataset", dataset);

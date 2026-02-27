@@ -1,9 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { normalizeEnvString } from "@/lib/utils";
 
 function getSupabaseEnv() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabaseUrl = normalizeEnvString(process.env.NEXT_PUBLIC_SUPABASE_URL);
+  const supabaseAnonKey = normalizeEnvString(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error("Missing Supabase auth environment variables.");
