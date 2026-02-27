@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Sora:wght@500;600&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #f3ecd8;
+      --bg: #f8f3e7;
       --paper: #fbf7eb;
       --paper-soft: #f8f3e4;
       --ink: #2d3426;
@@ -193,6 +193,11 @@
       font-family: "Sora", sans-serif;
     }
 
+    .kicker-flow {
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
     .section-title {
       margin-top: 0.5rem;
       font-size: clamp(1.5rem, 4.8vw, 2rem);
@@ -237,6 +242,13 @@
       top: 0.2rem;
       left: 12%;
       background: radial-gradient(circle at 40% 50%, rgba(125, 150, 104, 0.2), rgba(125, 150, 104, 0));
+    }
+
+    .sample {
+      border: 1px solid rgba(201, 189, 154, 0.85);
+      border-radius: 18px;
+      background: rgba(251, 247, 235, 0.78);
+      padding: 1rem 1rem 1.15rem;
     }
 
     .steps {
@@ -344,8 +356,8 @@
     .warning {
       margin-top: 0.95rem;
       padding: 0;
-      font-size: 0.84rem;
-      line-height: 1.45;
+      font-size: 1rem;
+      line-height: 1.55;
       color: var(--warning-ink);
       font-family: "Sora", sans-serif;
       font-weight: 500;
@@ -366,6 +378,10 @@
 
       .brief-item {
         grid-template-columns: 2.3rem 1fr;
+      }
+
+      .sample {
+        padding: 1.2rem 1.25rem 1.3rem;
       }
     }
 
@@ -412,7 +428,7 @@
       </section>
 
       <section class="panel flow" id="flow">
-        <p class="kicker">Flow</p>
+        <p class="kicker kicker-flow">Flow</p>
         <div class="steps">
           <article class="step" data-step="01">
             <strong>Tell us what you are into.</strong>
