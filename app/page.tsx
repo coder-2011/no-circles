@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getBrowserSupabaseClient } from "@/lib/auth/browser-client";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -116,12 +116,49 @@ function getAuthQueryErrorMessage(): string | null {
   return "Authentication failed. Please try again.";
 }
 
+type MagneticOffset = { x: number; y: number };
+
+const MAGNETIC_PROXIMITY_PX = 20;
+const MAGNETIC_MAX_SHIFT_PX = 5;
+
+function calculateMagneticOffset(clientX: number, clientY: number, rect: DOMRect): MagneticOffset {
+  const nearestX = Math.max(rect.left, Math.min(clientX, rect.right));
+  const nearestY = Math.max(rect.top, Math.min(clientY, rect.bottom));
+  const edgeDistance = Math.hypot(clientX - nearestX, clientY - nearestY);
+
+  if (edgeDistance > MAGNETIC_PROXIMITY_PX) {
+    return { x: 0, y: 0 };
+  }
+
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+  const towardX = clientX - centerX;
+  const towardY = clientY - centerY;
+  const towardMagnitude = Math.hypot(towardX, towardY);
+
+  if (towardMagnitude < 0.001) {
+    return { x: 0, y: 0 };
+  }
+
+  const intensity = 1 - edgeDistance / MAGNETIC_PROXIMITY_PX;
+  const shift = MAGNETIC_MAX_SHIFT_PX * intensity;
+
+  return {
+    x: (towardX / towardMagnitude) * shift,
+    y: (towardY / towardMagnitude) * shift
+  };
+}
+
 export default function HomePage() {
   const router = useRouter();
   const [authState, setAuthState] = useState<AuthState>("loading");
   const [email, setEmail] = useState<string | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
   const [sampleBriefItems, setSampleBriefItems] = useState<SampleBriefItem[]>(SAMPLE_DAILY_BRIEF);
+  const [topButtonOffset, setTopButtonOffset] = useState<MagneticOffset>({ x: 0, y: 0 });
+  const [heroButtonOffset, setHeroButtonOffset] = useState<MagneticOffset>({ x: 0, y: 0 });
+  const topButtonRef = useRef<HTMLButtonElement | null>(null);
+  const heroButtonRef = useRef<HTMLButtonElement | null>(null);
   const [authClient] = useState<{ supabase: SupabaseClient | null; initError: string | null }>(() => {
     try {
       return { supabase: getBrowserSupabaseClient(), initError: null };
@@ -241,6 +278,38 @@ export default function HomePage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+
+    const onMouseMove = (event: MouseEvent) => {
+      const topButton = topButtonRef.current;
+      const heroButton = heroButtonRef.current;
+
+      if (topButton) {
+        setTopButtonOffset(calculateMagneticOffset(event.clientX, event.clientY, topButton.getBoundingClientRect()));
+      }
+
+      if (heroButton) {
+        setHeroButtonOffset(calculateMagneticOffset(event.clientX, event.clientY, heroButton.getBoundingClientRect()));
+      }
+    };
+
+    const resetOffsets = () => {
+      setTopButtonOffset({ x: 0, y: 0 });
+      setHeroButtonOffset({ x: 0, y: 0 });
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseleave", resetOffsets);
+
+    return () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseleave", resetOffsets);
+    };
+  }, []);
+
   async function signInWithGoogle() {
     if (authState === "signed_in") {
       router.replace("/onboarding");
@@ -284,19 +353,48 @@ export default function HomePage() {
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#F3ECD8] px-6 py-14 text-[#2D3426] md:px-10 md:py-20" id="top">
+      <style jsx>{`
+        @keyframes homeReveal {
+          from {
+            opacity: 0;
+            transform: translateY(16px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .reveal-on-load {
+          opacity: 0;
+          animation: homeReveal 520ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .reveal-on-load {
+            opacity: 1;
+            animation: none;
+          }
+        }
+      `}</style>
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_15%,rgba(61,111,73,0.14),transparent_40%),radial-gradient(circle_at_82%_8%,rgba(198,182,137,0.24),transparent_36%),radial-gradient(circle_at_70%_86%,rgba(93,131,89,0.12),transparent_40%)]" />
-      <div className="fixed right-4 top-4 z-40">
+      <div className="fixed right-4 top-4 z-40 reveal-on-load" style={{ animationDelay: "60ms" }}>
         <button
+          ref={topButtonRef}
           className={`${interfaceFont.className} rounded-lg border border-[#3D6F49] bg-[#3D6F49] px-4 py-2.5 text-base font-medium text-[#F3ECD8] shadow-sm transition hover:bg-[#315E3E] disabled:cursor-not-allowed disabled:opacity-60 md:px-5 md:py-3`}
           disabled={authState === "loading"}
           onClick={signInWithGoogle}
+          style={{
+            transform: `translate(${topButtonOffset.x}px, ${topButtonOffset.y}px)`,
+            transition: "transform 150ms ease-out, background-color 150ms ease-out"
+          }}
           type="button"
         >
           Get Started
         </button>
       </div>
       <div className="relative mx-auto w-full max-w-7xl space-y-10">
-        <section className="rounded-3xl border border-[#C9BD9A] bg-[#F8F3E4] p-8 shadow-sm md:p-10">
+        <section className="rounded-3xl border border-[#C9BD9A] bg-[#F8F3E4] p-8 shadow-sm reveal-on-load md:p-10" style={{ animationDelay: "140ms" }}>
           <div className={`${displayFont.className} text-center text-[45px] font-semibold leading-none text-[#2B3125] md:text-[57px]`}>
             The No-Circles Project
           </div>
@@ -305,9 +403,14 @@ export default function HomePage() {
           </h1>
           <div className="mt-6 flex flex-wrap gap-3">
             <button
+              ref={heroButtonRef}
               className={`${interfaceFont.className} rounded-lg border border-[#3D6F49] bg-[#3D6F49] px-5 py-3 text-base font-medium text-[#F3ECD8] transition hover:bg-[#315E3E] disabled:opacity-60`}
               disabled={authState === "loading"}
               onClick={signInWithGoogle}
+              style={{
+                transform: `translate(${heroButtonOffset.x}px, ${heroButtonOffset.y}px)`,
+                transition: "transform 150ms ease-out, background-color 150ms ease-out"
+              }}
               type="button"
             >
               Distract Me Intelligently
@@ -358,7 +461,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-[#C9BD9A] bg-[#FBF7EB] p-8 text-[#2D3426] shadow-sm md:p-10">
+        <section className="rounded-3xl border border-[#C9BD9A] bg-[#FBF7EB] p-8 text-[#2D3426] shadow-sm reveal-on-load md:p-10" style={{ animationDelay: "240ms" }}>
           <div className="flex items-start justify-between gap-3">
             <h2 className={`${displayFont.className} text-2xl font-semibold leading-tight text-[#2D3426] md:text-3xl`}>
               Sample Daily Brief
@@ -370,7 +473,11 @@ export default function HomePage() {
           <div className="mt-5 space-y-5 text-[#4A5641]">
             <ol className="space-y-5">
               {sampleBriefItems.map((item, index) => (
-                <li className="rounded-xl border border-[#D8CFB4] bg-[#F7F2E2] p-4" key={item.url}>
+                <li
+                  className="rounded-xl border border-[#D8CFB4] bg-[#F7F2E2] p-4 reveal-on-load"
+                  key={item.url}
+                  style={{ animationDelay: `${320 + index * 45}ms` }}
+                >
                   <a
                     className="text-base font-semibold leading-6 text-[#2D3426] underline decoration-[#8B9A7A] decoration-2 underline-offset-4 hover:text-[#1E2519]"
                     href={item.url}

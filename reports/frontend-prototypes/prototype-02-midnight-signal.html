@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>No-Circles Prototype 02 - Midnight Signal</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Newsreader:opsz,wght@6..72,500;6..72,700&display=swap");
+
+      :root {
+        --bg: #0d1013;
+        --bg-soft: #141920;
+        --ink: #e9eee7;
+        --muted: #a5b1a2;
+        --line: #2a3036;
+        --accent: #75c5a7;
+        --accent-ink: #0f1c18;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Space Grotesk", sans-serif;
+        color: var(--ink);
+        background: radial-gradient(circle at 18% 12%, rgba(91, 130, 106, 0.28), transparent 28%),
+          radial-gradient(circle at 86% 82%, rgba(47, 110, 173, 0.24), transparent 40%), var(--bg);
+      }
+
+      .wrap {
+        min-height: 100vh;
+        padding: 42px 24px 70px;
+        width: min(100%, 1100px);
+        margin: 0 auto;
+        display: grid;
+        align-content: start;
+        gap: 28px;
+      }
+
+      .hero {
+        background: linear-gradient(135deg, rgba(18, 23, 29, 0.94), rgba(13, 16, 19, 0.96));
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        padding: 56px 44px;
+      }
+
+      .eyebrow {
+        font-size: 12px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      h1 {
+        margin: 12px 0 0;
+        font-size: clamp(40px, 8vw, 74px);
+        line-height: 0.95;
+        font-weight: 700;
+      }
+
+      .sub {
+        margin-top: 22px;
+        font-family: "Newsreader", serif;
+        font-size: clamp(27px, 4.2vw, 45px);
+        line-height: 1.08;
+        max-width: 18ch;
+      }
+
+      .lede {
+        margin-top: 20px;
+        max-width: 62ch;
+        color: #c4cec1;
+        font-size: 18px;
+        line-height: 1.65;
+      }
+
+      .btn {
+        margin-top: 24px;
+        display: inline-block;
+        background: var(--accent);
+        color: var(--accent-ink);
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 700;
+        padding: 12px 18px;
+      }
+
+      .meta-grid {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: var(--bg-soft);
+        padding: 16px;
+      }
+
+      .card h2 {
+        margin: 0 0 8px;
+        font-size: 12px;
+        letter-spacing: 0.1em;
+        color: #8da495;
+        text-transform: uppercase;
+      }
+
+      .card p {
+        margin: 0;
+        color: #d9e1d8;
+        line-height: 1.55;
+      }
+
+      .sample {
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: #12171d;
+        padding: 20px;
+      }
+
+      .sample-title {
+        margin: 0;
+        font-size: 27px;
+      }
+
+      .sample ul {
+        margin: 12px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .sample li {
+        padding: 12px 0;
+        border-top: 1px solid #242d36;
+        color: #c3ccc1;
+      }
+
+      .sample li:first-child {
+        border-top: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="hero">
+        <div class="eyebrow">The No-Circles Project</div>
+        <h1>Find what search would never show you.</h1>
+        <p class="sub">10 intentional reads, delivered every morning.</p>
+        <p class="lede">
+          No-Circles curates 10 niche long-form pieces every morning, for unexpected, meaningful discovery. And when
+          your interests change or you choose a new side quest, you reply to the email and your daily newsletter
+          updates.
+        </p>
+        <a href="#" class="btn">Distract Me Intelligently</a>
+      </section>
+
+      <section class="meta-grid">
+        <article class="card">
+          <h2>Principle</h2>
+          <p>
+            The principle is that great ideas come from unexpected places, so we should encourage people toward more
+            unexpected endeavors.
+          </p>
+        </article>
+        <article class="card">
+          <h2>Signal</h2>
+          <p>We filter through 150+ sources to deliver 10 just for you.</p>
+        </article>
+        <article class="card">
+          <h2>Pricing</h2>
+          <p>
+            No-Circles is free through mid-March, then a minimal at-cost subscription covers infrastructure and API
+            usage.
+          </p>
+        </article>
+      </section>
+
+      <section class="sample">
+        <h2 class="sample-title">Sample Daily Brief</h2>
+        <ul>
+          <li>1. The forgotten history of repair manuals in high-reliability engineering teams.</li>
+          <li>2. Why cave microbiology is influencing new approaches to carbon storage research.</li>
+          <li>3. An anthropologist's notebook on how scientists actually share unfinished ideas.</li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>

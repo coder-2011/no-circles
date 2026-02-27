@@ -202,8 +202,33 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
               />
               <div className="mt-3 flex items-start justify-between gap-3">
                 <div className="flex items-end gap-3 pb-2">
+                  <div className="flex flex-col items-end text-[11px] font-semibold text-[#6B775D]">
+                    <svg
+                      aria-hidden="true"
+                      className="h-5 w-9"
+                      fill="none"
+                      viewBox="0 0 36 20"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M2 18c11 0 11-12 22-12"
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="1.75"
+                      />
+                      <path
+                        d="m21 3 5 3-5 3"
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="1.75"
+                      />
+                    </svg>
+                    <span className="-mt-0.5">Tap to dictate</span>
+                  </div>
                   <button
-                    className="rounded-md border border-[#B8AA84] bg-[#FFF8E8] px-3 py-1.5 text-xs font-medium text-[#3F4E38] transition hover:bg-[#F2E7CC] disabled:opacity-50"
+                    className="rounded-md border border-[#B8AA84] bg-[#FFF8E8] px-4 py-2 text-sm font-semibold text-[#3F4E38] transition hover:bg-[#F2E7CC] disabled:opacity-50"
                     disabled={controller.dictationState === "warming" || controller.dictationState === "stopping"}
                     onFocus={() => {
                       controller.primeDictation();
@@ -283,7 +308,6 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
               </div>
               <div className="mt-3 flex items-start justify-end gap-2">
                 <div className="flex flex-col items-end text-[11px] font-semibold text-[#6B775D]">
-                  <span>Reload for more</span>
                   <svg
                     aria-hidden="true"
                     className="h-5 w-9"
@@ -306,6 +330,7 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
                       strokeWidth="1.75"
                     />
                   </svg>
+                  <span className="-mt-0.5">Reload for more sparks</span>
                 </div>
                 <button
                   aria-label="Refresh quick sparks"

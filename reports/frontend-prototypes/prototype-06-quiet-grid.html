@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>No-Circles Prototype 06 - Quiet Grid</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:wght@400;700&family=Inter:wght@400;500;600;700&display=swap");
+
+      :root {
+        --bg: #f2f3ef;
+        --ink: #1f2421;
+        --muted: #59635d;
+        --line: #cfd4cc;
+        --accent: #346f50;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background: var(--bg);
+        font-family: Inter, sans-serif;
+      }
+
+      .layout {
+        width: min(100%, 1180px);
+        margin: 0 auto;
+        padding: 24px 20px 72px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 18px;
+      }
+
+      .meta {
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 10px;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+      }
+
+      .hero {
+        grid-column: 1 / 9;
+        padding-top: 28px;
+      }
+
+      h1 {
+        margin: 0;
+        font-family: "Libre Caslon Text", serif;
+        font-size: clamp(44px, 8vw, 82px);
+        line-height: 0.95;
+        max-width: 9.5ch;
+      }
+
+      .sub {
+        margin-top: 14px;
+        font-size: 24px;
+        max-width: 24ch;
+        color: #2f3b33;
+      }
+
+      .actions {
+        margin-top: 24px;
+        display: flex;
+        gap: 14px;
+      }
+
+      .actions a {
+        text-decoration: none;
+        font-weight: 600;
+      }
+
+      .primary {
+        color: var(--accent);
+        border-bottom: 2px solid var(--accent);
+      }
+
+      .secondary {
+        color: var(--muted);
+      }
+
+      .details {
+        grid-column: 9 / -1;
+        padding-top: 32px;
+        border-left: 1px solid var(--line);
+        padding-left: 18px;
+      }
+
+      .details p {
+        margin: 0 0 14px;
+        color: #3b4940;
+        line-height: 1.6;
+      }
+
+      .notice {
+        color: #8a3030;
+        font-size: 13px;
+      }
+
+      .sample {
+        grid-column: 1 / -1;
+        margin-top: 24px;
+        border-top: 1px solid var(--line);
+        padding-top: 22px;
+      }
+
+      .sample-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+      }
+
+      .sample h2 {
+        margin: 0;
+        font-family: "Libre Caslon Text", serif;
+        font-size: 36px;
+      }
+
+      .sample small {
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .list {
+        margin-top: 14px;
+      }
+
+      .item {
+        display: grid;
+        grid-template-columns: 30px 1fr;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid #d8ddd6;
+      }
+
+      .item:last-child { border-bottom: 0; }
+
+      .item .n { color: #6c766f; font-weight: 700; }
+
+      .item h3 { margin: 0; font-size: 17px; }
+
+      .item p {
+        margin: 6px 0 0;
+        color: #526158;
+        line-height: 1.55;
+      }
+
+      @media (max-width: 960px) {
+        .hero, .details { grid-column: 1 / -1; }
+        .details { border-left: 0; border-top: 1px solid var(--line); padding-left: 0; padding-top: 16px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="layout">
+      <section class="grid">
+        <header class="meta">
+          <span>The No-Circles Project</span>
+          <span>Daily: 10 reads</span>
+        </header>
+
+        <article class="hero">
+          <h1>Find what search would never show you.</h1>
+          <p class="sub">The first thing you see: one message, one action.</p>
+          <div class="actions">
+            <a href="#" class="primary">Distract Me Intelligently</a>
+            <a href="#" class="secondary">Sign out</a>
+          </div>
+        </article>
+
+        <aside class="details">
+          <p>No-Circles curates 10 niche long-form pieces every morning, for unexpected, meaningful discovery.</p>
+          <p>And when your interests change or you choose a new side quest, you reply to the email and your daily newsletter updates.</p>
+          <p>The principle is that great ideas come from unexpected places, so we should encourage people toward more unexpected endeavors.</p>
+          <p><strong>We filter through 150+ sources to deliver 10 just for you.</strong></p>
+          <p class="notice">No-Circles is free through mid-March. After that, we plan to introduce a minimal at-cost subscription to cover infrastructure and API usage, with no profit margin.</p>
+        </aside>
+
+        <section class="sample">
+          <div class="sample-head">
+            <h2>Sample Daily Brief</h2>
+            <small>Wed, Feb 25, 2026</small>
+          </div>
+          <div class="list">
+            <article class="item">
+              <span class="n">1</span>
+              <div>
+                <h3>How old maritime logs are reshaping coastal risk forecasting models</h3>
+                <p>Long-range observations are becoming key data for resilience planning.</p>
+              </div>
+            </article>
+            <article class="item">
+              <span class="n">2</span>
+              <div>
+                <h3>Inside a research lab that schedules curiosity the way teams schedule sprints</h3>
+                <p>An operational pattern for making deep exploration normal and repeatable.</p>
+              </div>
+            </article>
+            <article class="item">
+              <span class="n">3</span>
+              <div>
+                <h3>The design logic of archives that survive platform change for decades</h3>
+                <p>Practical lessons for products that treat knowledge durability as a first-class feature.</p>
+              </div>
+            </article>
+          </div>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>

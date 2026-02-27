@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>No-Circles Prototype 03 - Atlas Minimal</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;700&display=swap");
+
+      :root {
+        --bg: #eff1ec;
+        --panel: #f6f7f3;
+        --ink: #1d2320;
+        --muted: #4d5b54;
+        --line: #cdd5ce;
+        --accent: #2f6c4e;
+        --tag: #dde6dc;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "DM Sans", sans-serif;
+        color: var(--ink);
+        background: linear-gradient(180deg, #e7eadf 0%, var(--bg) 58%);
+      }
+
+      .container {
+        width: min(100%, 1150px);
+        margin: 0 auto;
+        padding: 30px 20px 72px;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 20px;
+      }
+
+      .hero-main,
+      .hero-side {
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background: var(--panel);
+      }
+
+      .hero-main {
+        padding: 46px 38px;
+      }
+
+      .kicker {
+        margin: 0;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
+        color: var(--muted);
+      }
+
+      h1 {
+        margin: 10px 0 0;
+        font-size: clamp(40px, 7vw, 70px);
+        line-height: 1;
+        letter-spacing: -0.02em;
+      }
+
+      .sub {
+        margin: 16px 0 0;
+        font-family: "Instrument Serif", serif;
+        font-size: clamp(29px, 4vw, 44px);
+        line-height: 1.08;
+      }
+
+      .cta-row {
+        margin-top: 26px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .btn {
+        border-radius: 11px;
+        border: 1px solid var(--accent);
+        padding: 11px 16px;
+        font-weight: 700;
+        text-decoration: none;
+        font-size: 14px;
+      }
+
+      .primary {
+        background: var(--accent);
+        color: #edf5ef;
+      }
+
+      .ghost {
+        color: var(--accent);
+      }
+
+      .hero-side {
+        padding: 24px;
+        display: grid;
+        gap: 16px;
+        align-content: start;
+      }
+
+      .tag {
+        justify-self: start;
+        border-radius: 999px;
+        background: var(--tag);
+        color: #365a46;
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 6px 10px;
+        font-weight: 700;
+      }
+
+      .side-copy {
+        margin: 0;
+        color: #32413a;
+        line-height: 1.6;
+      }
+
+      .panel {
+        margin-top: 18px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: #f8faf6;
+        padding: 18px;
+      }
+
+      .panel h2 {
+        margin: 0;
+        font-size: 30px;
+      }
+
+      .brief-item {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid #d8dfda;
+      }
+
+      .brief-item h3 {
+        margin: 0;
+        font-size: 16px;
+      }
+
+      .brief-item p {
+        margin: 6px 0 0;
+        color: #4a5952;
+        line-height: 1.55;
+      }
+
+      @media (max-width: 920px) {
+        .hero {
+          grid-template-columns: 1fr;
+        }
+
+        .hero-main {
+          padding: 36px 24px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <section class="hero">
+        <article class="hero-main">
+          <p class="kicker">The No-Circles Project</p>
+          <h1>Find what search would never show you.</h1>
+          <p class="sub">A calmer home for meaningful discovery.</p>
+          <div class="cta-row">
+            <a class="btn primary" href="#">Distract Me Intelligently</a>
+            <a class="btn ghost" href="#">Sign out</a>
+          </div>
+        </article>
+
+        <aside class="hero-side">
+          <div class="tag">Daily: 10 reads</div>
+          <p class="side-copy">No-Circles curates 10 niche long-form pieces every morning, for unexpected, meaningful discovery.</p>
+          <p class="side-copy">
+            And when your interests change or you choose a new side quest, you reply to the email and your daily
+            newsletter updates.
+          </p>
+          <p class="side-copy"><strong>We filter through 150+ sources to deliver 10 just for you.</strong></p>
+        </aside>
+      </section>
+
+      <section class="panel">
+        <h2>Sample Daily Brief</h2>
+        <article class="brief-item">
+          <h3>1. Designing scientific institutions that reward curiosity over publication volume</h3>
+          <p>An essay on how slow research cultures tend to produce higher quality long-term breakthroughs.</p>
+        </article>
+        <article class="brief-item">
+          <h3>2. New lessons from Indigenous navigation traditions in climate adaptation planning</h3>
+          <p>Field reporting on pattern memory, environmental signals, and community-level forecasting.</p>
+        </article>
+        <article class="brief-item">
+          <h3>3. A practical taxonomy of side quests for generalist careers</h3>
+          <p>How to test adjacent interests with low downside and compounding upside.</p>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>
