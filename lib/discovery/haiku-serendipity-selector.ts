@@ -92,7 +92,7 @@ function buildPrompt(args: {
     "Use the explicit Active interests list as the primary source for what the reader actively wants coverage on today.",
     "Use PERSONALITY to infer learning style, abstraction level, and what kinds of adjacent topics will feel naturally interesting rather than random.",
     "Use RECENT_FEEDBACK to expand toward recently reinforced directions and avoid adjacent areas that would repeat a downweighted theme.",
-    "Use DISCOVERY_BRIEF as today's freshness/control layer for repetition avoidance and lens variation.",
+    "Use DISCOVERY_BRIEF as a crucial freshness/control layer for repetition avoidance and lens variation.",
     "Do not infer active topics from the memory context block below; the active-topic authority is the explicit Active interests list.",
     "Pick topics that are adjacent to active interests but not duplicates of active interests.",
     "Keep the topics at the same level of specificity as the active interests.",
