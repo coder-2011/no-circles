@@ -10,6 +10,7 @@ Implements PR8 newsletter-item summary generation from discovery output.
 - Output final item contract only: `{ title, url, summary }`
 - Enforce fixed URL passthrough from source candidate
 - Apply soft word-range targeting (default target 100 words, default range 80-120)
+- Use `PERSONALITY` from user memory as editorial calibration for depth/tone while keeping the default reader assumption as curious generalist
 
 ## Out of Scope
 - Discovery/ranking changes (PR6)
@@ -23,6 +24,7 @@ Input:
   - `title`
   - `highlights`
   - `topic` (optional)
+- optional `interestMemoryText` so the writer can read `PERSONALITY`
 
 Output:
 - `NewsletterSummaryItem[]`:
@@ -44,3 +46,5 @@ Output:
 - Mild connective phrasing allowed.
 - No speculative claims beyond provided highlights.
 - Summaries should cover core concepts/mechanisms/findings from highlights, not only meta high-level framing.
+- Default reader assumption stays `curious generalist`.
+- `PERSONALITY` can locally tune depth, jargon tolerance, and framing, including topic-scoped preferences when the current item clearly matches them.

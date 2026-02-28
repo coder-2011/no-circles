@@ -3,6 +3,7 @@ type BuildSummaryPromptArgs = {
   url: string;
   highlights: string[];
   topic?: string;
+  personalitySection?: string;
   minWords: number;
   maxWords: number;
 };
@@ -12,6 +13,7 @@ export const SUMMARY_SYSTEM_PROMPT =
 
 export function buildSummaryPrompt(args: BuildSummaryPromptArgs): string {
   const highlights = args.highlights.length > 0 ? args.highlights : ["No highlight text was provided."];
+  const personalitySection = args.personalitySection?.trim() ? args.personalitySection.trim() : "-";
 
   return [
     "Task: produce one neutral summary grounded only in the provided highlights.",
@@ -22,6 +24,9 @@ export function buildSummaryPrompt(args: BuildSummaryPromptArgs): string {
     "No speculation, no hype, no invention.",
     "Never use counterfactual, future projection, or 'what if' framing unless those words are present in highlights.",
     "Assume curious generalist, not domain specialist.",
+    "Use PERSONALITY only to calibrate explanation depth, jargon tolerance, tone, and framing.",
+    "If PERSONALITY includes a topic-scoped preference that matches this item's topic/title/highlights, treat it as a narrow override for this item only.",
+    "Do not generalize topic-specific expertise into every summary.",
     "Prefer medium sized concrete sentence over compressed abstract clause.",
     "If a sentence has 2+ technical nouns, split into two sentences.",
     "Do not use meta framing (for example: 'this article explains').",
@@ -31,6 +36,8 @@ export function buildSummaryPrompt(args: BuildSummaryPromptArgs): string {
     `Summary length target: ${args.minWords}-${args.maxWords} words.`,
     "Title policy: keep original title unchanged unless it is ambiguous by itself.",
     "If title edit is required, change at most 8 words, preserve named entities, and do not add new claims.",
+    "Reader profile (PERSONALITY):",
+    personalitySection,
     "INPUT:",
     `Original title: ${args.title}`,
     `URL (reference only): ${args.url}`,

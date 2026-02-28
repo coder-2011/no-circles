@@ -16,6 +16,7 @@ Input fields:
 - `url`
 - `highlights[]`
 - optional `topic`
+- optional `personalitySection`
 - `minWords`, `maxWords`
 
 Output:
@@ -28,6 +29,8 @@ Output:
 - treat highlights as the only evidence source
 - no speculation, hype, or invented detail
 - assume a curious generalist reader (not a domain specialist)
+- use `PERSONALITY` only to calibrate depth, jargon tolerance, tone, and framing
+- allow topic-scoped personality lines to act as narrow overrides only when they match the current item
 - prefer medium sized concrete sentences over compressed abstract clauses
 - split sentences when they carry 2+ technical nouns
 - avoid meta framing (for example `this article explains`)

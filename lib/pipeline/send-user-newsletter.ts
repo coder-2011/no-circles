@@ -330,6 +330,7 @@ export async function sendUserNewsletter(
         topic: candidate.topic,
         isSerendipitous: serendipityTopicSet.has(candidate.topic)
       })),
+      interestMemoryText: user.interestMemoryText,
       targetWords: 100
     });
     sentSummaryCount = summaries.length;

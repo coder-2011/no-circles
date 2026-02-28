@@ -13,6 +13,7 @@ Generates final newsletter summary items for PR8 from discovery candidate inputs
   - `highlights[]`
   - optional `topic`
   - optional `isSerendipitous` (pass-through lane metadata from discovery/pipeline)
+- optional `interestMemoryText` (used to pass `PERSONALITY` style/depth context into the summary prompt)
 - optional word controls:
   - `targetWords` (default 100)
   - or explicit `minWords` / `maxWords`
@@ -42,7 +43,8 @@ Default word range when only target is provided:
    - empty summary after normalization
 8. Do **not** generate deterministic fallback summary text from highlights.
 9. If highlights are missing or model output fails quality checks, skip the item so low-signal summaries are never emitted.
-10. Emit structured logs:
+10. When `interestMemoryText` is provided, parse `PERSONALITY` and pass it into the summary prompt so writing depth/tone can adapt without changing factual grounding.
+11. Emit structured logs:
    - per-item skip events (`summary_skipped_missing_highlights`, `summary_skipped_after_model_failure`)
    - per-run counts (`summary_run_complete` with `skipped_count`)
 

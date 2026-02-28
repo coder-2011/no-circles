@@ -7,6 +7,7 @@ Verifies PR8 summary generation contract and failure handling.
 - returns final fields only (`title`, `url`, `summary`)
 - preserves fixed source URL even when model output changes title
 - preserves `isSerendipitous` pass-through flag on output items
+- verifies `PERSONALITY` guidance is included in the prompt when memory is provided
 - retries once for non-quality model failures
 - drops item on strict quality failures (`INSUFFICIENT_SOURCE_DETAIL`, placeholder output, missing highlights)
 - enforces configurable summary word range behavior

@@ -12,5 +12,6 @@ Unit-tests memory prompt contracts for onboarding formatting and reply-memory up
   - `move_core_to_side`
   - `move_side_to_core`
   - `remove_active`
+- Verifies style/depth/tone feedback is routed into `PERSONALITY` guidance rather than being treated as topic updates.
 - Verifies reply prompt frames hard-stop behavior as remove-only negative handling rather than suppression-array mutation.
 - Verifies onboarding user prompt keeps role framing out of the user payload while enforcing canonical section order and hard length limits.

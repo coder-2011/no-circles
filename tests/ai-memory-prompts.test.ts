@@ -50,6 +50,17 @@ describe("buildReplyMemoryPrompt", () => {
     expect(prompt).toContain("Re-enable language -> add_active/add_active_core/add_active_side as implied.");
     expect(prompt).toContain('Reply: Stop startup funding news, bring crypto back.');
   });
+
+  it("routes style and topic-specific depth feedback into personality guidance", () => {
+    const prompt = buildReplyMemoryPrompt("PERSONALITY:\n- curious generalist", "ai safety is too basic and stop the fancy prose");
+
+    expect(prompt).toContain("Style/depth policy:");
+    expect(prompt).toContain("PERSONALITY policy:");
+    expect(prompt).toContain("Topic-scoped personality policy:");
+    expect(prompt).toContain("Do not convert stylistic preferences into ACTIVE_INTERESTS topics.");
+    expect(prompt).toContain('For AI safety, prefers advanced depth and less introductory framing.');
+    expect(prompt).toContain("prefers plain modern language");
+  });
 });
 
 describe("buildOnboardingMemoryPrompt", () => {

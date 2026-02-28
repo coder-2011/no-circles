@@ -90,6 +90,50 @@ describe("generateNewsletterSummaries", () => {
     expect(requestBody.messages[0]?.content).toContain(
       "If title edit is required, change at most 8 words, preserve named entities, and do not add new claims."
     );
+    expect(requestBody.messages[0]?.content).toContain("Reader profile (PERSONALITY):");
+    expect(requestBody.messages[0]?.content).toContain("Assume curious generalist, not domain specialist.");
+  });
+
+  it("passes personality guidance into the summary prompt when memory is provided", async () => {
+    process.env.ANTHROPIC_API_KEY = "test-key";
+    process.env.ANTHROPIC_SUMMARY_MODEL = "claude-haiku-4-5";
+
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify({
+              title: "Refined A",
+              summary:
+                "The article names two deployment tradeoffs, explains one concrete mechanism, and stays grounded in the operating details teams had to manage."
+            })
+          }
+        ]
+      })
+    }));
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    await generateNewsletterSummaries({
+      items: [sourceItems[0]],
+      interestMemoryText:
+        "PERSONALITY:\n- prefers less introductory framing\n- For AI engineering, prefers advanced depth and practical tradeoffs.\n\nACTIVE_INTERESTS:\n- ai engineering\n\nRECENT_FEEDBACK:\n- less hype",
+      targetWords: 40
+    });
+
+    const [, requestInit] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const requestBody = JSON.parse(String(requestInit.body)) as {
+      messages: Array<{ role: string; content: string }>;
+    };
+    const prompt = requestBody.messages[0]?.content ?? "";
+
+    expect(prompt).toContain("Reader profile (PERSONALITY):");
+    expect(prompt).toContain("prefers less introductory framing");
+    expect(prompt).toContain("For AI engineering, prefers advanced depth and practical tradeoffs.");
+    expect(prompt).toContain("Use PERSONALITY only to calibrate explanation depth, jargon tolerance, tone, and framing.");
+    expect(prompt).toContain("If PERSONALITY includes a topic-scoped preference that matches this item's topic/title/highlights, treat it as a narrow override for this item only.");
   });
 
   it("preserves isSerendipitous flag on output items", async () => {

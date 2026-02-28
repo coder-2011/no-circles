@@ -13,6 +13,7 @@ Orchestrates PR9 single-user runtime: discovery -> Bloom gate -> summary -> pers
 7. Drop candidates with missing/empty highlights (do not synthesize low-context entries); continue as long as at least one strong candidate remains.
 8. Reserve outbound idempotency key and persist `issue_variant` on the row.
 9. Generate summaries from strong candidates only; weak-context items may be skipped by summary stage.
+   - passes `user.interest_memory_text` into the summary writer so `PERSONALITY` can calibrate summary depth/tone while keeping the default curious-generalist stance
    - marks summary inputs with `isSerendipitous=true` when candidate topic belongs to `discovery.serendipityTopics`.
 10. Select one personalized quote (HF `quotes-500k` batch pull + Claude chooser) using `user_id + local_issue_date` deterministic sampling.
 11. Build signed per-item feedback links (`more_like_this` / `less_like_this`) when `FEEDBACK_LINK_SECRET` and public site origin are available.

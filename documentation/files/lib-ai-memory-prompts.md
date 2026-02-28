@@ -23,5 +23,9 @@ Contains memory prompt builders for onboarding formatting and reply-driven memor
   - broad durable intent -> core lane (`add_active_core` / `add_active`)
   - niche/specific/acronym/tentative intent -> side lane (`add_active_side`)
   - hard stop intent -> remove from active lane (`remove_active`)
+- Reply prompt now treats style/depth/tone feedback as preference evidence:
+  - global reading-style preferences become concise `PERSONALITY` lines
+  - topic-scoped expertise/style preferences are stored as topic-scoped `PERSONALITY` lines rather than global rewrites
+  - stylistic feedback is not converted into `ACTIVE_INTERESTS`
 - Reply prompt includes high-signal few-shot JSON examples to reduce schema/intent ambiguity.
 - Reply prompt requires acronym mentions to be handled deliberately (not ignored) and defaults uncertain additions to reversible side-lane behavior.

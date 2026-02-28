@@ -1,4 +1,5 @@
 import { buildSummaryPrompt, SUMMARY_SYSTEM_PROMPT } from "@/lib/ai/summary-prompts";
+import { parseSections } from "@/lib/memory/contract";
 import { logInfo, logWarn } from "@/lib/observability/log";
 import { summaryWriterOutputSchema } from "@/lib/schemas";
 
@@ -19,6 +20,7 @@ export type NewsletterSummaryItem = {
 
 type GenerateSummariesInput = {
   items: SummarySourceItem[];
+  interestMemoryText?: string;
   targetWords?: number;
   minWords?: number;
   maxWords?: number;
@@ -188,6 +190,7 @@ function resolveWordRange(input: GenerateSummariesInput): { minWords: number; ma
 
 async function summarizeOneItem(
   item: SummarySourceItem,
+  personalitySection: string,
   minWords: number,
   maxWords: number
 ): Promise<SummarizeOneItemResult> {
@@ -210,6 +213,7 @@ async function summarizeOneItem(
         url: item.url,
         highlights: item.highlights,
         topic: item.topic,
+        personalitySection,
         minWords,
         maxWords
       });
@@ -266,6 +270,7 @@ async function summarizeOneItem(
 
 export async function generateNewsletterSummaries(input: GenerateSummariesInput): Promise<NewsletterSummaryItem[]> {
   const { minWords, maxWords } = resolveWordRange(input);
+  const personalitySection = parseSections(input.interestMemoryText ?? "")?.PERSONALITY.trim() || "-";
 
   const normalizedItems = input.items.map((item) => ({
     url: item.url,
@@ -278,7 +283,7 @@ export async function generateNewsletterSummaries(input: GenerateSummariesInput)
   const results: NewsletterSummaryItem[] = [];
   let skippedCount = 0;
   for (const item of normalizedItems) {
-    const summaryResult = await summarizeOneItem(item, minWords, maxWords);
+    const summaryResult = await summarizeOneItem(item, personalitySection, minWords, maxWords);
     if (summaryResult.skipped || !summaryResult.item) {
       skippedCount += 1;
       continue;
