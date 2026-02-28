@@ -91,6 +91,7 @@ export default function HomePage() {
   const [sampleBriefItems, setSampleBriefItems] = useState<SampleBriefItem[]>(SAMPLE_DAILY_BRIEF);
   const [topButtonOffset, setTopButtonOffset] = useState<MagneticOffset>({ x: 0, y: 0 });
   const [heroButtonOffset, setHeroButtonOffset] = useState<MagneticOffset>({ x: 0, y: 0 });
+  const [pointerEffectsEnabled, setPointerEffectsEnabled] = useState(false);
   const [authClient] = useState<{ supabase: SupabaseClient | null; initError: string | null }>(() => {
     try {
       return { supabase: getBrowserSupabaseClient(), initError: null };
@@ -199,7 +200,28 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
+    const mediaQuery = window.matchMedia("(pointer: fine) and (hover: hover)");
+    const update = () => {
+      setPointerEffectsEnabled(mediaQuery.matches);
+      if (!mediaQuery.matches) {
+        setTopButtonOffset({ x: 0, y: 0 });
+        setHeroButtonOffset({ x: 0, y: 0 });
+      }
+    };
+
+    update();
+    mediaQuery.addEventListener("change", update);
+    return () => {
+      mediaQuery.removeEventListener("change", update);
+    };
+  }, []);
+
+  useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+
+    if (!pointerEffectsEnabled) {
       return;
     }
 
@@ -228,10 +250,10 @@ export default function HomePage() {
       window.removeEventListener("mousemove", updateOffsets);
       window.removeEventListener("mouseleave", resetOffsets);
     };
-  }, []);
+  }, [pointerEffectsEnabled]);
 
   useEffect(() => {
-    if (window.matchMedia("(pointer: coarse)").matches) {
+    if (!pointerEffectsEnabled) {
       return;
     }
 
@@ -303,7 +325,7 @@ export default function HomePage() {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseleave", handleMouseLeave);
     };
-  }, []);
+  }, [pointerEffectsEnabled]);
 
   async function signInWithGoogle() {
     if (authState === "signed_in") {
@@ -356,30 +378,32 @@ export default function HomePage() {
 
   return (
     <div className="home-page-shell" style={shellStyle}>
-      <div className="home-page__mouse-tail-layer" aria-hidden="true">
-        {Array.from({ length: MOUSE_TAIL_COUNT }).map((_, index) => (
-          <span
-            className="home-page__mouse-tail-dot"
-            key={index}
-            ref={(element) => {
-              tailDotRefs.current[index] = element;
-            }}
-          />
-        ))}
-      </div>
-      <div aria-hidden="true" className="home-page__cursor" ref={cursorRef} />
+      {pointerEffectsEnabled ? (
+        <div className="home-page__mouse-tail-layer" aria-hidden="true">
+          {Array.from({ length: MOUSE_TAIL_COUNT }).map((_, index) => (
+            <span
+              className="home-page__mouse-tail-dot"
+              key={index}
+              ref={(element) => {
+                tailDotRefs.current[index] = element;
+              }}
+            />
+          ))}
+        </div>
+      ) : null}
+      {pointerEffectsEnabled ? <div aria-hidden="true" className="home-page__cursor" ref={cursorRef} /> : null}
       <button
         className={[
           "home-page__button",
           "home-page__floating-cta",
           "home-page__cta-magnet",
           interfaceFont.className,
-          topButtonNear ? "is-near" : ""
+          pointerEffectsEnabled && topButtonNear ? "is-near" : ""
         ].join(" ")}
         disabled={authState === "loading"}
         onClick={signInWithGoogle}
         ref={topButtonRef}
-        style={{ transform: `translate(${topButtonOffset.x}px, ${topButtonOffset.y}px)` }}
+        style={pointerEffectsEnabled ? { transform: `translate(${topButtonOffset.x}px, ${topButtonOffset.y}px)` } : undefined}
         type="button"
       >
         Get Started
@@ -396,12 +420,12 @@ export default function HomePage() {
                   "home-page__button",
                   "home-page__cta-magnet",
                   interfaceFont.className,
-                  heroButtonNear ? "is-near" : ""
+                  pointerEffectsEnabled && heroButtonNear ? "is-near" : ""
                 ].join(" ")}
                 disabled={authState === "loading"}
                 onClick={signInWithGoogle}
                 ref={heroButtonRef}
-                style={{ transform: `translate(${heroButtonOffset.x}px, ${heroButtonOffset.y}px)` }}
+                style={pointerEffectsEnabled ? { transform: `translate(${heroButtonOffset.x}px, ${heroButtonOffset.y}px)` } : undefined}
                 type="button"
               >
                 Distract Me Intelligently
