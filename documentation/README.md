@@ -60,6 +60,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/app-onboarding-onboarding-form.md`
 - `files/app-onboarding-deepgram-dictation.md`
 - `files/app-page.md`
+- `files/app-home-page-content.md`
 - `files/components-json.md`
 - `files/components-dwitter-canvas.md`
 - `files/lib-db-client.md`

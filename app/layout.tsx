@@ -21,7 +21,34 @@ const uiFont = Source_Sans_3({
 
 export const metadata: Metadata = {
   title: "The No-Circles Project",
-  description: "Personalized daily newsletter",
+  description:
+    "No Circles is a personalized daily newsletter that uses memory, discovery, grounding, and feedback loops to send better reads every morning.",
+  metadataBase: new URL("https://no-circles.com"),
+  alternates: {
+    canonical: "/"
+  },
+  openGraph: {
+    title: "The No-Circles Project",
+    description:
+      "A personalized daily newsletter that adapts through replies, one-click feedback, and careful source-grounded curation.",
+    url: "https://no-circles.com",
+    siteName: "No Circles",
+    images: [
+      {
+        url: "/logo-no-circles.png",
+        width: 512,
+        height: 512,
+        alt: "No Circles logo"
+      }
+    ]
+  },
+  twitter: {
+    card: "summary",
+    title: "The No-Circles Project",
+    description:
+      "A personalized daily newsletter that adapts through replies, one-click feedback, and careful source-grounded curation.",
+    images: ["/logo-no-circles.png"]
+  },
   icons: {
     icon: "/logo-no-circles.png",
     shortcut: "/logo-no-circles.png",

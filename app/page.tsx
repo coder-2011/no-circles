@@ -1,44 +1,14 @@
 "use client";
 
+import { HOME_PAGE_SUBSYSTEMS, SAMPLE_DAILY_BRIEF, type SampleBriefItem } from "@/app/home-page-content";
 import { getBrowserSupabaseClient } from "@/lib/auth/browser-client";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Fraunces, Sora } from "next/font/google";
 import { useRouter } from "next/navigation";
 import { type CSSProperties, useEffect, useRef, useState } from "react";
 type AuthState = "loading" | "signed_in" | "signed_out" | "error";
-type SampleBriefItem = {
-  title: string;
-  url: string;
-  summary: string;
-};
 type SampleBriefResponse = { ok: true; items: SampleBriefItem[] } | { ok: false };
 type MagneticOffset = { x: number; y: number };
-const SAMPLE_DAILY_BRIEF: SampleBriefItem[] = [
-  {
-    title: "AI Update, February 20, 2026: AI News and Views From the Past Week",
-    url: "https://www.marketingprofs.com/opinions/2026/54328/ai-update-february-20-2026-ai-news-and-views-from-the-past-week",
-    summary:
-      "LinkedIn overhauled its SEO strategy following a significant decline in B2B traffic. The platform reported that non-brand, awareness-driven B2B traffic dropped by up to 60% as AI-powered search experiences reduced clickthrough behavior, even though search rankings remained stable. This traffic decline prompted LinkedIn to reassess its approach to search engine optimization."
-  },
-  {
-    title: "Global Summits to Watch in 2026: Bracing for a New Global (Dis)order",
-    url: "https://www.cfr.org/articles/global-summits-watch-2026-bracing-new-global-disorder",
-    summary:
-      "Major global forums are scheduled in 2026 covering climate change, trade, and security. The Donald Trump administration's ongoing overhaul of U.S. foreign policy could disrupt how these gatherings are conducted. The World Economic Forum in Davos, Switzerland represents one such venue where these dynamics may unfold."
-  },
-  {
-    title: "26 Trends Affecting Capital Markets in 2026",
-    url: "https://corpgov.law.harvard.edu/2026/01/25/26-trends-affecting-capital-markets-in-2026/",
-    summary:
-      "Capital markets have experienced significant structural shifts, particularly the rise of private markets relative to public markets. Private assets grew from $9.7 trillion in 2012 to $22 trillion in 2024, more than doubling over 12 years. Companies are staying private longer, with an average wait of 16 years before going public, representing a 33 percent increase compared to a decade earlier. These trends have become more pronounced since the Sarbanes-Oxley Act adoption. Enhanced retail access to private markets has emerged as a focus of policymaker attention following recent administrative changes."
-  },
-  {
-    title: "Economic Trends for 2026 and Beyond | Vistage",
-    url: "https://www.vistage.com/research-center/business-financials/economic-trends/20251027-economic-trends-for-2026-and-beyond/",
-    summary:
-      "Small and midsize businesses face sustained stagflationary conditions in 2026 and beyond, with inflation remaining above the Federal Reserve's target despite cooling from 40-year highs. Tariffs and rising input costs are compressing margins, while labor scarcity drives wage and benefit increases. The cost of capital remains elevated, constraining growth plans. The analysis recommends that SMBs prioritize margin protection over revenue growth. Opportunities exist in productivity gains through AI and expansion in tech, healthcare, and clean energy sectors. Through Q3 2025, the S&P 500 gained 9.8% and the Nasdaq showed resilience despite these economic headwinds."
-  }
-];
 const displayFont = Fraunces({ subsets: ["latin"], weight: ["500", "600"] });
 const interfaceFont = Sora({ subsets: ["latin"], weight: ["500", "600"] });
 const MAGNETIC_ACTIVATION_RADIUS_PX = 96;
@@ -441,16 +411,37 @@ export default function HomePage() {
             {authState === "signed_in" && email ? <p className="home-page__status">Signed in as {email}</p> : null}
             {authError ? <p className="home-page__error">{authError}</p> : null}
           </section>
-
           <section className="home-page__panel home-page__overview" id="what">
             <p className="home-page__kicker">Overview</p>
             <h2 className="home-page__section-title">A cleaner way to follow your real interests.</h2>
             <p className="home-page__section-copy">
-              No-Circles delivers 10 personalized long-form reads based on your current interests. Reply to the
-              email, and tommorow&apos;s issue adjusts
+              No-Circles sends a daily issue built from your evolving interests, not from a fixed feed. The product is
+              a compact stack of systems for memory, discovery, grounding, delivery, and feedback, so each issue can
+              stay fresh without drifting into generic AI sludge.
             </p>
           </section>
-
+          <section className="home-page__panel home-page__sample home-page__about" id="about">
+            <div className="home-page__brief-head">
+              <div>
+                <p className="home-page__kicker">About</p>
+                <h2 className="home-page__section-title">What no-circles.com is actually doing behind the scenes.</h2>
+                <p className="home-page__brief-note">
+                  Each issue is powered by a small set of focused subsystems instead of one opaque black box.
+                </p>
+              </div>
+            </div>
+            <div className="home-page__steps home-page__steps--stacked">
+              {HOME_PAGE_SUBSYSTEMS.map((subsystem) => (
+                <article className="home-page__step" key={subsystem.number}>
+                  <span className="home-page__step-num">{subsystem.number}</span>
+                  <div className="home-page__step-copy">
+                    <strong>{subsystem.title}</strong>
+                    <p>{subsystem.description}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
           <section className="home-page__panel home-page__flow" id="flow">
             <p className="home-page__kicker home-page__kicker--flow">Flow</p>
             <div className="home-page__steps">
@@ -477,7 +468,6 @@ export default function HomePage() {
               </article>
             </div>
           </section>
-
           <section className="home-page__panel home-page__sample" id="sample">
             <div className="home-page__brief-head">
               <div>
@@ -498,7 +488,6 @@ export default function HomePage() {
               ))}
             </ul>
           </section>
-
           <p className="home-page__warning">
             No-Circles is free through mid-March. Then we plan a minimal at-cost subscription for infrastructure and
             API spend.
