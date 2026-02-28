@@ -30,8 +30,10 @@ export function buildQuoteSelectionUserPrompt(args: BuildQuoteSelectionUserPromp
   return [
     "Task: choose exactly one quote from the candidate list.",
     "SELECTION OBJECTIVE:",
-    "- choose quotes that align with and improve apon the reader's PERSONALITY traits and RECENT_FEEDBACK steering notes",
-    "- interpret '+ [more_like_this] ...' as positive steering and '- [less_like_this] ...' as negative steering",
+    "- choose quotes that align with and improve upon the reader's PERSONALITY traits",
+    "- from RECENT_FEEDBACK, treat '+ [more_like_this] <title>' and '- [less_like_this] <title>' as slight steering signals based on clicked article titles",
+    "- these feedback lines are literal item titles, not broad interests, normalized topics, or durable user preferences",
+    "- use them only to infer nearby tone, subject matter, or framing that the reader wanted more or less of",
     "- prefer concrete, grounded language",
     "- avoid hype, cliche, and fluff",
     "- avoid quotes that are too conflicting with recent feedback",
