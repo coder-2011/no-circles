@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getBrowserSupabaseClient } from "@/lib/auth/browser-client";
 import {
+  drawQuickSparksBatch,
+  parseQuickSparksText,
+  restoreQuickSparksDeck
+} from "@/app/onboarding/quick-sparks-deck";
+import {
   BRAIN_DUMP_DRAFT_KEY,
   BRAIN_DUMP_WORD_LIMIT,
   buildTimezoneOptions,
@@ -31,7 +36,6 @@ import {
   ONBOARDING_QUICK_SPARKS_VISIBLE_COUNT,
   parseSendTime,
   resolveDeepgramTokenExpiryAtMs,
-  shuffleQuickSparks,
   shouldWarmupDictation,
   type SubmitState,
   truncateToWordLimit
@@ -380,77 +384,27 @@ export function useOnboardingController(): OnboardingController {
             return;
           }
 
-          const parsed = text
-            .split(/\r?\n/)
-            .map((line) => line.trim())
-            .filter((line) => line.length > 0);
-
+          const parsed = parseQuickSparksText(text);
           if (parsed.length === 0) {
             return;
           }
           quickSparksPoolRef.current = parsed;
-          const allSet = new Set(parsed);
           const savedDeckRaw = window.localStorage.getItem(ONBOARDING_QUICK_SPARKS_DECK_KEY);
-          let unseen = [] as string[];
-          let seen = [] as string[];
-
-          if (savedDeckRaw) {
-            try {
-              const parsedDeck = JSON.parse(savedDeckRaw) as { unseen?: string[]; seen?: string[] };
-              const unseenCandidate = Array.isArray(parsedDeck.unseen) ? parsedDeck.unseen.filter((item) => allSet.has(item)) : [];
-              const seenCandidate = Array.isArray(parsedDeck.seen) ? parsedDeck.seen.filter((item) => allSet.has(item)) : [];
-              const dedupe = new Set<string>();
-              unseen = unseenCandidate.filter((item) => {
-                if (dedupe.has(item)) {
-                  return false;
-                }
-                dedupe.add(item);
-                return true;
-              });
-              seen = seenCandidate.filter((item) => {
-                if (dedupe.has(item)) {
-                  return false;
-                }
-                dedupe.add(item);
-                return true;
-              });
-            } catch {
-              unseen = [];
-              seen = [];
-            }
-          }
-
-          if (unseen.length + seen.length < parsed.length) {
-            const existing = new Set([...unseen, ...seen]);
-            const missing = parsed.filter((item) => !existing.has(item));
-            unseen = [...unseen, ...shuffleQuickSparks(missing)];
-          }
-
-          if (unseen.length === 0 && seen.length > 0) {
-            unseen = shuffleQuickSparks(seen);
-            seen = [];
-          }
-
-          quickSparksUnseenRef.current = unseen;
-          quickSparksSeenRef.current = seen;
+          const restoredDeck = restoreQuickSparksDeck({
+            allItems: parsed,
+            savedDeckRaw
+          });
+          quickSparksUnseenRef.current = restoredDeck.unseen;
+          quickSparksSeenRef.current = restoredDeck.seen;
           const requested = ONBOARDING_QUICK_SPARKS_VISIBLE_COUNT + ONBOARDING_QUICK_SPARKS_DRAWER_COUNT;
-          const batch: string[] = [];
-          while (batch.length < requested && quickSparksPoolRef.current.length > 0) {
-            if (quickSparksUnseenRef.current.length === 0) {
-              if (quickSparksSeenRef.current.length === 0) {
-                break;
-              }
-              quickSparksUnseenRef.current = shuffleQuickSparks(quickSparksSeenRef.current);
-              quickSparksSeenRef.current = [];
-            }
-
-            const next = quickSparksUnseenRef.current.shift();
-            if (!next) {
-              break;
-            }
-            batch.push(next);
-            quickSparksSeenRef.current.push(next);
-          }
+          const drawn = drawQuickSparksBatch({
+            unseen: quickSparksUnseenRef.current,
+            seen: quickSparksSeenRef.current,
+            count: requested
+          });
+          quickSparksUnseenRef.current = drawn.deck.unseen;
+          quickSparksSeenRef.current = drawn.deck.seen;
+          const batch = drawn.selected;
 
           if (batch.length > 0) {
             setQuickSparks(batch.slice(0, ONBOARDING_QUICK_SPARKS_VISIBLE_COUNT));
@@ -484,25 +438,14 @@ export function useOnboardingController(): OnboardingController {
   }
 
   function pullQuickSparks(count: number): string[] {
-    const selected: string[] = [];
-    while (selected.length < count && quickSparksPoolRef.current.length > 0) {
-      if (quickSparksUnseenRef.current.length === 0) {
-        if (quickSparksSeenRef.current.length === 0) {
-          break;
-        }
-        quickSparksUnseenRef.current = shuffleQuickSparks(quickSparksSeenRef.current);
-        quickSparksSeenRef.current = [];
-      }
-
-      const next = quickSparksUnseenRef.current.shift();
-      if (!next) {
-        break;
-      }
-      selected.push(next);
-      quickSparksSeenRef.current.push(next);
-    }
-
-    return selected;
+    const drawn = drawQuickSparksBatch({
+      unseen: quickSparksUnseenRef.current,
+      seen: quickSparksSeenRef.current,
+      count
+    });
+    quickSparksUnseenRef.current = drawn.deck.unseen;
+    quickSparksSeenRef.current = drawn.deck.seen;
+    return drawn.selected;
   }
 
   function rotateQuickSparksBatch() {

@@ -1,10 +1,13 @@
-import { deriveTopicsFromMemory, extractTopicPoolsFromMemory } from "@/lib/discovery/topic-derivation";
 import { selectBestTopicLink } from "@/lib/discovery/haiku-link-selector";
-import { selectSerendipityTopics } from "@/lib/discovery/haiku-serendipity-selector";
 import { buildHaikuQuery } from "@/lib/discovery/haiku-query-builder";
 import { searchSonar } from "@/lib/discovery/sonar-client";
 import { fetchUrlExcerpt } from "@/lib/discovery/url-excerpt";
 import { logInfo } from "@/lib/observability/log";
+import {
+  buildDiscoveryTopics,
+  buildPerTopicQuotas
+} from "@/lib/discovery/run-discovery-planning";
+import { normalizeCandidate } from "@/lib/discovery/run-discovery-candidate-utils";
 import {
   DEFAULT_DISCOVERY_MAX_RETRIES,
   DEFAULT_DISCOVERY_TARGET_COUNT,
@@ -19,7 +22,6 @@ import {
   buildDiversityCard,
   dedupeCandidates,
   filterNonSuppressed,
-  normalizeCandidate,
   qualityFilterCandidates,
   summarizeQualityFilterDiagnostics,
   shouldEarlyStop
@@ -29,7 +31,6 @@ const DEFAULT_PER_TOPIC_RESULTS = 7;
 const DEFAULT_MAX_TOPICS = 10;
 const DEFAULT_EARLY_STOP_BUFFER = 2;
 const DEFAULT_MAX_PER_DOMAIN = 3;
-const DEFAULT_SERENDIPITY_TARGET_COUNT = 2;
 const RECENCY_OPERATORS = ["last 7 days", "last 30 days", "last 90 days", "last 12 months", "since previous year"] as const;
 const DISCOVERY_DEBUG = process.env.DISCOVERY_DEBUG === "1";
 const LOW_SIGNAL_EXCERPT_PATTERNS = [
@@ -100,117 +101,6 @@ function reorderBySelectedIndex<T>(items: T[], selectedIndex: number | null): T[
   if (selectedIndex === 0) return items;
   const selected = items[selectedIndex];
   return [selected, ...items.slice(0, selectedIndex), ...items.slice(selectedIndex + 1)];
-}
-
-function selectActiveTopicsRandomly(allActiveTopics: string[], maxTopics: number): string[] {
-  if (allActiveTopics.length <= maxTopics) {
-    return allActiveTopics;
-  }
-
-  const shuffled = [...allActiveTopics];
-  for (let i = shuffled.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    const current = shuffled[i];
-    shuffled[i] = shuffled[j] ?? "";
-    shuffled[j] = current ?? "";
-  }
-
-  return shuffled.slice(0, maxTopics).filter(Boolean);
-}
-
-function resolveSerendipityTargetCount(activeInterestCount: number, targetCount: number): number {
-  if (targetCount <= 1) {
-    return 0;
-  }
-
-  const desired =
-    activeInterestCount <= 2 ? 5 :
-      activeInterestCount <= 4 ? 3 :
-        DEFAULT_SERENDIPITY_TARGET_COUNT;
-
-  return Math.min(desired, Math.max(0, targetCount - 1));
-}
-
-async function buildDiscoveryTopics(args: {
-  interestMemoryText: string;
-  discoveryBrief?: DiscoveryRunInput["discoveryBrief"];
-  maxTopics: number;
-  targetCount: number;
-}): Promise<{
-  topics: DiscoveryRunResult["topics"];
-  activeTopics: string[];
-  serendipityTopics: string[];
-  coreTargetCount: number;
-  serendipityTargetCount: number;
-}> {
-  const pools = extractTopicPoolsFromMemory(args.interestMemoryText);
-  const activeTopics = pools.activeTopics;
-
-  // Preserve legacy fallback when ACTIVE_INTERESTS is empty.
-  if (activeTopics.length === 0) {
-    const fallbackTopics = deriveTopicsFromMemory({
-      interestMemoryText: args.interestMemoryText,
-      maxTopics: args.maxTopics
-    });
-    return {
-      topics: fallbackTopics,
-      activeTopics: fallbackTopics.map((topic) => topic.topic),
-      serendipityTopics: [],
-      coreTargetCount: args.targetCount,
-      serendipityTargetCount: 0
-    };
-  }
-
-  const desiredSerendipityTargetCount = resolveSerendipityTargetCount(activeTopics.length, args.targetCount);
-  const activeTopicLimit = Math.max(1, Math.min(activeTopics.length, args.maxTopics));
-  const selectedActiveTopics = selectActiveTopicsRandomly(activeTopics, activeTopicLimit);
-  const serendipityTargetCount = desiredSerendipityTargetCount;
-  const serendipityLimit = Math.max(0, args.maxTopics - selectedActiveTopics.length);
-  const serendipityTopics = serendipityLimit > 0
-    ? await selectSerendipityTopics({
-      activeTopics: selectedActiveTopics,
-      interestMemoryText: args.interestMemoryText,
-      discoveryBrief: args.discoveryBrief,
-      maxTopics: Math.min(serendipityLimit, serendipityTargetCount)
-    })
-    : [];
-  const effectiveSerendipityTargetCount = Math.min(serendipityTargetCount, serendipityTopics.length);
-  const effectiveCoreTargetCount = Math.max(1, args.targetCount - effectiveSerendipityTargetCount);
-
-  const topics = [
-    ...selectedActiveTopics.map((topic, index) => ({
-      topic,
-      query: topic,
-      topicRank: index,
-      softSuppressed: false
-    })),
-    ...serendipityTopics.map((topic, index) => ({
-      topic,
-      query: topic,
-      topicRank: activeTopics.length + index,
-      softSuppressed: false
-    }))
-  ];
-
-  return {
-    topics,
-    activeTopics: selectedActiveTopics,
-    serendipityTopics,
-    coreTargetCount: effectiveCoreTargetCount,
-    serendipityTargetCount: effectiveSerendipityTargetCount
-  };
-}
-
-function buildPerTopicQuotas(topics: string[], targetCount: number): Map<string, number> {
-  const quotas = new Map<string, number>();
-  if (topics.length === 0 || targetCount <= 0) return quotas;
-
-  const base = Math.floor(targetCount / topics.length);
-  const remainder = targetCount % topics.length;
-  topics.forEach((topic, index) => {
-    quotas.set(topic, base + (index < remainder ? 1 : 0));
-  });
-  return quotas;
 }
 
 function sortCandidatesForSelection(candidates: DiscoveryCandidate[]): DiscoveryCandidate[] {

@@ -56,6 +56,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/app-not-found.md`
 - `files/app-onboarding-page.md`
 - `files/app-onboarding-onboarding-config.md`
+- `files/app-onboarding-quick-sparks-deck.md`
 - `files/app-onboarding-use-onboarding-controller.md`
 - `files/app-onboarding-onboarding-form.md`
 - `files/app-onboarding-deepgram-dictation.md`
@@ -112,6 +113,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/lib-memory-active-interest-lanes.md`
 - `files/lib-memory-processors.md`
 - `files/lib-memory-email-history.md`
+- `files/lib-memory-model-client.md`
 - `files/lib-memory-reflection.md`
 - `files/lib-webhooks-resend-signature.md`
 - `files/lib-webhooks-inbound-idempotency.md`
@@ -130,6 +132,8 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/lib-discovery-haiku-link-selector.md`
 - `files/lib-discovery-haiku-serendipity-selector.md`
 - `files/lib-discovery-haiku-query-builder.md`
+- `files/lib-discovery-run-discovery-candidate-utils.md`
+- `files/lib-discovery-run-discovery-planning.md`
 - `files/lib-discovery-run-discovery.md`
 - `files/lib-summary-writer.md`
 - `files/lib-email-render-newsletter.md`
@@ -163,6 +167,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/tests-hyper-query-system-live-integration.md`
 - `files/tests-hyper-serendipity-live-integration.md`
 - `files/lib-feedback-click-token.md`
+- `files/lib-feedback-newsletter-links.md`
 - `files/app-api-feedback-click-route.md`
 - `files/tests-feedback-click-token.md`
 - `files/tests-feedback-click-route.md`

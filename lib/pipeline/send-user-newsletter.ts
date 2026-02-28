@@ -22,11 +22,8 @@ import {
 } from "@/lib/email/render-newsletter";
 import { sendNewsletter } from "@/lib/email/send-newsletter";
 import { selectPersonalizedQuote, type PersonalizedQuote } from "@/lib/quotes/select-personalized-quote";
-import {
-  buildFeedbackClickUrl,
-  createFeedbackClickToken,
-  resolveFeedbackBaseUrl
-} from "@/lib/feedback/click-token";
+import { resolveFeedbackBaseUrl } from "@/lib/feedback/click-token";
+import { buildNewsletterFeedbackLinks } from "@/lib/feedback/newsletter-links";
 import {
   buildOutboundIdempotencyKey,
   markOutboundSendIdempotencySent,
@@ -451,55 +448,28 @@ export async function sendUserNewsletter(
       runAtUtc: args.runAtUtc,
       items: summaries,
       feedbackLinksByItemUrl: (() => {
-        const secret = process.env.FEEDBACK_LINK_SECRET?.trim();
-        const baseUrl = resolveFeedbackBaseUrl();
-        if (!secret || !baseUrl) {
-          if (!secret) {
-            logPipeline("feedback_links_disabled_missing_secret", {
-              user_id: user.id,
-              run_at_utc: args.runAtUtc.toISOString()
-            });
-          }
+        const feedbackLinks = buildNewsletterFeedbackLinks({
+          userId: user.id,
+          items: summaries,
+          secret: process.env.FEEDBACK_LINK_SECRET?.trim() ?? null,
+          baseUrl: resolveFeedbackBaseUrl()
+        });
 
-          if (!baseUrl) {
-            logPipeline("feedback_links_disabled_missing_base_url", {
-              user_id: user.id,
-              run_at_utc: args.runAtUtc.toISOString()
-            });
-          }
-
-          return undefined;
+        if (feedbackLinks.missingSecret) {
+          logPipeline("feedback_links_disabled_missing_secret", {
+            user_id: user.id,
+            run_at_utc: args.runAtUtc.toISOString()
+          });
         }
 
-        const linksByUrl: Record<string, { moreLikeThisUrl: string; lessLikeThisUrl: string }> = {};
-        for (let index = 0; index < summaries.length; index += 1) {
-          const summary = summaries[index];
-          if (!summary) {
-            continue;
-          }
-
-          const moreLikeToken = createFeedbackClickToken({
-            userId: user.id,
-            url: summary.url,
-            title: summary.title,
-            feedbackType: "more_like_this",
-            secret
+        if (feedbackLinks.missingBaseUrl) {
+          logPipeline("feedback_links_disabled_missing_base_url", {
+            user_id: user.id,
+            run_at_utc: args.runAtUtc.toISOString()
           });
-          const lessLikeToken = createFeedbackClickToken({
-            userId: user.id,
-            url: summary.url,
-            title: summary.title,
-            feedbackType: "less_like_this",
-            secret
-          });
-
-          linksByUrl[summary.url] = {
-            moreLikeThisUrl: buildFeedbackClickUrl({ baseUrl, token: moreLikeToken }),
-            lessLikeThisUrl: buildFeedbackClickUrl({ baseUrl, token: lessLikeToken })
-          };
         }
 
-        return linksByUrl;
+        return feedbackLinks.linksByUrl;
       })(),
       quote,
       variant: issueVariant,
