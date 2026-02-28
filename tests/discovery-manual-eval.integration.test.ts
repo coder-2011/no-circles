@@ -10,10 +10,6 @@ const memory = [
   "- distributed systems",
   "- philosophy of science",
   "- macroeconomics",
-  "- crypto",
-  "",
-  "SUPPRESSED_INTERESTS:",
-  "- crypto",
   "",
   "RECENT_FEEDBACK:",
   "- less hype, more concrete tradeoffs"

@@ -9,9 +9,6 @@ const memory = [
   "- AI engineering",
   "- distributed systems",
   "",
-  "SUPPRESSED_INTERESTS:",
-  "- crypto",
-  "",
   "RECENT_FEEDBACK:",
   "- more practical examples"
 ].join("\n");
@@ -226,20 +223,16 @@ describe("runDiscovery", () => {
     expect(exaSearch.mock.calls.length).toBeGreaterThan(1);
   });
 
-  it("never uses suppressed-topic fallback and fails when non-suppressed pool cannot hit target", async () => {
-    const suppressedMemory = [
+  it("does not fall back to personality or feedback topics when active interests already exist", async () => {
+    const narrowMemory = [
       "PERSONALITY:",
-      "- curious",
+      "- crypto market structure",
       "",
       "ACTIVE_INTERESTS:",
       "- AI",
-      "- crypto",
-      "",
-      "SUPPRESSED_INTERESTS:",
-      "- crypto",
       "",
       "RECENT_FEEDBACK:",
-      "- avoid crypto"
+      "- more crypto market structure"
     ].join("\n");
 
     const exaSearch = vi.fn(async ({ query }: { query: string; numResults: number }) => {
@@ -256,7 +249,7 @@ describe("runDiscovery", () => {
     await expect(
       runDiscovery(
         {
-          interestMemoryText: suppressedMemory,
+          interestMemoryText: narrowMemory,
           targetCount: 2,
           maxRetries: 1,
           maxTopics: 2,
@@ -265,6 +258,9 @@ describe("runDiscovery", () => {
         { exaSearch }
       )
     ).rejects.toThrow("INSUFFICIENT_QUALITY_CANDIDATES");
+
+    expect(exaSearch).toHaveBeenCalledTimes(1);
+    expect(String(exaSearch.mock.calls[0]?.[0]?.query ?? "")).toContain("AI");
   });
 
   it("backfills with same-topic candidates when strict one-per-topic is insufficient", async () => {
@@ -303,9 +299,6 @@ describe("runDiscovery", () => {
       "- topic a",
       "- topic b",
       "- topic c",
-      "",
-      "SUPPRESSED_INTERESTS:",
-      "-",
       "",
       "RECENT_FEEDBACK:",
       "-"
@@ -385,9 +378,6 @@ describe("runDiscovery", () => {
       "- distributed systems design",
       "",
       "ACTIVE_INTERESTS:",
-      "-",
-      "",
-      "SUPPRESSED_INTERESTS:",
       "-",
       "",
       "RECENT_FEEDBACK:",
@@ -539,9 +529,6 @@ describe("runDiscovery", () => {
       "ACTIVE_INTERESTS:",
       "- ranking",
       "",
-      "SUPPRESSED_INTERESTS:",
-      "-",
-      "",
       "RECENT_FEEDBACK:",
       "- use evidence"
     ].join("\n");
@@ -585,9 +572,6 @@ describe("runDiscovery", () => {
       "",
       "ACTIVE_INTERESTS:",
       "- distributed systems",
-      "",
-      "SUPPRESSED_INTERESTS:",
-      "-",
       "",
       "RECENT_FEEDBACK:",
       "- less hype"
@@ -678,9 +662,6 @@ describe("runDiscovery", () => {
       "- AI engineering",
       "- distributed systems",
       "",
-      "SUPPRESSED_INTERESTS:",
-      "-",
-      "",
       "RECENT_FEEDBACK:",
       "- less hype"
     ].join("\n");
@@ -739,9 +720,6 @@ describe("runDiscovery", () => {
       "",
       "ACTIVE_INTERESTS:",
       ...topics.map((topic) => `- ${topic}`),
-      "",
-      "SUPPRESSED_INTERESTS:",
-      "-",
       "",
       "RECENT_FEEDBACK:",
       "- less hype"

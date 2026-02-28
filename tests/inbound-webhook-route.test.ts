@@ -12,6 +12,7 @@ const {
   receivingGetMock,
   emailGetMock,
   mergeReplyIntoMemoryMock,
+  recordRecentEmailHistoryMock,
   sendTransactionalEmailMock,
   getSvixHeadersMock,
   verifyResendWebhookSignatureMock,
@@ -22,8 +23,7 @@ const {
   const state = {
     user: {
       id: "user-1",
-      interestMemoryText:
-        "PERSONALITY:\n- Curious\n\nACTIVE_INTERESTS:\n- AI\n\nSUPPRESSED_INTERESTS:\n-\n\nRECENT_FEEDBACK:\n-"
+      interestMemoryText: "PERSONALITY:\n- Curious\n\nACTIVE_INTERESTS:\n- AI\n\nRECENT_FEEDBACK:\n-"
     } as { id: string; interestMemoryText: string } | null,
     reserveSucceeds: true,
     reservedWebhookKey: null as string | null,
@@ -97,7 +97,10 @@ const {
     transactionMock: transaction,
     receivingGetMock: vi.fn(async () => ({ data: { text: "more AI depth" }, error: null })),
     emailGetMock: vi.fn(async () => ({ data: { text: "more AI depth" }, error: null })),
-    mergeReplyIntoMemoryMock: vi.fn(async () => "PERSONALITY:\n- Updated\n\nACTIVE_INTERESTS:\n- Economics\n\nSUPPRESSED_INTERESTS:\n- Crypto\n\nRECENT_FEEDBACK:\n- Wants less crypto"),
+    mergeReplyIntoMemoryMock: vi.fn(
+      async () => "PERSONALITY:\n- Updated\n\nACTIVE_INTERESTS:\n- Economics\n\nRECENT_FEEDBACK:\n- Wants less crypto"
+    ),
+    recordRecentEmailHistoryMock: vi.fn(async () => undefined),
     sendTransactionalEmailMock: vi.fn(async () => ({ ok: true, providerMessageId: "msg_auto_reply", attempts: 1, error: null })),
     getSvixHeadersMock: vi.fn(() => ({
       svixId: "msg_123",
@@ -120,6 +123,10 @@ vi.mock("@/lib/db/client", () => ({
 
 vi.mock("@/lib/memory/processors", () => ({
   mergeReplyIntoMemory: mergeReplyIntoMemoryMock
+}));
+
+vi.mock("@/lib/memory/email-history", () => ({
+  recordRecentEmailHistory: recordRecentEmailHistoryMock
 }));
 
 vi.mock("@/lib/email/send-newsletter", () => ({
@@ -164,8 +171,7 @@ describe("POST /api/webhooks/resend/inbound", () => {
     process.env.RESEND_API_KEY = "re_test_key";
     testState.user = {
       id: "user-1",
-      interestMemoryText:
-        "PERSONALITY:\n- Curious\n\nACTIVE_INTERESTS:\n- AI\n\nSUPPRESSED_INTERESTS:\n-\n\nRECENT_FEEDBACK:\n-"
+      interestMemoryText: "PERSONALITY:\n- Curious\n\nACTIVE_INTERESTS:\n- AI\n\nRECENT_FEEDBACK:\n-"
     };
     testState.reserveSucceeds = true;
     testState.reservedWebhookKey = null;
@@ -179,12 +185,31 @@ describe("POST /api/webhooks/resend/inbound", () => {
     orderByMock.mockClear();
     limitMock.mockClear();
     transactionMock.mockClear();
-    receivingGetMock.mockClear();
-    emailGetMock.mockClear();
-    mergeReplyIntoMemoryMock.mockClear();
-    sendTransactionalEmailMock.mockClear();
-    getSvixHeadersMock.mockClear();
-    verifyResendWebhookSignatureMock.mockClear();
+    receivingGetMock.mockReset();
+    receivingGetMock.mockResolvedValue({ data: { text: "more AI depth" }, error: null });
+    emailGetMock.mockReset();
+    emailGetMock.mockResolvedValue({ data: { text: "more AI depth" }, error: null });
+    mergeReplyIntoMemoryMock.mockReset();
+    mergeReplyIntoMemoryMock.mockResolvedValue(
+      "PERSONALITY:\n- Updated\n\nACTIVE_INTERESTS:\n- Economics\n\nRECENT_FEEDBACK:\n- Wants less crypto"
+    );
+    recordRecentEmailHistoryMock.mockReset();
+    recordRecentEmailHistoryMock.mockResolvedValue(undefined);
+    sendTransactionalEmailMock.mockReset();
+    sendTransactionalEmailMock.mockResolvedValue({
+      ok: true,
+      providerMessageId: "msg_auto_reply",
+      attempts: 1,
+      error: null
+    });
+    getSvixHeadersMock.mockReset();
+    getSvixHeadersMock.mockReturnValue({
+      svixId: "msg_123",
+      svixTimestamp: "1700000000",
+      svixSignature: "v1,signature"
+    });
+    verifyResendWebhookSignatureMock.mockReset();
+    verifyResendWebhookSignatureMock.mockReturnValue(true);
     logInfoMock.mockClear();
     logWarnMock.mockClear();
     logErrorMock.mockClear();

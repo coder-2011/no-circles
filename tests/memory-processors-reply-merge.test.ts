@@ -376,9 +376,9 @@ describe("structured reply memory updates", () => {
 
     expect(sections?.ACTIVE_INTERESTS.toLowerCase()).toContain("ai engineering");
     expect(sections?.ACTIVE_INTERESTS.toLowerCase()).toContain("distributed systems");
-    expect(sections?.ACTIVE_INTERESTS.toLowerCase()).toContain("software architecture");
+    expect(sections?.ACTIVE_INTERESTS.toLowerCase()).toContain("[side] software architecture");
     expect(sections?.ACTIVE_INTERESTS.toLowerCase()).toContain("[side] technical product strategy");
-    expect(sections?.ACTIVE_INTERESTS.toLowerCase()).not.toContain("[side] software architecture");
+    expect(sections?.ACTIVE_INTERESTS.toLowerCase()).not.toContain("\n- software architecture");
   });
 
   it("appends explicit feedback lines in order to RECENT_FEEDBACK", () => {

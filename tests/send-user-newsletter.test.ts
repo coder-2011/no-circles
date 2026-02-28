@@ -57,7 +57,8 @@ const user = {
   email: "user@example.com",
   preferredName: "Naman",
   timezone: "UTC",
-  interestMemoryText: "PERSONALITY:\n- practical\n\nACTIVE_INTERESTS:\n- ai\n\nSUPPRESSED_INTERESTS:\n-\n\nRECENT_FEEDBACK:\n- use evidence",
+  interestMemoryText: "PERSONALITY:\n- practical\n\nACTIVE_INTERESTS:\n- ai\n\nRECENT_FEEDBACK:\n- use evidence",
+  lastReflectionAt: new Date("2026-02-15T18:00:00.000Z"),
   sentUrlBloomBits: null
 };
 
@@ -72,6 +73,15 @@ const selectedQuote = {
 const getFinalHighlightsByUrlFn = async (args: { urls: string[] }) => {
   return new Map(args.urls.map((url) => [url, [`Highlight for ${url}`]]));
 };
+
+function makeDeps(overrides: Parameters<typeof sendUserNewsletter>[1] = {}) {
+  return {
+    loadUserFn: async () => user,
+    markIdempotencySentFn: async () => undefined,
+    recordSentEmailHistoryFn: async () => undefined,
+    ...overrides
+  };
+}
 
 describe("sendUserNewsletter", () => {
   it("sends exactly 10 items and persists bloom state on success", async () => {
@@ -98,8 +108,7 @@ describe("sendUserNewsletter", () => {
         userId: user.id,
         runAtUtc: new Date("2026-02-16T18:00:00.000Z")
       },
-      {
-        loadUserFn: async () => user,
+      makeDeps({
         runDiscoveryFn,
         getFinalHighlightsByUrlFn,
         generateSummariesFn,
@@ -110,7 +119,7 @@ describe("sendUserNewsletter", () => {
         reserveIdempotencyFn: async () => ({ outcome: "claimed", status: "processing", providerMessageId: null }),
         markIdempotencyFailedFn,
         persistSendSuccessFn
-      }
+      })
     );
 
     expect(result.status).toBe("sent");
@@ -144,10 +153,9 @@ describe("sendUserNewsletter", () => {
         userId: user.id,
         runAtUtc: new Date("2026-02-16T18:00:00.000Z")
       },
-      {
-        loadUserFn: async () => user,
+      makeDeps({
         runDiscoveryFn
-      }
+      })
     );
 
     expect(result.status).toBe("insufficient_content");
@@ -162,8 +170,7 @@ describe("sendUserNewsletter", () => {
         userId: user.id,
         runAtUtc: new Date("2026-02-16T18:00:00.000Z")
       },
-      {
-        loadUserFn: async () => user,
+      makeDeps({
         runDiscoveryFn: async () =>
           makeDiscoveryResult(Array.from({ length: 10 }).map((_, index) => `https://example.com/${index + 1}`)),
         getFinalHighlightsByUrlFn,
@@ -172,7 +179,7 @@ describe("sendUserNewsletter", () => {
         sendNewsletterFn: async () => ({ ok: false, providerMessageId: null, attempts: 2, error: "provider down" }),
         reserveIdempotencyFn: async () => ({ outcome: "claimed", status: "processing", providerMessageId: null }),
         markIdempotencyFailedFn
-      }
+      })
     );
 
     expect(result.status).toBe("send_failed");
@@ -188,8 +195,7 @@ describe("sendUserNewsletter", () => {
         userId: user.id,
         runAtUtc: new Date("2026-02-16T18:00:00.000Z")
       },
-      {
-        loadUserFn: async () => user,
+      makeDeps({
         runDiscoveryFn: async () =>
           makeDiscoveryResult(Array.from({ length: 10 }).map((_, index) => `https://example.com/${index + 1}`)),
         getFinalHighlightsByUrlFn,
@@ -200,7 +206,7 @@ describe("sendUserNewsletter", () => {
         sendNewsletterFn: async () => {
           throw new Error("MISSING_RESEND_FROM_EMAIL");
         }
-      }
+      })
     );
 
     expect(result.status).toBe("send_failed");
@@ -218,8 +224,7 @@ describe("sendUserNewsletter", () => {
         userId: user.id,
         runAtUtc: new Date("2026-02-16T18:00:00.000Z")
       },
-      {
-        loadUserFn: async () => user,
+      makeDeps({
         runDiscoveryFn: async () =>
           makeDiscoveryResult(Array.from({ length: 10 }).map((_, index) => `https://example.com/${index + 1}`)),
         getFinalHighlightsByUrlFn,
@@ -232,7 +237,7 @@ describe("sendUserNewsletter", () => {
         persistSendSuccessFn: async () => {
           throw new Error("USERS_UPDATE_FAILED");
         }
-      }
+      })
     );
 
     expect(result.status).toBe("sent");
@@ -250,14 +255,13 @@ describe("sendUserNewsletter", () => {
         userId: user.id,
         runAtUtc: new Date("2026-02-16T18:00:00.000Z")
       },
-      {
-        loadUserFn: async () => user,
+      makeDeps({
         runDiscoveryFn: async () =>
           makeDiscoveryResult(Array.from({ length: 10 }).map((_, index) => `https://example.com/${index + 1}`)),
         getFinalHighlightsByUrlFn,
         reserveIdempotencyFn: async () => ({ outcome: "already_sent", status: "sent", providerMessageId: "msg_existing" }),
         sendNewsletterFn
-      }
+      })
     );
 
     expect(result.status).toBe("sent");
@@ -274,14 +278,13 @@ describe("sendUserNewsletter", () => {
         userId: user.id,
         runAtUtc: new Date("2026-02-16T18:00:00.000Z")
       },
-      {
-        loadUserFn: async () => user,
+      makeDeps({
         runDiscoveryFn: async () =>
           makeDiscoveryResult(Array.from({ length: 10 }).map((_, index) => `https://example.com/${index + 1}`)),
         getFinalHighlightsByUrlFn,
         reserveIdempotencyFn: async () => ({ outcome: "already_processing", status: "processing", providerMessageId: null }),
         sendNewsletterFn
-      }
+      })
     );
 
     expect(result.status).toBe("send_failed");
@@ -298,8 +301,7 @@ describe("sendUserNewsletter", () => {
         userId: user.id,
         runAtUtc: new Date("2026-02-16T18:00:00.000Z")
       },
-      {
-        loadUserFn: async () => user,
+      makeDeps({
         runDiscoveryFn: async () =>
           makeDiscoveryResult(Array.from({ length: 10 }).map((_, index) => `https://example.com/${index + 1}`)),
         getFinalHighlightsByUrlFn,
@@ -308,7 +310,7 @@ describe("sendUserNewsletter", () => {
         reserveIdempotencyFn: async () => ({ outcome: "retryable_failed_claimed", status: "processing", providerMessageId: null }),
         persistSendSuccessFn: async () => undefined,
         sendNewsletterFn
-      }
+      })
     );
 
     expect(result.status).toBe("sent");
@@ -321,13 +323,12 @@ describe("sendUserNewsletter", () => {
         userId: user.id,
         runAtUtc: new Date("2026-02-16T18:00:00.000Z")
       },
-      {
-        loadUserFn: async () => user,
+      makeDeps({
         runDiscoveryFn: async () =>
           makeDiscoveryResult(Array.from({ length: 10 }).map((_, index) => `https://example.com/${index + 1}`)),
         getFinalHighlightsByUrlFn: async () => new Map(),
         reserveIdempotencyFn: async () => ({ outcome: "claimed", status: "processing", providerMessageId: null })
-      }
+      })
     );
 
     expect(result.status).toBe("insufficient_content");
@@ -346,8 +347,7 @@ describe("sendUserNewsletter", () => {
         userId: user.id,
         runAtUtc: new Date("2026-02-16T18:00:00.000Z")
       },
-      {
-        loadUserFn: async () => user,
+      makeDeps({
         runDiscoveryFn: async () =>
           makeDiscoveryResult(Array.from({ length: 10 }).map((_, index) => `https://example.com/${index + 1}`)),
         getFinalHighlightsByUrlFn: async () =>
@@ -363,7 +363,7 @@ describe("sendUserNewsletter", () => {
         renderNewsletterFn,
         sendNewsletterFn: async () => ({ ok: true, providerMessageId: "msg_partial", attempts: 1, error: null }),
         persistSendSuccessFn: async () => undefined
-      }
+      })
     );
 
     expect(result.status).toBe("sent");
@@ -392,8 +392,7 @@ describe("sendUserNewsletter", () => {
         targetItemCount: 5,
         issueVariant: "welcome"
       },
-      {
-        loadUserFn: async () => user,
+      makeDeps({
         runDiscoveryFn: async () =>
           makeDiscoveryResult(Array.from({ length: 5 }).map((_, index) => `https://example.com/welcome-${index + 1}`)),
         getFinalHighlightsByUrlFn,
@@ -404,7 +403,7 @@ describe("sendUserNewsletter", () => {
         selectThemeTemplateFn: () => "10-mint-fig",
         sendNewsletterFn: async () => ({ ok: true, providerMessageId: "msg_welcome", attempts: 1, error: null }),
         persistSendSuccessFn: async () => undefined
-      }
+      })
     );
 
     expect(result.status).toBe("sent");

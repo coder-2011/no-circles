@@ -104,7 +104,7 @@ describe("searchSonar", () => {
       messages: Array<{ role: string; content: string }>;
     };
     expect(requestBody.model).toBe("sonar");
-    expect(requestBody.temperature).toBe(0.3);
+    expect(requestBody.temperature).toBe(1.65);
     expect(requestBody.search_domain_filter).toEqual(["docs.python.org", "wikipedia.org"]);
     expect(requestBody.web_search_options?.search_context_size).toBe("high");
     expect(requestBody.messages[0]?.role).toBe("system");
