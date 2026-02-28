@@ -84,6 +84,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/db-migration-0014-amber-preflight.md`
 - `files/db-migration-0015-sure-policy.md`
 - `files/db-migration-0016-firm-scope.md`
+- `files/db-migration-0017-clean-variant.md`
 - `files/db-migration-meta-0001-snapshot.md`
 - `files/db-migration-meta-0002-snapshot.md`
 - `files/db-migration-meta-journal.md`

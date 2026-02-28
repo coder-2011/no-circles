@@ -4,6 +4,8 @@ import { db } from "@/lib/db/client";
 import { outboundSendIdempotency } from "@/lib/db/schema";
 
 export type OutboundSendStatus = "processing" | "sent" | "failed";
+export type NewsletterIssueVariant = "daily" | "welcome";
+
 export type ReserveOutboundSendResult = {
   outcome: "claimed" | "retryable_failed_claimed" | "already_sent" | "already_processing";
   status: OutboundSendStatus;
@@ -14,10 +16,12 @@ export function buildOutboundIdempotencyKey(args: {
   userId: string;
   timezone: string;
   runAtUtc: Date;
+  issueVariant?: NewsletterIssueVariant;
 }): { idempotencyKey: string; localIssueDate: string } {
   const localIssueDate = formatInTimeZone(args.runAtUtc, args.timezone, "yyyy-MM-dd");
+  const issueVariant = args.issueVariant ?? "daily";
   return {
-    idempotencyKey: `newsletter:v1:${args.userId}:${localIssueDate}`,
+    idempotencyKey: `newsletter:v1:${issueVariant}:${args.userId}:${localIssueDate}`,
     localIssueDate
   };
 }
@@ -26,6 +30,7 @@ export async function reserveOutboundSendIdempotency(args: {
   userId: string;
   idempotencyKey: string;
   localIssueDate: string;
+  issueVariant: NewsletterIssueVariant;
 }): Promise<ReserveOutboundSendResult> {
   const result = await db.execute<{
     outcome: string;
@@ -37,12 +42,14 @@ export async function reserveOutboundSendIdempotency(args: {
         "user_id",
         "idempotency_key",
         "local_issue_date",
+        "issue_variant",
         "status"
       )
       values (
         ${args.userId}::uuid,
         ${args.idempotencyKey},
         ${args.localIssueDate}::date,
+        ${args.issueVariant},
         'processing'
       )
       on conflict ("idempotency_key") do nothing

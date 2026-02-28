@@ -51,6 +51,7 @@ export async function GET() {
       .where(
         and(
           eq(outboundSendIdempotency.userId, user.id),
+          eq(outboundSendIdempotency.issueVariant, "daily"),
           eq(outboundSendIdempotency.status, "sent"),
           isNotNull(outboundSendIdempotency.providerMessageId)
         )

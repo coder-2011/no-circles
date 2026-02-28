@@ -29,6 +29,7 @@ import {
   markOutboundSendIdempotencySent,
   markOutboundSendIdempotencyFailed,
   reserveOutboundSendIdempotency,
+  type NewsletterIssueVariant,
   type ReserveOutboundSendResult
 } from "@/lib/send/idempotency";
 import { logError, logInfo } from "@/lib/observability/log";
@@ -63,7 +64,12 @@ type SendPipelineDeps = {
   selectThemeTemplateFn?: () => NewsletterThemeTemplateKey;
   sendNewsletterFn?: typeof sendNewsletter;
   loadUserFn?: (userId: string) => Promise<PipelineUser | null>;
-  reserveIdempotencyFn?: (args: { userId: string; idempotencyKey: string; localIssueDate: string }) => Promise<ReserveOutboundSendResult>;
+  reserveIdempotencyFn?: (args: {
+    userId: string;
+    idempotencyKey: string;
+    localIssueDate: string;
+    issueVariant: NewsletterIssueVariant;
+  }) => Promise<ReserveOutboundSendResult>;
   markIdempotencySentFn?: (args: { idempotencyKey: string; providerMessageId?: string | null }) => Promise<void>;
   markIdempotencyFailedFn?: (args: { idempotencyKey: string; reason: string }) => Promise<void>;
   persistSendSuccessFn?: (args: {
@@ -107,7 +113,7 @@ export async function sendUserNewsletter(
     userId: string;
     runAtUtc: Date;
     targetItemCount?: number;
-    issueVariant?: "daily" | "welcome";
+    issueVariant?: NewsletterIssueVariant;
   },
   deps: SendPipelineDeps = {}
 ): Promise<SendUserNewsletterResult> {
@@ -153,7 +159,8 @@ export async function sendUserNewsletter(
   const { idempotencyKey, localIssueDate } = buildOutboundIdempotencyKey({
     userId: user.id,
     timezone: user.timezone,
-    runAtUtc: args.runAtUtc
+    runAtUtc: args.runAtUtc,
+    issueVariant
   });
 
   let bloomState = loadUserBloomState(user);
@@ -274,7 +281,8 @@ export async function sendUserNewsletter(
   const reserveResult = await reserveIdempotencyFn({
     userId: user.id,
     idempotencyKey,
-    localIssueDate
+    localIssueDate,
+    issueVariant
   });
 
   if (reserveResult.outcome === "already_sent" || reserveResult.outcome === "already_processing") {

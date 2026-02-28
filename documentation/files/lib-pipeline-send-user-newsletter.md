@@ -5,13 +5,13 @@ Orchestrates PR9 single-user runtime: discovery -> Bloom gate -> summary -> pers
 
 ## Runtime Flow
 1. Load selected user row.
-2. Build per-user local-date idempotency key.
+2. Build per-user local-date idempotency key scoped by issue variant (`daily` or `welcome`).
 3. Optionally rotate Bloom state if estimated false-positive rate exceeds threshold.
 4. Resolve target count (`10` default; configurable for welcome issue).
 5. Run discovery with candidate include filter that excludes Bloom hits (`canonicalUrl`), with `maxAttempts=1`, `perTopicResults=7`, and URL-excerpt-required ranking.
 6. Require enough discovery candidates to start, then fetch Exa highlights for winner URLs (`~4500` max chars each).
 7. Drop candidates with missing/empty highlights (do not synthesize low-context entries); continue as long as at least one strong candidate remains.
-8. Reserve outbound idempotency key.
+8. Reserve outbound idempotency key and persist `issue_variant` on the row.
 9. Generate summaries from strong candidates only; weak-context items may be skipped by summary stage.
    - marks summary inputs with `isSerendipitous=true` when candidate topic belongs to `discovery.serendipityTopics`.
 10. Select one personalized quote (HF `quotes-500k` batch pull + Claude chooser) using `user_id + local_issue_date` deterministic sampling.

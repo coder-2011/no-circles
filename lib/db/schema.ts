@@ -55,6 +55,7 @@ export const outboundSendIdempotency = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     localIssueDate: date("local_issue_date").notNull(),
+    issueVariant: text("issue_variant").notNull().default("daily"),
     status: text("status").notNull().default("processing"),
     providerMessageId: text("provider_message_id"),
     failureReason: text("failure_reason"),

@@ -30,6 +30,7 @@ Declares Drizzle table definitions and DB constraints for V1 minimal persistence
 - `idempotency_key` text not null (unique)
 - `user_id` UUID FK -> `users.id` (`ON DELETE CASCADE`)
 - `local_issue_date` date not null
+- `issue_variant` text not null default `daily` (`daily` | `welcome`)
 - `status` text not null default `processing`
 - `provider_message_id` text nullable
 - `failure_reason` text nullable

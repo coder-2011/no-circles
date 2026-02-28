@@ -256,13 +256,14 @@ Behavior:
 - Rotation/reset policy is required to bound false-positive rate growth over time.
 
 ### Table: `outbound_send_idempotency`
-Purpose: outbound duplicate-send guard for per-user per-local-date issue sends.
+Purpose: outbound duplicate-send guard for per-user per-local-date issue sends, scoped by send variant.
 
 Fields:
 - `id` (primary key)
 - `idempotency_key` (unique)
 - `user_id` (foreign key -> `users.id`)
 - `local_issue_date`
+- `issue_variant` (`daily` | `welcome`)
 - `status` (`processing` | `sent` | `failed`)
 - `provider_message_id` (nullable)
 - `failure_reason` (nullable)

@@ -61,6 +61,10 @@ Versioned SQL history for database schema state.
   - pins `search_path = public` on `public.claim_next_due_user(...)` and `public.claim_due_users_batch(...)`
   - rewrites authenticated `users` self-access policies to use initplan-friendly `(select auth.jwt() ->> 'email')`
   - preserves existing scheduler and self-access behavior while resolving Supabase linter warnings
+- `db/migrations/0017_clean_variant.sql`
+  - adds `outbound_send_idempotency.issue_variant`
+  - backfills existing rows to `daily`
+  - separates future `daily` vs `welcome` send identity
 
 ## Metadata
 - `db/migrations/meta/_journal.json`: migration journal

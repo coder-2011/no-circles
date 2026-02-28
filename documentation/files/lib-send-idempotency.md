@@ -4,15 +4,16 @@
 Handles outbound newsletter idempotency reservation/status updates for PR9.
 
 ## Exports
-- `buildOutboundIdempotencyKey({ userId, timezone, runAtUtc })`
+- `buildOutboundIdempotencyKey({ userId, timezone, runAtUtc, issueVariant })`
 - `reserveOutboundSendIdempotency(...)`
 - `markOutboundSendIdempotencySent(...)`
 - `markOutboundSendIdempotencyFailed(...)`
 - `getOutboundSendIdempotency(...)`
 
 ## Contract
-- key format: `newsletter:v1:<user_id>:<local_issue_date>`
-- one key per user per local date
+- key format: `newsletter:v1:<issue_variant>:<user_id>:<local_issue_date>`
+- one key per user per local date per issue variant
+- `issue_variant` currently supports `daily` and `welcome`
 - reserve result is typed:
   - `claimed` (new row inserted, proceed with send)
   - `retryable_failed_claimed` (existing `failed` row atomically reclaimed to `processing`, proceed with send)

@@ -19,11 +19,32 @@ describe("buildOutboundIdempotencyKey", () => {
     const result = buildOutboundIdempotencyKey({
       userId: "user-1",
       timezone: "America/Los_Angeles",
-      runAtUtc: new Date("2026-02-16T07:30:00.000Z")
+      runAtUtc: new Date("2026-02-16T07:30:00.000Z"),
+      issueVariant: "daily"
     });
 
     expect(result.localIssueDate).toBe("2026-02-15");
-    expect(result.idempotencyKey).toBe("newsletter:v1:user-1:2026-02-15");
+    expect(result.idempotencyKey).toBe("newsletter:v1:daily:user-1:2026-02-15");
+  });
+
+  it("separates welcome from daily keys on the same local date", () => {
+    const daily = buildOutboundIdempotencyKey({
+      userId: "user-1",
+      timezone: "America/Los_Angeles",
+      runAtUtc: new Date("2026-02-16T18:00:00.000Z"),
+      issueVariant: "daily"
+    });
+    const welcome = buildOutboundIdempotencyKey({
+      userId: "user-1",
+      timezone: "America/Los_Angeles",
+      runAtUtc: new Date("2026-02-16T18:00:00.000Z"),
+      issueVariant: "welcome"
+    });
+
+    expect(daily.localIssueDate).toBe("2026-02-16");
+    expect(welcome.localIssueDate).toBe("2026-02-16");
+    expect(daily.idempotencyKey).toBe("newsletter:v1:daily:user-1:2026-02-16");
+    expect(welcome.idempotencyKey).toBe("newsletter:v1:welcome:user-1:2026-02-16");
   });
 });
 
@@ -36,8 +57,9 @@ describe("reserveOutboundSendIdempotency", () => {
 
     const result = await reserveOutboundSendIdempotency({
       userId: "user-1",
-      idempotencyKey: "newsletter:v1:user-1:2026-02-16",
-      localIssueDate: "2026-02-16"
+      idempotencyKey: "newsletter:v1:daily:user-1:2026-02-16",
+      localIssueDate: "2026-02-16",
+      issueVariant: "daily"
     });
 
     expect(result).toEqual({
@@ -56,8 +78,9 @@ describe("reserveOutboundSendIdempotency", () => {
     await expect(
       reserveOutboundSendIdempotency({
         userId: "user-1",
-        idempotencyKey: "newsletter:v1:user-1:2026-02-16",
-        localIssueDate: "2026-02-16"
+        idempotencyKey: "newsletter:v1:daily:user-1:2026-02-16",
+        localIssueDate: "2026-02-16",
+        issueVariant: "daily"
       })
     ).rejects.toThrow("IDEMPOTENCY_RESERVE_INVALID_OUTCOME:unknown");
   });

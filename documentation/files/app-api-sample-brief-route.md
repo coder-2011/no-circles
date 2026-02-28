@@ -11,7 +11,7 @@ Returns homepage sample brief content by reusing the latest sent newsletter text
 
 ## Behavior
 1. Resolves source user by email from `users`.
-2. Finds newest successful outbound send with a non-null `provider_message_id`.
+2. Finds newest successful `daily` outbound send with a non-null `provider_message_id`.
 3. Fetches provider email text via Resend `emails.get`.
 4. Parses text into `{ title, url, summary }[]` using `parseNewsletterText`.
 5. Returns parsed sample content for homepage rendering.
