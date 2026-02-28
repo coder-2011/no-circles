@@ -33,7 +33,9 @@ export function parseSections(text: string): Record<MemoryHeader, string> | null
     return null;
   }
 
-  const parsed = parseSectionsWithHeaders(text, MEMORY_HEADERS) ?? parseSectionsWithHeaders(text, LEGACY_MEMORY_HEADERS);
+  const parsed = text.includes("SUPPRESSED_INTERESTS:")
+    ? parseSectionsWithHeaders(text, LEGACY_MEMORY_HEADERS) ?? parseSectionsWithHeaders(text, MEMORY_HEADERS)
+    : parseSectionsWithHeaders(text, MEMORY_HEADERS) ?? parseSectionsWithHeaders(text, LEGACY_MEMORY_HEADERS);
   if (!parsed) {
     return null;
   }
