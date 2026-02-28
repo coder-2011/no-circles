@@ -70,6 +70,10 @@ hyper-query-system-live:
 	set -a; [ -f ./.env.local ] && . ./.env.local; set +a; \
 	npx vitest run --config vitest.hyper.config.ts tests/hyper/query-system-live.integration.test.ts
 
+# Run the deterministic multi-day caring reflection simulation seam test
+reflection-simulation:
+	npx vitest run tests/send-user-newsletter-reflection-simulation.test.ts
+
 # Count tracked code LOC on default branch
 # Ref preference order: origin/master -> origin/main -> master -> main
 main-loc:
