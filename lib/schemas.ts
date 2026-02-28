@@ -42,11 +42,9 @@ export const memoryUpdateOpsSchema = z
     add_active: z.array(memoryTopicSchema).max(20).default([]),
     add_active_core: z.array(memoryTopicSchema).max(20).default([]),
     add_active_side: z.array(memoryTopicSchema).max(20).default([]),
-    add_suppressed: z.array(memoryTopicSchema).max(20).default([]),
     remove_active: z.array(memoryTopicSchema).max(20).default([]),
     move_core_to_side: z.array(memoryTopicSchema).max(20).default([]),
     move_side_to_core: z.array(memoryTopicSchema).max(20).default([]),
-    remove_suppressed: z.array(memoryTopicSchema).max(20).default([]),
     personality_add: z.array(memoryLineSchema).max(10).default([]),
     personality_remove: z.array(memoryLineSchema).max(10).default([]),
     recent_feedback_add: z.array(memoryLineSchema).max(8).default([])

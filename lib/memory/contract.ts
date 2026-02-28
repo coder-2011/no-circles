@@ -1,6 +1,12 @@
 export const MEMORY_HEADERS = [
   "PERSONALITY",
   "ACTIVE_INTERESTS",
+  "RECENT_FEEDBACK"
+] as const;
+
+const LEGACY_MEMORY_HEADERS = [
+  "PERSONALITY",
+  "ACTIVE_INTERESTS",
   "SUPPRESSED_INTERESTS",
   "RECENT_FEEDBACK"
 ] as const;
@@ -23,33 +29,20 @@ export function hasRequiredHeaders(text: string): boolean {
 }
 
 export function parseSections(text: string): Record<MemoryHeader, string> | null {
-  if (!hasRequiredHeaders(text)) {
+  if (!text.trim()) {
     return null;
   }
 
-  const sections = {} as Record<MemoryHeader, string>;
-
-  for (let i = 0; i < MEMORY_HEADERS.length; i += 1) {
-    const currentHeader = MEMORY_HEADERS[i];
-    const currentToken = `${currentHeader}:`;
-    const startIndex = text.indexOf(currentToken);
-
-    if (startIndex === -1) {
-      return null;
-    }
-
-    const bodyStart = startIndex + currentToken.length;
-    const nextHeader = MEMORY_HEADERS[i + 1];
-    const bodyEnd = nextHeader ? text.indexOf(`${nextHeader}:`) : text.length;
-
-    if (bodyEnd === -1) {
-      return null;
-    }
-
-    sections[currentHeader] = text.slice(bodyStart, bodyEnd).trim();
+  const parsed = parseSectionsWithHeaders(text, MEMORY_HEADERS) ?? parseSectionsWithHeaders(text, LEGACY_MEMORY_HEADERS);
+  if (!parsed) {
+    return null;
   }
 
-  return sections;
+  return {
+    PERSONALITY: parsed.PERSONALITY,
+    ACTIVE_INTERESTS: parsed.ACTIVE_INTERESTS,
+    RECENT_FEEDBACK: parsed.RECENT_FEEDBACK
+  };
 }
 
 export function formatSections(sections: Record<MemoryHeader, string>): string {
@@ -105,6 +98,39 @@ function capSectionsToWordLimit(
   return Object.fromEntries(
     MEMORY_HEADERS.map((header) => [header, sectionWords[header].join(" ") || "-"])
   ) as Record<MemoryHeader, string>;
+}
+
+function parseSectionsWithHeaders<const THeaders extends readonly string[]>(
+  text: string,
+  headers: THeaders
+): Record<THeaders[number], string> | null {
+  if (!headers.every((header) => text.includes(`${header}:`))) {
+    return null;
+  }
+
+  const sections = {} as Record<THeaders[number], string>;
+
+  for (let i = 0; i < headers.length; i += 1) {
+    const currentHeader = headers[i] as THeaders[number];
+    const currentToken = `${currentHeader}:`;
+    const startIndex = text.indexOf(currentToken);
+
+    if (startIndex === -1) {
+      return null;
+    }
+
+    const bodyStart = startIndex + currentToken.length;
+    const nextHeader = headers[i + 1] as THeaders[number] | undefined;
+    const bodyEnd = nextHeader ? text.indexOf(`${nextHeader}:`) : text.length;
+
+    if (bodyEnd === -1) {
+      return null;
+    }
+
+    sections[currentHeader] = text.slice(bodyStart, bodyEnd).trim();
+  }
+
+  return sections;
 }
 
 export function validateMemoryText(text: string):
