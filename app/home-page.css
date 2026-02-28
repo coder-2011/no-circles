@@ -302,6 +302,13 @@ body.home-page-body > a[aria-label="Go to home"] {
   white-space: nowrap;
 }
 
+.home-page__brief-note {
+  margin: 0.28rem 0 0;
+  color: #5a6650;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
 .home-page__brief-list {
   margin: 0.85rem 0 0;
   padding: 0;

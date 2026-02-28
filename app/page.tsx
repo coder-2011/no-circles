@@ -481,8 +481,8 @@ export default function HomePage() {
           <section className="home-page__panel home-page__sample" id="sample">
             <div className="home-page__brief-head">
               <div>
-                <p className="home-page__kicker">Live style</p>
-                <h2 className="home-page__section-title">Today&apos;s Brief</h2>
+                <h2 className="home-page__section-title">A Recent Daily Issue</h2>
+                <p className="home-page__brief-note">This preview is pulled from a recent real No-Circles daily brief.</p>
               </div>
               <p className="home-page__date-chip">{currentDateLabel}</p>
             </div>
