@@ -4,6 +4,7 @@ import { Resend } from "resend";
 import { db } from "@/lib/db/client";
 import { outboundSendIdempotency, processedWebhooks, users } from "@/lib/db/schema";
 import { sendTransactionalEmail } from "@/lib/email/send-newsletter";
+import { recordRecentEmailHistory } from "@/lib/memory/email-history";
 import { mergeReplyIntoMemory } from "@/lib/memory/processors";
 import { logError, logInfo, logWarn } from "@/lib/observability/log";
 import { resendInboundWebhookSchema } from "@/lib/schemas";
@@ -390,6 +391,8 @@ export async function POST(request: Request) {
 
       return `event:${signatureHeaders.svixId}`;
     })();
+    const inboundSubject = getHeaderCaseInsensitive(parsedPayload.data.data.headers, "subject");
+    const resolvedProviderMessageId = resolveMessageId(parsedPayload.data);
 
     const status = await db.transaction(async (tx) => {
       const inserted = await tx
@@ -408,6 +411,17 @@ export async function POST(request: Request) {
         .update(users)
         .set({ interestMemoryText: updatedMemory })
         .where(eq(users.id, user.id));
+
+      await recordRecentEmailHistory(
+        {
+          userId: user.id,
+          kind: "reply",
+          subject: inboundSubject,
+          bodyText: inboundReplyText,
+          providerMessageId: resolvedProviderMessageId
+        },
+        tx
+      );
 
       return "updated" as const;
     });

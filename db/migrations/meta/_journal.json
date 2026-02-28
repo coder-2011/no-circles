@@ -127,6 +127,13 @@
       "when": 1772266200000,
       "tag": "0017_clean_variant",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1772272800000,
+      "tag": "0018_brisk_recall",
+      "breakpoints": true
     }
   ]
 }

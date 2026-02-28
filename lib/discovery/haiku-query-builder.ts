@@ -3,6 +3,13 @@ const MAX_QUERY_LENGTH = 140;
 const MIN_QUERY_LENGTH = 12;
 const QUERY_BUILDER_TEMPERATURE = 0.85;
 
+type DiscoveryBrief = {
+  reinforceTopics: string[];
+  avoidPatterns: string[];
+  preferredAngles: string[];
+  noveltyMoves: string[];
+};
+
 function normalizeLine(value: string): string {
   return value.replace(/\s+/g, " ").trim();
 }
@@ -42,19 +49,38 @@ function buildSystemPrompt(): string {
     "Be very creative, niche, and surprising in your angle selection.",
     "You have broad leeway to choose framing, terms, and direction.",
     "Prefer concrete and specific language over generic phrasing when possible.",
+    "Use ACTIVE_INTERESTS for what to cover, PERSONALITY for lens/depth, RECENT_FEEDBACK for short-horizon steering, and DISCOVERY_BRIEF for today's freshness constraints.",
     "Interpret RECENT_FEEDBACK flags in USER_MEMORY as steering signals:",
     "- '+ [more_like_this] ...' means increase adjacent coverage.",
     "- '- [less_like_this] ...' means reduce or avoid adjacent coverage."
   ].join("\n");
 }
 
-function buildUserPrompt(args: { topic: string; interestMemoryText: string; attempt: number; referenceDateUtc: string }): string {
+function buildUserPrompt(args: {
+  topic: string;
+  interestMemoryText: string;
+  attempt: number;
+  referenceDateUtc: string;
+  discoveryBrief?: DiscoveryBrief;
+}): string {
+  const discoveryBriefBlock = args.discoveryBrief
+    ? [
+        "DISCOVERY_BRIEF:",
+        `reinforce_topics=${args.discoveryBrief.reinforceTopics.join(" | ") || "-"}`,
+        `avoid_patterns=${args.discoveryBrief.avoidPatterns.join(" | ") || "-"}`,
+        `preferred_angles=${args.discoveryBrief.preferredAngles.join(" | ") || "-"}`,
+        `novelty_moves=${args.discoveryBrief.noveltyMoves.join(" | ") || "-"}`
+      ].join("\n")
+    : "DISCOVERY_BRIEF:\n-";
+
   return [
     `REFERENCE_DATE_UTC: ${args.referenceDateUtc}`,
     `ATTEMPT: ${args.attempt}`,
     `TOPIC: ${args.topic}`,
     "USER_MEMORY:",
-    args.interestMemoryText.slice(0, 1200)
+    args.interestMemoryText.slice(0, 1200),
+    "",
+    discoveryBriefBlock
   ].join("\n");
 }
 
@@ -68,6 +94,7 @@ function validateQuery(query: string): { ok: true } | { ok: false; reason: strin
 export async function buildHaikuQuery(args: {
   topic: string;
   interestMemoryText: string;
+  discoveryBrief?: DiscoveryBrief;
   attempt: number;
   referenceDateUtc?: Date;
 }): Promise<string> {
@@ -100,6 +127,7 @@ export async function buildHaikuQuery(args: {
           content: buildUserPrompt({
             topic: args.topic,
             interestMemoryText: args.interestMemoryText,
+            discoveryBrief: args.discoveryBrief,
             attempt: args.attempt,
             referenceDateUtc
           })

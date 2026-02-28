@@ -57,3 +57,28 @@ export const summaryWriterOutputSchema = z
     summary: z.string().trim().min(1).max(2000)
   })
   .strict();
+
+export const discoveryBriefSchema = z
+  .object({
+    reinforceTopics: z.array(memoryTopicSchema).max(6).default([]),
+    avoidPatterns: z.array(memoryLineSchema).max(6).default([]),
+    preferredAngles: z.array(memoryLineSchema).max(6).default([]),
+    noveltyMoves: z.array(memoryLineSchema).max(4).default([])
+  })
+  .strict();
+
+export const memoryReflectionOutputSchema = z.discriminatedUnion("decision", [
+  z
+    .object({
+      decision: z.literal("no_change"),
+      discoveryBrief: discoveryBriefSchema
+    })
+    .strict(),
+  z
+    .object({
+      decision: z.literal("rewrite"),
+      memoryText: z.string().trim().min(1).max(12000),
+      discoveryBrief: discoveryBriefSchema
+    })
+    .strict()
+]);

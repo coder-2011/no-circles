@@ -40,6 +40,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `subsystems/summary-generation.md`
 - `subsystems/send-and-bloom-delivery.md`
 - `subsystems/personalized-quote-selection.md`
+- `subsystems/caring-reflection-memory.md`
 
 ## Current File Docs
 
@@ -85,6 +86,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/db-migration-0015-sure-policy.md`
 - `files/db-migration-0016-firm-scope.md`
 - `files/db-migration-0017-clean-variant.md`
+- `files/db-migration-0018-brisk-recall.md`
 - `files/db-migration-meta-0001-snapshot.md`
 - `files/db-migration-meta-0002-snapshot.md`
 - `files/db-migration-meta-journal.md`
@@ -108,6 +110,8 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/lib-memory-contract.md`
 - `files/lib-memory-active-interest-lanes.md`
 - `files/lib-memory-processors.md`
+- `files/lib-memory-email-history.md`
+- `files/lib-memory-reflection.md`
 - `files/lib-webhooks-resend-signature.md`
 - `files/lib-webhooks-inbound-idempotency.md`
 - `files/lib-ai-memory-prompts.md`

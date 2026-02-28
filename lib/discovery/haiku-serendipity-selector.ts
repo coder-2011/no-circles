@@ -1,6 +1,13 @@
 const ANTHROPIC_MESSAGES_API_URL = "https://api.anthropic.com/v1/messages";
 const DEFAULT_SERENDIPITY_TOPIC_COUNT = 2;
 
+type DiscoveryBrief = {
+  reinforceTopics: string[];
+  avoidPatterns: string[];
+  preferredAngles: string[];
+  noveltyMoves: string[];
+};
+
 function parseJsonFromModelText(text: string): unknown {
   const trimmed = text.trim();
   const fencedMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
@@ -68,13 +75,24 @@ function buildSystemPrompt(): string {
 function buildPrompt(args: {
   activeTopics: string[];
   interestMemoryText: string;
+  discoveryBrief?: DiscoveryBrief;
   maxTopics: number;
 }): string {
+  const discoveryBriefText = args.discoveryBrief
+    ? [
+        `reinforce_topics=${args.discoveryBrief.reinforceTopics.join(" | ") || "-"}`,
+        `avoid_patterns=${args.discoveryBrief.avoidPatterns.join(" | ") || "-"}`,
+        `preferred_angles=${args.discoveryBrief.preferredAngles.join(" | ") || "-"}`,
+        `novelty_moves=${args.discoveryBrief.noveltyMoves.join(" | ") || "-"}`
+      ].join("\n")
+    : "(none)";
+
   return [
     "Task: choose adjacent serendipity topics to complement the active-interest set.",
     "Use the explicit Active interests list as the primary source for what the reader actively wants coverage on today.",
     "Use PERSONALITY to infer learning style, abstraction level, and what kinds of adjacent topics will feel naturally interesting rather than random.",
     "Use RECENT_FEEDBACK to expand toward recently reinforced directions and avoid adjacent areas that would repeat a downweighted theme.",
+    "Use DISCOVERY_BRIEF as today's freshness/control layer for repetition avoidance and lens variation.",
     "Do not infer active topics from the memory context block below; the active-topic authority is the explicit Active interests list.",
     "Pick topics that are adjacent to active interests but not duplicates of active interests.",
     "Keep the topics at the same level of specificity as the active interests.",
@@ -88,6 +106,9 @@ function buildPrompt(args: {
     `Max topics to return: ${args.maxTopics}`,
     "Active interests:",
     ...args.activeTopics.map((topic, index) => `${index + 1}. ${topic}`),
+    "",
+    "Discovery brief:",
+    discoveryBriefText,
     "",
     "Memory context (non-active sections only):",
     buildMemoryContext(args.interestMemoryText).slice(0, 1200)
@@ -126,6 +147,7 @@ function parseSelectedTopics(args: {
 export async function selectSerendipityTopics(args: {
   activeTopics: string[];
   interestMemoryText: string;
+  discoveryBrief?: DiscoveryBrief;
   maxTopics?: number;
 }): Promise<string[]> {
   const maxTopics = Math.max(1, Math.floor(args.maxTopics ?? DEFAULT_SERENDIPITY_TOPIC_COUNT));
@@ -162,6 +184,7 @@ export async function selectSerendipityTopics(args: {
               content: buildPrompt({
                 activeTopics: args.activeTopics,
                 interestMemoryText: args.interestMemoryText,
+                discoveryBrief: args.discoveryBrief,
                 maxTopics
               })
           }

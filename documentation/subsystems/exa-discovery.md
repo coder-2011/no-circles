@@ -19,7 +19,7 @@ Implements candidate discovery stage only.
 - Scheduler due-user selection logic (PR5)
 
 ## Runtime Contract
-Input: `interest_memory_text` and run knobs.
+Input: `interest_memory_text`, optional `discoveryBrief`, and run knobs.
 Output: deterministic target-count list (default `10`) built from quota-based lane allocation with adaptive serendipity:
 - `<=2` active interests -> `5` core + `5` serendipity
 - `3-4` active interests -> `7` core + `3` serendipity
@@ -28,12 +28,14 @@ along with topics used, attempts used, warnings, and diversity card metrics.
 
 Integration hook:
 - discovery orchestration accepts an optional candidate include predicate for downstream policies (for example PR9 Bloom anti-repeat gating) before final selection.
+- discovery orchestration now also accepts an optional ephemeral `discoveryBrief` from the bi-daily reflection layer for prompt-level freshness/angle steering.
 
 ## Policy Highlights
 - Current local implementation reads canonical memory via the 3-section parser (`PERSONALITY`, `ACTIVE_INTERESTS`, `RECENT_FEEDBACK`) while retaining legacy parse compatibility for older stored memory that still contains `SUPPRESSED_INTERESTS`.
 - Query construction is topic-focused with per-topic recency rotation (`last 7 days`, `last 30 days`, `last 90 days`, `last 12 months`, `since previous year`).
 - Sonar retrieval now uses a more exploratory prompt stance and a higher generation temperature (`1.65`) while still enforcing strict parseable output format (`[TITLE] || https://...`) for deterministic extraction.
 - Haiku selector runs once per topic to choose best candidate link from Sonar outputs.
+- Query builder, link selector, and serendipity selector can all consume `discoveryBrief` when present to avoid stale framing and prefer current angles without changing quota logic.
 - Active topics are selected first; serendipity only receives lane budget when `maxTopics` leaves room beyond the chosen active-topic set.
 - Discovery attempts use calibrated relaxed thresholds to improve first-attempt pass rate while preserving diversity checks.
 - Final selection is quota-based per topic and lane, then may backfill from the overall quality pool when strict per-topic quotas would otherwise underfill the target count.

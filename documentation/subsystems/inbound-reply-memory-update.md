@@ -28,7 +28,7 @@ Implements PR3 memory processing and inbound webhook update safety:
 7. Unknown sender triggers best-effort guidance auto-reply asking for subscribed-account reply, then returns `{ ok: true, status: "ignored" }`.
 8. Valid events reserve idempotency key in `processed_webhooks` using provider message id when present (`provider + message:*`), else fallback event id (`provider + event:svix-id`).
 9. If key already exists, route returns `{ ok: true, status: "ignored" }`.
-10. If key is new, route updates `users.interest_memory_text` once and returns `updated`.
+10. If key is new, route updates `users.interest_memory_text`, stores the extracted reply text in `user_email_history(kind='reply')`, and returns `updated`.
 11. Reply memory update path expects model JSON ops, validates via zod, applies deterministic merge rules, and falls back on invalid/unavailable model outputs.
 
 ## Current Memory Shape
@@ -44,6 +44,7 @@ Implements PR3 memory processing and inbound webhook update safety:
 
 ## Data Model in Scope
 - `users.interest_memory_text`
+- `user_email_history` (`kind='reply'`, rolling last-5 evidence window)
 - `processed_webhooks`:
   - `id`
   - `provider`

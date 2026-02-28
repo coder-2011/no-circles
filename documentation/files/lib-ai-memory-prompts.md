@@ -6,8 +6,10 @@ Contains memory prompt builders for onboarding formatting and reply-driven memor
 ## Exports
 - `ONBOARDING_MEMORY_SYSTEM_PROMPT`
 - `REPLY_MEMORY_SYSTEM_PROMPT`
+- `REFLECTION_MEMORY_SYSTEM_PROMPT`
 - `buildOnboardingMemoryPrompt`
 - `buildReplyMemoryPrompt`
+- `buildReflectionMemoryPrompt`
 
 ## Status
 - Prompt wording is deterministic and merge-oriented.
@@ -29,3 +31,8 @@ Contains memory prompt builders for onboarding formatting and reply-driven memor
   - stylistic feedback is not converted into `ACTIVE_INTERESTS`
 - Reply prompt includes high-signal few-shot JSON examples to reduce schema/intent ambiguity.
 - Reply prompt requires acronym mentions to be handled deliberately (not ignored) and defaults uncertain additions to reversible side-lane behavior.
+- Reflection prompt now supports the bi-daily send-path review:
+  - reads current canonical memory plus recent sent/reply email history
+  - returns strict JSON `decision` (`no_change` or `rewrite`)
+  - emits a small ephemeral `discoveryBrief`
+  - only rewrites memory when recent email evidence clearly justifies it

@@ -10,18 +10,20 @@ Implementation split:
 ## Input
 `DiscoveryRunInput`:
 - `interestMemoryText` (required)
+- optional `discoveryBrief` (`reinforceTopics`, `avoidPatterns`, `preferredAngles`, `noveltyMoves`)
 - optional knobs: `targetCount`, `maxAttempts` (preferred), legacy `maxRetries`, `maxTopics`, `perTopicResults`, `earlyStopBuffer`, `maxPerDomain`
 
 Optional dependency hook:
 - `includeCandidate(candidate) -> boolean` for downstream candidate-gating policies (for example Bloom anti-repeat checks).
-- `linkSelector({ topic, interestMemoryText, candidates, alreadySelected }) -> selectedIndex | null` to override per-topic winner ordering before normalization.
+- `linkSelector({ topic, interestMemoryText, discoveryBrief, candidates, alreadySelected }) -> selectedIndex | null` to override per-topic winner ordering before normalization.
   - `alreadySelected` contains progressive `{ topic, title }` context from prior topic selections in the same run.
 - `excerptExtractor({ url, maxCharacters }) -> string | null` to provide custom URL excerpt extraction when enabled.
-- `queryBuilder({ topic, interestMemoryText, attempt }) -> string` to generate one creative topic query before deterministic recency append.
+- `queryBuilder({ topic, interestMemoryText, discoveryBrief, attempt }) -> string` to generate one creative topic query before deterministic recency append.
 
 ## Core Behavior
 1. Derive topics from memory.
 2. Build one base query per topic/attempt using Haiku query builder (`lib/discovery/haiku-query-builder.ts`).
+   - may use `discoveryBrief` to avoid stale framing and prefer current angles
    - on builder failure/invalid output, fallback to deterministic topic query.
 3. Append deterministic recency rotation (`last 7/30/90 days`, `last 12 months`, `since previous year`).
 4. Query Perplexity Sonar per topic and normalize results.
@@ -34,6 +36,7 @@ Optional dependency hook:
 6. Apply `includeCandidate` gating before Haiku selection so selector input excludes pre-filtered URLs (for example per-user Bloom repeat hits).
 7. Run Haiku selector per topic (when topic has >1 candidate) and reorder candidates so selected link is ranked first.
    - selector receives progressive per-issue context (`alreadySelected`) so tie-breaking can prefer non-redundant angles across topics while preserving quality/relevance.
+   - selector may use `discoveryBrief` to avoid repeated framing and prefer current angles
    - selector failures are warning-only.
 8. Normalize results into discovery candidates.
    - `exaScore` uses `result.score` when available; falls back to aggregate highlight score when `score` is absent.
@@ -46,7 +49,7 @@ Optional dependency hook:
    - drop scored candidates below minimum `exaScore` threshold.
 11. Build topic plan with two lanes:
    - core lane: active interests
-   - serendipity lane: up to 2 adjacent topics selected by high-temperature Haiku from current active interests plus memory context
+   - serendipity lane: up to 2 adjacent topics selected by high-temperature Haiku from current active interests plus memory context and optional `discoveryBrief`
    - when active-interest count exceeds `maxTopics`, active topics are randomly sampled (without replacement) up to the cap
 12. Enforce lane quotas:
    - adaptive split for target `10` based on active-interest count:

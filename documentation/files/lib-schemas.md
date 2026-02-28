@@ -38,3 +38,17 @@ Defines zod validation for API boundaries.
   - `title`
   - `summary`
 - Used by `lib/summary/writer.ts` before final output shaping.
+
+## `discoveryBriefSchema`
+- Validates the ephemeral current-send steering brief emitted by the reflection layer.
+- Keys:
+  - `reinforceTopics`
+  - `avoidPatterns`
+  - `preferredAngles`
+  - `noveltyMoves`
+
+## `memoryReflectionOutputSchema`
+- Validates the bi-daily reflection model output.
+- Discriminated by `decision`:
+  - `no_change` + `discoveryBrief`
+  - `rewrite` + `memoryText` + `discoveryBrief`

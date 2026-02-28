@@ -133,6 +133,7 @@ function resolveSerendipityTargetCount(activeInterestCount: number, targetCount:
 
 async function buildDiscoveryTopics(args: {
   interestMemoryText: string;
+  discoveryBrief?: DiscoveryRunInput["discoveryBrief"];
   maxTopics: number;
   targetCount: number;
 }): Promise<{
@@ -169,6 +170,7 @@ async function buildDiscoveryTopics(args: {
     ? await selectSerendipityTopics({
       activeTopics: selectedActiveTopics,
       interestMemoryText: args.interestMemoryText,
+      discoveryBrief: args.discoveryBrief,
       maxTopics: Math.min(serendipityLimit, serendipityTargetCount)
     })
     : [];
@@ -280,11 +282,17 @@ export async function runDiscovery(
     linkSelector?: (args: {
       topic: string;
       interestMemoryText: string;
+      discoveryBrief?: DiscoveryRunInput["discoveryBrief"];
       candidates: Array<{ url: string; title: string | null; highlights?: string[]; excerpt?: string }>;
       alreadySelected: Array<{ topic: string; title: string }>;
     }) => Promise<number | null>;
     excerptExtractor?: (args: { url: string; maxCharacters: number }) => Promise<string | null>;
-    queryBuilder?: (args: { topic: string; interestMemoryText: string; attempt: number }) => Promise<string>;
+    queryBuilder?: (args: {
+      topic: string;
+      interestMemoryText: string;
+      discoveryBrief?: DiscoveryRunInput["discoveryBrief"];
+      attempt: number;
+    }) => Promise<string>;
   } = {}
 ): Promise<DiscoveryRunResult> {
   const targetCount = input.targetCount ?? DEFAULT_DISCOVERY_TARGET_COUNT;
@@ -301,6 +309,7 @@ export async function runDiscovery(
 
   const topicPlan = await buildDiscoveryTopics({
     interestMemoryText: input.interestMemoryText,
+    discoveryBrief: input.discoveryBrief,
     maxTopics,
     targetCount
   });
@@ -339,6 +348,7 @@ export async function runDiscovery(
         const generatedQuery = await queryBuilder({
           topic: topic.topic,
           interestMemoryText: input.interestMemoryText,
+          discoveryBrief: input.discoveryBrief,
           attempt: attempt + 1
         });
         const normalizedGenerated = normalizeLine(generatedQuery);
@@ -424,6 +434,7 @@ export async function runDiscovery(
             const selectedIndex = await linkSelector({
               topic: topic.topic,
               interestMemoryText: input.interestMemoryText,
+              discoveryBrief: input.discoveryBrief,
               candidates: selectorEligibleCandidates,
               alreadySelected: alreadySelected.map((item) => ({ ...item }))
             });

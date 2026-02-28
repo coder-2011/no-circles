@@ -75,21 +75,25 @@ This system is a website-first, email-delivered personalized newsletter product.
 ### 2) Daily Newsletter Generation Flow
 1. Supabase `pg_cron` executes `net.http_post(...)` every minute to call `POST /api/cron/generate-next` with `CRON_SECRET`.
 2. Backend reads `users.interest_memory_text`.
-3. System runs discovery and applies Bloom anti-repeat gating on candidate canonical URLs before final item selection.
-4. System composes final `{ title, summary, url }` item payloads.
-5. System selects one personalized quote from `jstet/quotes-500k` (sample 50 deterministically per user/day, pre-filter, Claude chooses 1).
-6. Newsletter template is rendered and sent via Resend.
-7. Footer message includes ongoing calibration instruction (no special first-week mode), e.g. reply as much as the user wants to improve curation.
-8. On successful send, sent canonical URLs are hashed into per-user Bloom state and `users.last_issue_sent_at` is updated.
+3. For `daily` sends, system optionally runs a bi-daily reflection review using the last 5 sent emails, last 5 reply emails, and current memory.
+4. Reflection may rewrite `users.interest_memory_text` and emits a small current-send `discoveryBrief`.
+5. System runs discovery and applies Bloom anti-repeat gating on candidate canonical URLs before final item selection.
+6. System composes final `{ title, summary, url }` item payloads.
+7. System selects one personalized quote from `jstet/quotes-500k` (sample 50 deterministically per user/day, pre-filter, Claude chooses 1).
+8. Newsletter template is rendered and sent via Resend.
+9. Sent email subject/body are recorded in recent email history (best effort) for future reflection.
+10. Footer message includes ongoing calibration instruction (no special first-week mode), e.g. reply as much as the user wants to improve curation.
+11. On successful send, sent canonical URLs are hashed into per-user Bloom state and `users.last_issue_sent_at` is updated.
 
 ### 3) Inbound Reply Update Flow
 1. User replies to newsletter email.
 2. Resend webhook posts inbound email to backend endpoint.
 3. Backend parses reply intent with a cheaper Claude model when possible.
 4. Parsed intent is merged into `users.interest_memory_text` via typed update operations against the canonical memory sections, with validation and fallback.
-5. If the user does not reply, nothing is updated (system continues from existing memory).
-6. Negative reply handling currently removes or demotes active interests and appends explicit feedback lines rather than writing a separate suppression section.
-7. Unknown-sender replies receive a guidance auto-reply and are ignored for memory mutation.
+5. The extracted newest reply text is also stored as recent reply evidence for future reflection.
+6. If the user does not reply, nothing is updated (system continues from existing memory).
+7. Negative reply handling currently removes or demotes active interests and appends explicit feedback lines rather than writing a separate suppression section.
+8. Unknown-sender replies receive a guidance auto-reply and are ignored for memory mutation.
 
 ### 4) Idempotency and Duplicate Handling
 - Cron flow must be idempotent to prevent duplicate sends if a scheduled trigger runs twice.
@@ -236,6 +240,7 @@ Fields:
 - `send_time_local`
 - `interest_memory_text` (single evolving liquid profile)
 - `last_issue_sent_at` (nullable delivery-state timestamp used by scheduler)
+- `last_reflection_at` (nullable timestamp used to gate bi-daily send-path reflection)
 
 Behavior:
 - On onboarding, processor output from `brain_dump_text` is saved into `interest_memory_text`.
@@ -286,13 +291,30 @@ Recommended constraints/indexes:
 Retention policy:
 - prune rows older than 30 days via daily DB cron job (`prune-processed-webhooks-daily`) configured in `scripts/setup-supabase-cron.sql`.
 
+### Table: `user_email_history`
+Purpose: small rolling evidence window for reflection.
+
+Fields:
+- `id` (primary key)
+- `user_id` (foreign key -> `users.id`)
+- `kind` (`sent` | `reply`)
+- `subject` (nullable)
+- `body_text`
+- `provider_message_id` (nullable)
+- `issue_variant` (nullable)
+- `created_at`
+
+Retention policy:
+- keep only the latest 5 rows per `user_id + kind`
+
 ## Runtime Flow with Minimal State
 1. Read `users.interest_memory_text`.
-2. Discover and rank candidate links.
-3. Exclude likely already-sent links using per-user Bloom membership checks.
-4. Generate and send the daily newsletter.
-5. Update per-user Bloom state with sent URL fingerprints.
-6. Parse inbound user reply and update `users.interest_memory_text`.
+2. Optionally run bi-daily reflection using recent sent/reply email history.
+3. Discover and rank candidate links.
+4. Exclude likely already-sent links using per-user Bloom membership checks.
+5. Generate and send the daily newsletter.
+6. Update per-user Bloom state with sent URL fingerprints.
+7. Parse inbound user reply and update `users.interest_memory_text`.
 
 ## Explicitly Out of Scope (Current)
 - No `content_items` cache table.

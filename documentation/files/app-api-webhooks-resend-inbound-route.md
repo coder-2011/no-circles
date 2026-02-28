@@ -34,6 +34,7 @@ Processes inbound email replies from Resend and updates user memory exactly once
    - fallback to `provider + svix-id` only when provider message id is missing
    - skip when already processed
    - update `users.interest_memory_text` when newly reserved
+   - insert one `reply` row into `user_email_history` with the extracted newest reply text and optional subject/provider id
 13. Return `updated` or `ignored`.
 14. `GET` returns `405 METHOD_NOT_ALLOWED` (route is not browser-navigable for processing).
 

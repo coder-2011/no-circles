@@ -11,6 +11,7 @@ export const users = pgTable("users", {
     .generatedAlwaysAs(sql`((split_part(send_time_local, ':', 1)::int * 60) + split_part(send_time_local, ':', 2)::int)`),
   interestMemoryText: text("interest_memory_text").notNull(),
   lastIssueSentAt: timestamp("last_issue_sent_at", { withTimezone: true }),
+  lastReflectionAt: timestamp("last_reflection_at", { withTimezone: true }),
   sentUrlBloomBits: text("sent_url_bloom_bits")
 }, (table) => ({
   sendTimeLocalMinuteIdx: index("users_send_time_local_minute_idx").on(table.sendTimeLocalMinute)
@@ -66,5 +67,24 @@ export const outboundSendIdempotency = pgTable(
     idempotencyKeyUnique: uniqueIndex("outbound_send_idempotency_key_unique").on(table.idempotencyKey),
     userLocalDateIdx: index("outbound_send_idempotency_user_local_date_idx").on(table.userId, table.localIssueDate),
     statusIdx: index("outbound_send_idempotency_status_idx").on(table.status)
+  })
+);
+
+export const userEmailHistory = pgTable(
+  "user_email_history",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(),
+    subject: text("subject"),
+    bodyText: text("body_text").notNull(),
+    providerMessageId: text("provider_message_id"),
+    issueVariant: text("issue_variant"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => ({
+    userKindCreatedAtIdx: index("user_email_history_user_kind_created_at_idx").on(table.userId, table.kind, table.createdAt)
   })
 );

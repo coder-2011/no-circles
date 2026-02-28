@@ -7,6 +7,7 @@ Builds one creative, niche search query per topic/attempt using Anthropic Haiku 
 - Input:
   - `topic`
   - `interestMemoryText`
+  - optional `discoveryBrief`
   - `attempt`
   - optional `referenceDateUtc`
 - Output:
@@ -16,6 +17,7 @@ Builds one creative, niche search query per topic/attempt using Anthropic Haiku 
 - Frames the model as a `senior research librarian` in the Anthropic system prompt.
 - Asks model for one-line query-only output.
 - Emphasizes creativity, niche angle selection, and broad leeway in query framing.
+- Uses `discoveryBrief` when present to avoid stale framing, prefer current angles, and nudge novelty without changing the underlying topic plan.
 - Keeps constraints intentionally light so the model can explore unexpected angles.
 
 ## Runtime Safeguards

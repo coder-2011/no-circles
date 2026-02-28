@@ -1,5 +1,12 @@
 import type { ExaSearchResult } from "@/lib/discovery/types";
 
+type DiscoveryBrief = {
+  reinforceTopics: string[];
+  avoidPatterns: string[];
+  preferredAngles: string[];
+  noveltyMoves: string[];
+};
+
 const ANTHROPIC_MESSAGES_API_URL = "https://api.anthropic.com/v1/messages";
 
 function extractTextContent(value: unknown): string {
@@ -84,6 +91,7 @@ function buildSelectorSystemPrompt(): string {
 function buildSelectorPrompt(args: {
   topic: string;
   interestMemoryText: string;
+  discoveryBrief?: DiscoveryBrief;
   candidates: ExaSearchResult[];
   alreadySelected: Array<{ topic: string; title: string }>;
 }): string {
@@ -99,10 +107,19 @@ function buildSelectorPrompt(args: {
     args.alreadySelected.length > 0
       ? args.alreadySelected.map((item, index) => `${index + 1}. ${item.topic} || ${item.title}`).join("\n")
       : "(none yet)";
+  const discoveryBriefText = args.discoveryBrief
+    ? [
+        `reinforce_topics=${args.discoveryBrief.reinforceTopics.join(" | ") || "-"}`,
+        `avoid_patterns=${args.discoveryBrief.avoidPatterns.join(" | ") || "-"}`,
+        `preferred_angles=${args.discoveryBrief.preferredAngles.join(" | ") || "-"}`,
+        `novelty_moves=${args.discoveryBrief.noveltyMoves.join(" | ") || "-"}`
+      ].join("\n")
+    : "(none)";
 
   return [
     "Task: choose one best candidate link for the topic.",
     "Primary objective: select the candidate with the highest evidence density for the exact topic.",
+    "Use ACTIVE_INTERESTS for topic fit, PERSONALITY for framing/depth fit, RECENT_FEEDBACK for short-horizon steering, and DISCOVERY_BRIEF for today's editorial adjustments.",
     "Evidence density means concrete mechanisms, named systems, quantitative outcomes, incident details, or reproducible implementation steps.",
     "If candidate excerpt is generic trend commentary without concrete evidence, reject it.",
     "Do not reward impressive-sounding titles; choose based on excerpt substance.",
@@ -130,6 +147,9 @@ function buildSelectorPrompt(args: {
     "User memory:",
     args.interestMemoryText.slice(0, 800),
     "",
+    "Discovery brief:",
+    discoveryBriefText,
+    "",
     "Already selected items in this issue:",
     alreadySelectedText,
     "",
@@ -141,6 +161,7 @@ function buildSelectorPrompt(args: {
 export async function selectBestTopicLink(args: {
   topic: string;
   interestMemoryText: string;
+  discoveryBrief?: DiscoveryBrief;
   candidates: ExaSearchResult[];
   alreadySelected?: Array<{ topic: string; title: string }>;
 }): Promise<number | null> {

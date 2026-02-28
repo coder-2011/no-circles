@@ -2,6 +2,9 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { users } from "@/lib/db/schema";
 import { runDiscovery, type DiscoveryRunResult } from "@/lib/discovery/run-discovery";
+import type { DiscoveryBrief } from "@/lib/discovery/types";
+import { loadRecentEmailHistory, recordRecentEmailHistory } from "@/lib/memory/email-history";
+import { runBiDailyReflection, shouldRunBiDailyReflection } from "@/lib/memory/reflection";
 import { getFinalHighlightsByUrl } from "@/lib/discovery/exa-contents";
 import {
   addCanonicalUrls,
@@ -52,11 +55,14 @@ type PipelineUser = {
   preferredName: string;
   timezone: string;
   interestMemoryText: string;
+  lastReflectionAt: Date | null;
   sentUrlBloomBits: string | null;
 };
 
 type SendPipelineDeps = {
   runDiscoveryFn?: typeof runDiscovery;
+  loadRecentEmailHistoryFn?: typeof loadRecentEmailHistory;
+  runBiDailyReflectionFn?: typeof runBiDailyReflection;
   generateSummariesFn?: typeof generateNewsletterSummaries;
   getFinalHighlightsByUrlFn?: typeof getFinalHighlightsByUrl;
   selectQuoteFn?: typeof selectPersonalizedQuote;
@@ -72,11 +78,17 @@ type SendPipelineDeps = {
   }) => Promise<ReserveOutboundSendResult>;
   markIdempotencySentFn?: (args: { idempotencyKey: string; providerMessageId?: string | null }) => Promise<void>;
   markIdempotencyFailedFn?: (args: { idempotencyKey: string; reason: string }) => Promise<void>;
+  persistReflectionResultFn?: (args: {
+    userId: string;
+    reviewedAt: Date;
+    memoryText: string | null;
+  }) => Promise<void>;
   persistSendSuccessFn?: (args: {
     userId: string;
     runAtUtc: Date;
     bloomState: UserBloomState;
   }) => Promise<void>;
+  recordSentEmailHistoryFn?: typeof recordRecentEmailHistory;
 };
 
 const DEFAULT_TARGET_ITEM_COUNT = 10;
@@ -99,6 +111,7 @@ async function loadUser(userId: string): Promise<PipelineUser | null> {
       preferredName: users.preferredName,
       timezone: users.timezone,
       interestMemoryText: users.interestMemoryText,
+      lastReflectionAt: users.lastReflectionAt,
       sentUrlBloomBits: users.sentUrlBloomBits
     })
     .from(users)
@@ -118,12 +131,15 @@ export async function sendUserNewsletter(
   deps: SendPipelineDeps = {}
 ): Promise<SendUserNewsletterResult> {
   const runDiscoveryFn = deps.runDiscoveryFn ?? runDiscovery;
+  const loadRecentEmailHistoryFn = deps.loadRecentEmailHistoryFn ?? loadRecentEmailHistory;
+  const runBiDailyReflectionFn = deps.runBiDailyReflectionFn ?? runBiDailyReflection;
   const generateSummariesFn = deps.generateSummariesFn ?? generateNewsletterSummaries;
   const getFinalHighlightsByUrlFn = deps.getFinalHighlightsByUrlFn ?? getFinalHighlightsByUrl;
   const selectQuoteFn = deps.selectQuoteFn ?? selectPersonalizedQuote;
   const renderNewsletterFn = deps.renderNewsletterFn ?? renderNewsletter;
   const selectThemeTemplateFn = deps.selectThemeTemplateFn ?? pickRandomNewsletterThemeTemplate;
   const sendNewsletterFn = deps.sendNewsletterFn ?? sendNewsletter;
+  const recordSentEmailHistoryFn = deps.recordSentEmailHistoryFn ?? recordRecentEmailHistory;
 
   const loadUserFn = deps.loadUserFn ?? loadUser;
   const reserveIdempotencyFn = deps.reserveIdempotencyFn ?? reserveOutboundSendIdempotency;
@@ -131,6 +147,17 @@ export async function sendUserNewsletter(
   const markIdempotencyFailedFn = deps.markIdempotencyFailedFn ?? markOutboundSendIdempotencyFailed;
   const targetItemCount = args.targetItemCount ?? DEFAULT_TARGET_ITEM_COUNT;
   const issueVariant = args.issueVariant ?? "daily";
+  const persistReflectionResultFn =
+    deps.persistReflectionResultFn ??
+    (async (params) => {
+      await db
+        .update(users)
+        .set({
+          lastReflectionAt: params.reviewedAt,
+          ...(params.memoryText ? { interestMemoryText: params.memoryText } : {})
+        })
+        .where(eq(users.id, params.userId));
+    });
   const persistSendSuccessFn =
     deps.persistSendSuccessFn ??
     (async (params) => {
@@ -162,6 +189,52 @@ export async function sendUserNewsletter(
     runAtUtc: args.runAtUtc,
     issueVariant
   });
+  let effectiveInterestMemoryText = user.interestMemoryText;
+  let discoveryBrief: DiscoveryBrief | undefined;
+
+  if (
+    shouldRunBiDailyReflection({
+      issueVariant,
+      timezone: user.timezone,
+      runAtUtc: args.runAtUtc,
+      lastReflectionAt: user.lastReflectionAt
+    })
+  ) {
+    try {
+      const recentEmailHistory = await loadRecentEmailHistoryFn(user.id);
+      const reflectionResult = await runBiDailyReflectionFn({
+        userId: user.id,
+        timezone: user.timezone,
+        runAtUtc: args.runAtUtc,
+        currentMemoryText: effectiveInterestMemoryText,
+        recentSentEmails: recentEmailHistory.recentSentEmails,
+        recentReplyEmails: recentEmailHistory.recentReplyEmails
+      });
+
+      effectiveInterestMemoryText = reflectionResult.memoryText;
+      discoveryBrief = reflectionResult.discoveryBrief;
+
+      try {
+        await persistReflectionResultFn({
+          userId: user.id,
+          reviewedAt: reflectionResult.reviewedAt,
+          memoryText: reflectionResult.decision === "rewrite" ? reflectionResult.memoryText : null
+        });
+      } catch (error) {
+        logError("send_pipeline", "reflection_persist_failed", {
+          user_id: user.id,
+          run_at_utc: args.runAtUtc.toISOString(),
+          error: error instanceof Error ? error.message : "UNKNOWN_ERROR"
+        });
+      }
+    } catch (error) {
+      logError("send_pipeline", "reflection_unhandled_error", {
+        user_id: user.id,
+        run_at_utc: args.runAtUtc.toISOString(),
+        error: error instanceof Error ? error.message : "UNKNOWN_ERROR"
+      });
+    }
+  }
 
   let bloomState = loadUserBloomState(user);
   const rotationResult = maybeRotate(bloomState, { threshold: 0.02 });
@@ -180,7 +253,8 @@ export async function sendUserNewsletter(
   try {
     discovery = await runDiscoveryFn(
       {
-        interestMemoryText: user.interestMemoryText,
+        interestMemoryText: effectiveInterestMemoryText,
+        discoveryBrief,
         targetCount: targetItemCount,
         maxAttempts: 1,
         perTopicResults: 7,
@@ -330,7 +404,7 @@ export async function sendUserNewsletter(
         topic: candidate.topic,
         isSerendipitous: serendipityTopicSet.has(candidate.topic)
       })),
-      interestMemoryText: user.interestMemoryText,
+      interestMemoryText: effectiveInterestMemoryText,
       targetWords: 100
     });
     sentSummaryCount = summaries.length;
@@ -356,7 +430,7 @@ export async function sendUserNewsletter(
       quote = await selectQuoteFn({
         userId: user.id,
         localIssueDate,
-        interestMemoryText: user.interestMemoryText,
+        interestMemoryText: effectiveInterestMemoryText,
         candidateCount: 50,
         shortlistCount: 20
       });
@@ -487,6 +561,24 @@ export async function sendUserNewsletter(
         providerMessageId: sentProviderMessageId,
         error: `POST_SEND_IDEMPOTENCY_MARK_SENT_FAILED:${message}`
       };
+    }
+
+    try {
+      await recordSentEmailHistoryFn({
+        userId: user.id,
+        kind: "sent",
+        subject: rendered.subject,
+        bodyText: rendered.text,
+        providerMessageId: sentProviderMessageId,
+        issueVariant
+      });
+    } catch (error) {
+      logError("send_pipeline", "record_sent_email_history_failed", {
+        user_id: user.id,
+        run_at_utc: args.runAtUtc.toISOString(),
+        provider_message_id: sentProviderMessageId,
+        error: error instanceof Error ? error.message : "UNKNOWN_ERROR"
+      });
     }
 
     const sentCanonicalUrls = summaryInputCandidates.map((candidate) => candidate.canonicalUrl);

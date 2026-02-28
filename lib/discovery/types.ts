@@ -1,6 +1,13 @@
 export const DEFAULT_DISCOVERY_TARGET_COUNT = 10;
 export const DEFAULT_DISCOVERY_MAX_RETRIES = 3;
 
+export type DiscoveryBrief = {
+  reinforceTopics: string[];
+  avoidPatterns: string[];
+  preferredAngles: string[];
+  noveltyMoves: string[];
+};
+
 export type DiscoveryTopic = {
   topic: string;
   query: string;
@@ -44,6 +51,7 @@ export type DiscoveryDiversityCard = {
 
 export type DiscoveryRunInput = {
   interestMemoryText: string;
+  discoveryBrief?: DiscoveryBrief;
   targetCount?: number;
   maxAttempts?: number;
   // Legacy alias; behaves the same as maxAttempts for backward compatibility.
