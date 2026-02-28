@@ -17,6 +17,7 @@ Owns scheduled invocation of `POST /api/cron/generate-next`.
 4. Route runs send pipeline for each claimed user with bounded concurrency.
 5. Route returns `no_due_user` when queue is empty, otherwise batch result status.
 6. A second daily cron job prunes `processed_webhooks` rows older than 30 days.
+7. Scheduler selector functions pin `search_path = public` so runtime object resolution does not depend on caller/session path.
 
 ## Secrets Required
 - `CRON_SECRET` is required and passed by cron HTTP trigger.

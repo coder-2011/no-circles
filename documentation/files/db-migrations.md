@@ -57,6 +57,10 @@ Versioned SQL history for database schema state.
   - creates explicit RLS policies for all active runtime tables
   - grants `service_role` full table access under RLS
   - grants authenticated self select/update access on `users` via JWT email match
+- `db/migrations/0016_firm_scope.sql`
+  - pins `search_path = public` on `public.claim_next_due_user(...)` and `public.claim_due_users_batch(...)`
+  - rewrites authenticated `users` self-access policies to use initplan-friendly `(select auth.jwt() ->> 'email')`
+  - preserves existing scheduler and self-access behavior while resolving Supabase linter warnings
 
 ## Metadata
 - `db/migrations/meta/_journal.json`: migration journal

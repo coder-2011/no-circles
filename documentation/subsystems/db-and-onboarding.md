@@ -42,6 +42,10 @@ Error cases:
   - unique `processed_webhooks(provider, webhook_id)`
   - index `processed_webhooks(processed_at)`
 
+## RLS Notes
+- `users` authenticated self-access is enforced by JWT email match.
+- Current policy form uses `(select auth.jwt() ->> 'email')` so Postgres can cache the auth lookup as an initplan instead of re-evaluating it per row.
+
 ## Anti-Repeat Direction
 - Anti-repeat authority is per-user Bloom filter state.
 - `newsletter_items` has been removed from active schema.
