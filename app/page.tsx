@@ -1,27 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { getBrowserSupabaseClient } from "@/lib/auth/browser-client";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Fraunces, Sora } from "next/font/google";
-
+import { useRouter } from "next/navigation";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 type AuthState = "loading" | "signed_in" | "signed_out" | "error";
 type SampleBriefItem = {
   title: string;
   url: string;
   summary: string;
 };
-
-type SampleBriefResponse =
-  | {
-      ok: true;
-      items: SampleBriefItem[];
-    }
-  | {
-      ok: false;
-    };
-
+type SampleBriefResponse = { ok: true; items: SampleBriefItem[] } | { ok: false };
+type MagneticOffset = { x: number; y: number };
 const SAMPLE_DAILY_BRIEF: SampleBriefItem[] = [
   {
     title: "AI Update, February 20, 2026: AI News and Views From the Past Week",
@@ -46,137 +37,77 @@ const SAMPLE_DAILY_BRIEF: SampleBriefItem[] = [
     url: "https://www.vistage.com/research-center/business-financials/economic-trends/20251027-economic-trends-for-2026-and-beyond/",
     summary:
       "Small and midsize businesses face sustained stagflationary conditions in 2026 and beyond, with inflation remaining above the Federal Reserve's target despite cooling from 40-year highs. Tariffs and rising input costs are compressing margins, while labor scarcity drives wage and benefit increases. The cost of capital remains elevated, constraining growth plans. The analysis recommends that SMBs prioritize margin protection over revenue growth. Opportunities exist in productivity gains through AI and expansion in tech, healthcare, and clean energy sectors. Through Q3 2025, the S&P 500 gained 9.8% and the Nasdaq showed resilience despite these economic headwinds."
-  },
-  {
-    title: "WMO Global Annual to Decadal Climate Update (2025-2029)",
-    url: "https://wmo.int/publication-series/wmo-global-annual-decadal-climate-update-2025-2029",
-    summary:
-      "The WMO Global Annual to Decadal Climate Update projects global temperatures will remain at or near record levels from 2025-2029, with annually averaged near-surface temperatures predicted between 1.2°C and 1.9°C above 1850-1900 baseline. An 80% probability exists that at least one year will exceed 2024 as the warmest on record, while an 86% probability indicates at least one year will surpass 1.5°C above pre-industrial levels. The five-year average warming probability for 2025-2029 exceeding 1.5°C stands at 70%, up from 47% previously. Arctic warming is predicted to continue outpacing global average warming, with precipitation patterns showing significant regional variations."
-  },
-  {
-    title: "Ten Cancer-Related Breakthroughs Giving Us Hope in 2026",
-    url: "https://blog.dana-farber.org/insight/2026/01/ten-cancer-related-breakthroughs-giving-us-hope-in-2026/",
-    summary:
-      "Cancer treatment research at Dana-Farber has produced breakthroughs including targeted therapies and cancer vaccines. Menin inhibitors, two targeted therapies recently approved for approximately 40% of acute myeloid leukemia (AML) cases, represent a significant advancement for this previously difficult-to-treat disease. Researchers are now testing menin inhibitors in combination with other therapies to achieve substantial survival benefits for patients with AML and pancreatic cancer."
-  },
-  {
-    title: "University of Cincinnati study sheds light on survival of new neurons in adult brain",
-    url: "https://www.eurekalert.org/news-releases/1115910",
-    summary:
-      "Research from the University of Cincinnati College of Medicine, published in Nature Communications, reveals how immune cells in the adult brain regulate neurogenesis—the generation of new neurons. Immune cells conduct surveillance and send messages to developing neurons. Adult neurogenesis supports learning, memory, and mood regulation. Exercise, sleep, and learning stimulate the process, while stress and aging decrease it, potentially explaining cognitive decline in older adults."
-  },
-  {
-    title: "Scientists Capture a Glimpse into the Quantum Vacuum",
-    url: "https://www.bnl.gov/newsroom/news.php?a=122738",
-    summary:
-      "Scientists have made new findings on particle spin correlations that provide insight into how visible matter emerges from the quantum vacuum. The research examines dynamic fluctuations of energy fields in the quantum vacuum. These findings were announced by Brookhaven National Laboratory on February 4, 2026, and represent observations of previously difficult-to-access quantum phenomena related to the fundamental nature of matter."
-  },
-  {
-    title: "Future Issues in Global Health: Challenges and Conundrums - PMC",
-    url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC11942303/",
-    summary:
-      "Global health systems face interconnected challenges including non-communicable diseases, infectious disease outbreaks, antimicrobial resistance, climate change, and wars. The COVID-19 pandemic exposed vulnerabilities particularly in low- and middle-income countries. The United Nations Sustainable Development Goals, adopted in 2015, established Goal 3 to ensure healthy lives and promote well-being for all ages by 2030. Progress toward these targets remains uneven. Solutions require interprofessional and multisectoral collaborative efforts involving governments, international organizations, and communities. Strengthening the World Health Organization's coordinating role is identified as necessary for addressing health inequities and building resilient healthcare systems."
-  },
-  {
-    title: "4 Health Issues We're Watching in 2025 | Project HOPE",
-    url: "https://www.projecthope.org/news-stories/story/4-health-issues-were-watching-in-2025/",
-    summary:
-      "Project HOPE identified four urgent global health priorities for 2025: maternal health emergencies, infectious disease threats, mental health and psychosocial support, and primary health care strengthening. In the prior year, the organization reached 4.4 million people, provided direct medical services to 2.8 million patients, screened 655,000 people for disease, and donated $79 million in equipment and supplies. The organization addresses interconnected crises driven by conflict, displacement, poverty, and disease pressuring health systems worldwide."
   }
 ];
-
-const displayFont = Fraunces({
-  subsets: ["latin"],
-  weight: ["500", "600"]
-});
-
-const interfaceFont = Sora({
-  subsets: ["latin"],
-  weight: ["500", "600"]
-});
-
+const displayFont = Fraunces({ subsets: ["latin"], weight: ["500", "600"] });
+const interfaceFont = Sora({ subsets: ["latin"], weight: ["500", "600"] });
+const MAGNETIC_ACTIVATION_RADIUS_PX = 96;
+const MAGNETIC_MAX_SHIFT_PX = 12;
+const MOUSE_TAIL_COUNT = 8;
 function resolveSiteOrigin(): string {
   return window.location.origin;
 }
-
 function getAuthQueryErrorMessage(): string | null {
   const authCode = new URLSearchParams(window.location.search).get("auth");
   if (!authCode) return null;
-
-  if (authCode === "required") {
-    return "Please sign in to continue.";
-  }
-  if (authCode === "oauth_code_missing") {
-    return "Sign-in callback was incomplete. Please try again.";
-  }
-  if (authCode === "oauth_error") {
-    return "Sign-in failed. Please try again.";
-  }
-
+  if (authCode === "required") return "Please sign in to continue.";
+  if (authCode === "oauth_code_missing") return "Sign-in callback was incomplete. Please try again.";
+  if (authCode === "oauth_error") return "Sign-in failed. Please try again.";
   return "Authentication failed. Please try again.";
 }
 
-type MagneticOffset = { x: number; y: number };
-
-const MAGNETIC_PROXIMITY_PX = 20;
-const MAGNETIC_MAX_SHIFT_PX = 5;
-
 function calculateMagneticOffset(clientX: number, clientY: number, rect: DOMRect): MagneticOffset {
-  const nearestX = Math.max(rect.left, Math.min(clientX, rect.right));
-  const nearestY = Math.max(rect.top, Math.min(clientY, rect.bottom));
-  const edgeDistance = Math.hypot(clientX - nearestX, clientY - nearestY);
-
-  if (edgeDistance > MAGNETIC_PROXIMITY_PX) {
-    return { x: 0, y: 0 };
-  }
-
   const centerX = rect.left + rect.width / 2;
   const centerY = rect.top + rect.height / 2;
-  const towardX = clientX - centerX;
-  const towardY = clientY - centerY;
-  const towardMagnitude = Math.hypot(towardX, towardY);
+  const deltaX = clientX - centerX;
+  const deltaY = clientY - centerY;
+  const distance = Math.hypot(deltaX, deltaY);
 
-  if (towardMagnitude < 0.001) {
+  if (distance === 0 || distance >= MAGNETIC_ACTIVATION_RADIUS_PX) {
     return { x: 0, y: 0 };
   }
 
-  const intensity = 1 - edgeDistance / MAGNETIC_PROXIMITY_PX;
-  const shift = MAGNETIC_MAX_SHIFT_PX * intensity;
+  const strength = (MAGNETIC_ACTIVATION_RADIUS_PX - distance) / MAGNETIC_ACTIVATION_RADIUS_PX;
+  const shift = MAGNETIC_MAX_SHIFT_PX * strength;
 
   return {
-    x: (towardX / towardMagnitude) * shift,
-    y: (towardY / towardMagnitude) * shift
+    x: (deltaX / distance) * shift,
+    y: (deltaY / distance) * shift
   };
 }
 
+function formatBriefIndex(index: number): string {
+  return String(index + 1).padStart(2, "0");
+}
 export default function HomePage() {
   const router = useRouter();
+  const cursorRef = useRef<HTMLDivElement | null>(null);
+  const tailDotRefs = useRef<Array<HTMLSpanElement | null>>([]);
+  const topButtonRef = useRef<HTMLButtonElement | null>(null);
+  const heroButtonRef = useRef<HTMLButtonElement | null>(null);
   const [authState, setAuthState] = useState<AuthState>("loading");
   const [email, setEmail] = useState<string | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
   const [sampleBriefItems, setSampleBriefItems] = useState<SampleBriefItem[]>(SAMPLE_DAILY_BRIEF);
   const [topButtonOffset, setTopButtonOffset] = useState<MagneticOffset>({ x: 0, y: 0 });
   const [heroButtonOffset, setHeroButtonOffset] = useState<MagneticOffset>({ x: 0, y: 0 });
-  const topButtonRef = useRef<HTMLButtonElement | null>(null);
-  const heroButtonRef = useRef<HTMLButtonElement | null>(null);
   const [authClient] = useState<{ supabase: SupabaseClient | null; initError: string | null }>(() => {
     try {
       return { supabase: getBrowserSupabaseClient(), initError: null };
     } catch {
-      return {
-        supabase: null,
-        initError: "Auth client is not configured. Add Supabase env vars."
-      };
+      return { supabase: null, initError: "Auth client is not configured. Add Supabase env vars." };
     }
   });
-
   const supabase = authClient.supabase;
+  useEffect(() => {
+    document.body.classList.add("home-page-body");
+    return () => {
+      document.body.classList.remove("home-page-body");
+    };
+  }, []);
 
   useEffect(() => {
-    if (!authClient.initError) {
-      return;
-    }
-
+    if (!authClient.initError) return;
     setAuthState("error");
     setAuthError(authClient.initError);
   }, [authClient.initError]);
@@ -184,9 +115,7 @@ export default function HomePage() {
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const code = searchParams.get("code");
-    if (!code) {
-      return;
-    }
+    if (!code) return;
 
     const nextParam = searchParams.get("next");
     const nextPath = nextParam && nextParam.startsWith("/") ? nextParam : "/onboarding";
@@ -198,17 +127,13 @@ export default function HomePage() {
 
   useEffect(() => {
     const queryError = getAuthQueryErrorMessage();
-    if (!queryError) {
-      return;
+    if (queryError) {
+      setAuthError(queryError);
     }
-
-    setAuthError(queryError);
   }, []);
 
   useEffect(() => {
-    if (!supabase) {
-      return;
-    }
+    if (!supabase) return;
 
     let mounted = true;
 
@@ -224,9 +149,10 @@ export default function HomePage() {
       if (sessionEmail) {
         setEmail(sessionEmail);
         setAuthState("signed_in");
-      } else {
-        setAuthState("signed_out");
+        return;
       }
+
+      setAuthState("signed_out");
     });
 
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -247,16 +173,10 @@ export default function HomePage() {
   }, [supabase]);
 
   useEffect(() => {
-    if (authState !== "signed_in") {
-      return;
+    if (authState === "signed_in" && window.location.search.includes("auth=")) {
+      setAuthError(null);
+      window.history.replaceState(null, "", window.location.pathname);
     }
-
-    if (!window.location.search.includes("auth=")) {
-      return;
-    }
-
-    setAuthError(null);
-    window.history.replaceState(null, "", window.location.pathname);
   }, [authState]);
 
   useEffect(() => {
@@ -265,7 +185,7 @@ export default function HomePage() {
     void fetch("/api/sample-brief", { method: "GET" })
       .then(async (response) => {
         const body = (await response.json().catch(() => null)) as SampleBriefResponse | null;
-        if (!active || !response.ok || !body || !("ok" in body) || body.ok !== true || body.items.length === 0) {
+        if (!active || !response.ok || !body || body.ok !== true || body.items.length === 0) {
           return;
         }
 
@@ -283,7 +203,7 @@ export default function HomePage() {
       return;
     }
 
-    const onMouseMove = (event: MouseEvent) => {
+    const updateOffsets = (event: MouseEvent) => {
       const topButton = topButtonRef.current;
       const heroButton = heroButtonRef.current;
 
@@ -301,12 +221,87 @@ export default function HomePage() {
       setHeroButtonOffset({ x: 0, y: 0 });
     };
 
-    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mousemove", updateOffsets);
     window.addEventListener("mouseleave", resetOffsets);
 
     return () => {
-      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mousemove", updateOffsets);
       window.removeEventListener("mouseleave", resetOffsets);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (window.matchMedia("(pointer: coarse)").matches) {
+      return;
+    }
+
+    const cursor = cursorRef.current;
+    const tailDots = tailDotRefs.current.filter((dot): dot is HTMLSpanElement => dot !== null);
+    if (!cursor || tailDots.length === 0) {
+      return;
+    }
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const trail = tailDots.map(() => ({ x: -999, y: -999 }));
+    let visible = false;
+    let cursorX = -999;
+    let cursorY = -999;
+    let targetX = -999;
+    let targetY = -999;
+    let frameId = 0;
+
+    const updatePointerState = (target: EventTarget | null) => {
+      const isPointer = target instanceof Element && target.closest("a,button");
+      cursor.classList.toggle("home-page__cursor--pointer", Boolean(isPointer));
+    };
+
+    const handleMouseMove = (event: MouseEvent) => {
+      targetX = event.clientX;
+      targetY = event.clientY;
+      visible = true;
+      updatePointerState(event.target);
+    };
+
+    const handleMouseLeave = () => {
+      visible = false;
+      cursor.classList.remove("home-page__cursor--pointer");
+    };
+
+    const render = () => {
+      cursorX += (targetX - cursorX) * 0.28;
+      cursorY += (targetY - cursorY) * 0.28;
+      cursor.style.opacity = visible ? "1" : "0";
+      cursor.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0) translate(-50%, -50%)`;
+
+      if (!prefersReducedMotion) {
+        for (let index = 0; index < trail.length; index += 1) {
+          const point = trail[index];
+          const leader = index === 0 ? { x: targetX, y: targetY } : trail[index - 1];
+          const easing = index === 0 ? 0.3 : 0.23;
+
+          point.x += (leader.x - point.x) * easing;
+          point.y += (leader.y - point.y) * easing;
+
+          const dot = tailDots[index];
+          const opacity = visible ? Math.max(0, 0.52 - index * 0.06) : 0;
+          const scale = 1 - index * 0.08;
+          const rotation = 45 + index * 7;
+
+          dot.style.opacity = String(opacity);
+          dot.style.transform = `translate3d(${point.x - 7}px, ${point.y - 7}px, 0) rotate(${rotation}deg) scale(${scale})`;
+        }
+      }
+
+      frameId = window.requestAnimationFrame(render);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
+    window.addEventListener("mouseleave", handleMouseLeave, { passive: true });
+    frameId = window.requestAnimationFrame(render);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseleave", handleMouseLeave);
     };
   }, []);
 
@@ -322,10 +317,10 @@ export default function HomePage() {
     const callbackUrl = new URL("/auth/callback", resolveSiteOrigin());
     callbackUrl.searchParams.set("next", "/onboarding");
     callbackUrl.searchParams.set("callback_origin", window.location.origin);
-    const redirectTo = callbackUrl.toString();
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo }
+      options: { redirectTo: callbackUrl.toString() }
     });
 
     if (error) {
@@ -335,6 +330,7 @@ export default function HomePage() {
 
   async function signOut() {
     if (!supabase) return;
+
     const { error } = await supabase.auth.signOut({ scope: "local" });
     if (error) {
       setAuthError(error.message);
@@ -350,149 +346,141 @@ export default function HomePage() {
     day: "numeric",
     year: "numeric"
   }).format(new Date());
+  const displayedSampleBriefItems = sampleBriefItems.slice(0, 4);
+  const topButtonNear = topButtonOffset.x !== 0 || topButtonOffset.y !== 0;
+  const heroButtonNear = heroButtonOffset.x !== 0 || heroButtonOffset.y !== 0;
+  const shellStyle = {
+    "--home-display-font": displayFont.style.fontFamily,
+    "--home-ui-font": interfaceFont.style.fontFamily
+  } as CSSProperties;
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#F3ECD8] px-6 py-14 text-[#2D3426] md:px-10 md:py-20" id="top">
-      <style jsx>{`
-        @keyframes homeReveal {
-          from {
-            opacity: 0;
-            transform: translateY(16px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .reveal-on-load {
-          opacity: 0;
-          animation: homeReveal 520ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .reveal-on-load {
-            opacity: 1;
-            animation: none;
-          }
-        }
-      `}</style>
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_15%,rgba(61,111,73,0.14),transparent_40%),radial-gradient(circle_at_82%_8%,rgba(198,182,137,0.24),transparent_36%),radial-gradient(circle_at_70%_86%,rgba(93,131,89,0.12),transparent_40%)]" />
-      <div className="fixed right-4 top-4 z-40 reveal-on-load" style={{ animationDelay: "60ms" }}>
-        <button
-          ref={topButtonRef}
-          className={`${interfaceFont.className} rounded-lg border border-[#3D6F49] bg-[#3D6F49] px-4 py-2.5 text-base font-medium text-[#F3ECD8] shadow-sm transition hover:bg-[#315E3E] disabled:cursor-not-allowed disabled:opacity-60 md:px-5 md:py-3`}
-          disabled={authState === "loading"}
-          onClick={signInWithGoogle}
-          style={{
-            transform: `translate(${topButtonOffset.x}px, ${topButtonOffset.y}px)`,
-            transition: "transform 150ms ease-out, background-color 150ms ease-out"
-          }}
-          type="button"
-        >
-          Get Started
-        </button>
+    <div className="home-page-shell" style={shellStyle}>
+      <div className="home-page__mouse-tail-layer" aria-hidden="true">
+        {Array.from({ length: MOUSE_TAIL_COUNT }).map((_, index) => (
+          <span
+            className="home-page__mouse-tail-dot"
+            key={index}
+            ref={(element) => {
+              tailDotRefs.current[index] = element;
+            }}
+          />
+        ))}
       </div>
-      <div className="relative mx-auto w-full max-w-7xl space-y-10">
-        <section className="rounded-3xl border border-[#C9BD9A] bg-[#F8F3E4] p-8 shadow-sm reveal-on-load md:p-10" style={{ animationDelay: "140ms" }}>
-          <div className={`${displayFont.className} text-center text-[45px] font-semibold leading-none text-[#2B3125] md:text-[57px]`}>
-            The No-Circles Project
-          </div>
-          <h1 className={`${displayFont.className} mt-8 text-[36px] font-medium leading-tight text-[#2B3125] md:mt-10 md:text-[48px]`}>
-            Find what search would never show you.
-          </h1>
-          <div className="mt-16 flex flex-wrap gap-3 md:mt-20">
-            <button
-              ref={heroButtonRef}
-              className={`${interfaceFont.className} rounded-lg border border-[#3D6F49] bg-[#3D6F49] px-5 py-3 text-base font-medium text-[#F3ECD8] transition hover:bg-[#315E3E] disabled:opacity-60`}
-              disabled={authState === "loading"}
-              onClick={signInWithGoogle}
-              style={{
-                transform: `translate(${heroButtonOffset.x}px, ${heroButtonOffset.y}px)`,
-                transition: "transform 150ms ease-out, background-color 150ms ease-out"
-              }}
-              type="button"
-            >
-              Distract Me Intelligently
-            </button>
-            {authState === "signed_in" ? (
+      <div aria-hidden="true" className="home-page__cursor" ref={cursorRef} />
+      <button
+        className={[
+          "home-page__button",
+          "home-page__floating-cta",
+          "home-page__cta-magnet",
+          interfaceFont.className,
+          topButtonNear ? "is-near" : ""
+        ].join(" ")}
+        disabled={authState === "loading"}
+        onClick={signInWithGoogle}
+        ref={topButtonRef}
+        style={{ transform: `translate(${topButtonOffset.x}px, ${topButtonOffset.y}px)` }}
+        type="button"
+      >
+        Get Started
+      </button>
+      <main className="home-page" id="top">
+        <div className="home-page__bg-glow" />
+        <div className="home-page__container">
+          <section className="home-page__panel home-page__hero">
+            <p className="home-page__brand">The No-Circles Project</p>
+            <h1 className="home-page__headline">Find what search would never show you.</h1>
+            <div className="home-page__hero-actions">
               <button
-                className={`${interfaceFont.className} rounded-lg border border-[#A49671] bg-[#EFE7D0] px-5 py-3 text-base font-medium text-[#374230] transition hover:bg-[#E5DCC3]`}
-                onClick={signOut}
+                className={[
+                  "home-page__button",
+                  "home-page__cta-magnet",
+                  interfaceFont.className,
+                  heroButtonNear ? "is-near" : ""
+                ].join(" ")}
+                disabled={authState === "loading"}
+                onClick={signInWithGoogle}
+                ref={heroButtonRef}
+                style={{ transform: `translate(${heroButtonOffset.x}px, ${heroButtonOffset.y}px)` }}
+                type="button"
+              >
+                Distract Me Intelligently
+              </button>
+              <button
+                className={["home-page__button", "home-page__button--muted", interfaceFont.className].join(" ")}
+                onClick={authState === "signed_in" ? signOut : undefined}
                 type="button"
               >
                 Sign out
               </button>
-            ) : null}
-          </div>
-          <p className="mt-6 text-lg font-medium text-[#526149]">
-            {authState === "signed_in" && email ? `Signed in as ${email}` : "Sign in to save onboarding securely."}
-          </p>
-          {authError ? <p className="mt-3 text-base text-rose-700">{authError}</p> : null}
-          <div className="mt-6 grid max-w-6xl gap-4 md:grid-cols-[1.45fr_1fr]">
-            <div className="relative overflow-hidden rounded-[1.9rem] border border-[#C9BD9A] bg-[#FBF7EB] px-6 py-6 shadow-sm md:px-8 md:py-7">
-              <span className="pointer-events-none absolute right-5 top-4 rounded-full border border-[#CDBF98] bg-[#EFE5CD] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#5A6650]">
-                Daily: 10 reads
-              </span>
-              <p className="max-w-3xl pt-8 text-[1.45rem] font-semibold leading-[1.35] text-[#374230] md:pt-6 md:text-[1.95rem]">
-                No-Circles curates 10 niche long-form pieces every morning, for unexpected, meaningful discovery.
-              </p>
-              <p className="mt-4 max-w-3xl text-lg leading-[1.55] text-[#4A5641] md:text-xl">
-                And when your interests change or you choose a new side quest, you reply to the email and your daily
-                newsletter updates.
-              </p>
             </div>
-            <div className="relative flex h-full flex-col rounded-[1.3rem] border border-[#CDBF98] bg-[#F6EFD9] px-5 py-5 shadow-sm md:-ml-4 md:mt-6 md:rotate-[-1deg]">
-              <div className="pointer-events-none absolute -right-2 -top-2 h-6 w-6 rounded-md border border-[#CDBF98] bg-[#EFE5CD] rotate-12" />
-              <p className="text-[1.02rem] leading-[1.55] text-[#4C5A45] md:text-[1.22rem]">
-                The principle is that great ideas come from unexpected places, so we should encourage people toward
-                more unexpected endeavors.
-              </p>
-              <p className="mt-12 text-base font-bold leading-[1.55] text-[#5A6650] md:mt-auto md:pt-8 md:text-lg">
-                We filter through 150+ sources to deliver 10 just for you
-              </p>
-            </div>
-          </div>
-          <div className="mt-6 rounded-lg border border-[#EBA7A7] bg-[#FDE7E7] px-3 py-2">
-            <p className="text-sm font-medium text-[#8F1D1D]">
-              No-Circles is free through mid-March. After that, we plan to introduce a minimal at-cost subscription to
-              cover infrastructure and API usage, with no profit margin.
-            </p>
-          </div>
-        </section>
+            {authState === "signed_in" && email ? <p className="home-page__status">Signed in as {email}</p> : null}
+            {authError ? <p className="home-page__error">{authError}</p> : null}
+          </section>
 
-        <section className="rounded-3xl border border-[#C9BD9A] bg-[#FBF7EB] p-8 text-[#2D3426] shadow-sm reveal-on-load md:p-10" style={{ animationDelay: "240ms" }}>
-          <div className="flex items-start justify-between gap-3">
-            <h2 className={`${displayFont.className} text-2xl font-semibold leading-tight text-[#2D3426] md:text-3xl`}>
-              Sample Daily Brief
-            </h2>
-            <p className={`${interfaceFont.className} rounded-full border border-[#CDBF98] bg-[#EFE5CD] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#5A6650]`}>
-              {currentDateLabel}
+          <section className="home-page__panel home-page__overview" id="what">
+            <p className="home-page__kicker">Overview</p>
+            <h2 className="home-page__section-title">A cleaner way to follow your real interests.</h2>
+            <p className="home-page__section-copy">
+              No-Circles delivers 10 personalized long-form reads based on your current interests. Reply to the
+              email, and tommorow&apos;s issue adjusts
             </p>
-          </div>
-          <div className="mt-5 space-y-5 text-[#4A5641]">
-            <ol className="space-y-5">
-              {sampleBriefItems.map((item, index) => (
-                <li
-                  className="rounded-xl border border-[#D8CFB4] bg-[#F7F2E2] p-4 reveal-on-load"
-                  key={item.url}
-                  style={{ animationDelay: `${320 + index * 45}ms` }}
-                >
-                  <a
-                    className="text-base font-semibold leading-6 text-[#2D3426] underline decoration-[#8B9A7A] decoration-2 underline-offset-4 hover:text-[#1E2519]"
-                    href={item.url}
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    {index + 1}. {item.title}
+          </section>
+
+          <section className="home-page__panel home-page__flow" id="flow">
+            <p className="home-page__kicker home-page__kicker--flow">Flow</p>
+            <div className="home-page__steps">
+              <article className="home-page__step">
+                <span className="home-page__step-num">01</span>
+                <div className="home-page__step-copy">
+                  <strong>Tell us what you are into.</strong>
+                  <p>Write one short brain dump during onboarding.</p>
+                </div>
+              </article>
+              <article className="home-page__step">
+                <span className="home-page__step-num">02</span>
+                <div className="home-page__step-copy">
+                  <strong>Get one daily issue.</strong>
+                  <p>Every issue contains 10 concise, source-linked reads.</p>
+                </div>
+              </article>
+              <article className="home-page__step">
+                <span className="home-page__step-num">03</span>
+                <div className="home-page__step-copy">
+                  <strong>Reply to shape the next issue.</strong>
+                  <p>Your response guides the next picks.</p>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section className="home-page__panel home-page__sample" id="sample">
+            <div className="home-page__brief-head">
+              <div>
+                <p className="home-page__kicker">Live style</p>
+                <h2 className="home-page__section-title">Today&apos;s Brief</h2>
+              </div>
+              <p className="home-page__date-chip">{currentDateLabel}</p>
+            </div>
+            <ul className="home-page__brief-list">
+              {displayedSampleBriefItems.map((item, index) => (
+                <li className="home-page__brief-item" key={item.url}>
+                  <span className="home-page__brief-index">{formatBriefIndex(index)}</span>
+                  <a href={item.url} rel="noreferrer" target="_blank">
+                    {item.title}
                   </a>
-                  <p className="mt-2 text-sm leading-6 text-[#4A5641]">{item.summary}</p>
+                  <p>{item.summary}</p>
                 </li>
               ))}
-            </ol>
-          </div>
-        </section>
-      </div>
-    </main>
+            </ul>
+          </section>
+
+          <p className="home-page__warning">
+            No-Circles is free through mid-March. Then we plan a minimal at-cost subscription for infrastructure and
+            API spend.
+          </p>
+        </div>
+      </main>
+    </div>
   );
 }

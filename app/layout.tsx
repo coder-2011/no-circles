@@ -1,4 +1,5 @@
 import "./globals.css";
+import "./home-page.css";
 import type { Metadata } from "next";
 import { ReactNode } from "react";
 import Link from "next/link";

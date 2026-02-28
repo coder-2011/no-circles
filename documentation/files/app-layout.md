@@ -4,7 +4,7 @@
 Defines the root Next.js layout wrapper and page metadata.
 
 ## Behavior
-1. Imports global Tailwind/CSS styles once.
+1. Imports shared global styles plus the dedicated landing-page stylesheet once at the root layout.
 2. Sets top-level metadata (`title`, `description`).
 3. Sets browser/app icons to the shared brand asset (`/logo-no-circles.png`).
 4. Wraps all routes in root HTML/body shell.
