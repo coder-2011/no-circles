@@ -61,6 +61,15 @@ function makeRowsResponse() {
           author: "Author Five",
           category: "systems"
         }
+      },
+      {
+        row_idx: 16,
+        row: {
+          quote:
+            "This deliberately overlong quote keeps piling on clause after clause about disciplined attention, recursive self-correction, careful measurement, operational humility, and the necessity of revisiting assumptions until it clearly exceeds the runtime shortlist length gate.",
+          author: "Ignored Long Author",
+          category: "too long"
+        }
       }
     ],
     num_rows_total: 499709
@@ -139,7 +148,7 @@ describe("selectPersonalizedQuote", () => {
       system: string;
       messages: Array<{ role: string; content: string }>;
     };
-    expect(requestBody.system).toContain("personalized quote curator");
+    expect(requestBody.system).toContain("seasoned literary editor");
     expect(requestBody.messages[0]?.content).toContain("Reader profile (PERSONALITY):");
     expect(requestBody.messages[0]?.content).toContain("Most recent steering (RECENT_FEEDBACK):");
   });
@@ -169,5 +178,19 @@ describe("selectPersonalizedQuote", () => {
     expect(result.text).toContain("A first concrete quote");
     expect(result.author).toBe("Author One");
     expect(result.rowIndex).toBe(11);
+  });
+
+  it("filters overlong dataset rows before shortlist selection", () => {
+    const filtered = __quoteSelectionInternals.filterQuoteCandidates(
+      makeRowsResponse().rows.map((row) => ({
+        rowIndex: row.row_idx,
+        text: row.row.quote,
+        author: row.row.author,
+        category: row.row.category ?? null
+      }))
+    );
+
+    expect(filtered.some((candidate) => candidate.rowIndex === 16)).toBe(false);
+    expect(filtered.map((candidate) => candidate.rowIndex)).toEqual([11, 12, 14, 15]);
   });
 });

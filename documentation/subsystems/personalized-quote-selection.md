@@ -14,7 +14,7 @@ Adds one personalized quote to the end of every newsletter issue.
 ## Runtime Contract
 1. Pipeline computes deterministic sample seed from `user_id + local_issue_date`.
 2. Selector pulls one Hugging Face rows batch (`length=50`) from `jstet/quotes-500k`.
-3. Selector applies lightweight pre-filtering (quote length bounds, non-empty author, dedupe).
+3. Selector applies lightweight pre-filtering on raw dataset rows before model selection (currently `40..180` chars, non-empty author, dedupe).
 4. Selector sends up to `20` shortlisted quotes to Claude with:
    - role-only system prompt
    - task/output contract in user prompt

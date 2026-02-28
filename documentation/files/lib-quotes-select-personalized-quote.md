@@ -14,7 +14,7 @@ Selects one personalized quote for a user and issue date.
 1. Build deterministic seed from `userId + localIssueDate`.
 2. Pull one batch from Hugging Face dataset server `/rows` for `jstet/quotes-500k`.
 3. Normalize and pre-filter rows:
-   - quote length bounds
+   - quote length bounds (`40..180` chars)
    - non-empty author
    - dedupe by quote+author
 4. Build profile context from memory sections (`PERSONALITY`, `RECENT_FEEDBACK`).

@@ -16,7 +16,7 @@ const DEFAULT_SHORTLIST_COUNT = 20;
 const DEFAULT_TOTAL_ROWS_ASSUMPTION = 500_000;
 
 const MIN_QUOTE_CHAR_COUNT = 40;
-const MAX_QUOTE_CHAR_COUNT = 280;
+const MAX_QUOTE_CHAR_COUNT = 180;
 
 const FALLBACK_QUOTE = {
   text: "The important thing is not to stop questioning. Curiosity has its own reason for existing.",
