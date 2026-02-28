@@ -8,7 +8,7 @@ Defines quote-selection prompt contracts for Claude.
 - `buildQuoteSelectionUserPrompt(args)`
 
 ## Prompt Contract
-- System prompt is role-only (quote curator role).
+- System prompt is role-only (`seasoned literary editor` curating the newsletter closing quote).
 - Task instructions and output schema live in the user prompt.
 - User prompt includes:
   - `PERSONALITY` context

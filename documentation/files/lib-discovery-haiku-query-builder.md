@@ -13,6 +13,7 @@ Builds one creative, niche search query per topic/attempt using Anthropic Haiku 
   - one single-line query string
 
 ## Prompt Behavior
+- Frames the model as a `senior research librarian` in the Anthropic system prompt.
 - Asks model for one-line query-only output.
 - Emphasizes creativity, niche angle selection, and broad leeway in query framing.
 - Keeps constraints intentionally light so the model can explore unexpected angles.

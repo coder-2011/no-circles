@@ -47,10 +47,10 @@ The system should support broad and mixed curiosity, not a narrow niche feed.
 ## Personalization Model
 - Personalization is explicitly user-directed.
 - The primary control loop is email reply.
-- Supported intent focus: changing topics and muting topics.
+- Supported intent focus: changing topics, reinforcing topics, and steering away from topics.
 - Tone should remain consistent; reply style should not cause major tone drift.
 - User memory and interests should remain highly editable and dynamic over time.
-- If a user says they do not want a topic, that topic should be excluded (or heavily suppressed) until much later unless the user explicitly asks for it again.
+- If a user says they do not want a topic, the system should remove or demote that topic quickly and avoid drifting back toward it unless the user explicitly asks for it again.
 
 ## Newsletter Composition
 - Fixed target: about 10 items per daily email.

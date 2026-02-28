@@ -40,22 +40,22 @@ Optional dependency hook:
    - preserves full `highlights[]` and full `highlightScores[]` on each candidate.
    - `highlightScore` stores aggregate (mean) highlight score for topic-local ranking.
 9. Dedupe globally via canonical URLs.
-10. Exclude soft-suppressed topics from the primary quality pool.
-11. Apply quality filters before winner selection:
+10. Apply quality filters before winner selection:
    - require both `title` and `highlight`
    - drop known low-signal source patterns/domains
    - drop scored candidates below minimum `exaScore` threshold.
-12. Build topic plan with two lanes:
+11. Build topic plan with two lanes:
    - core lane: active interests
-   - serendipity lane: up to 2 adjacent topics selected by high-temperature Haiku from memory-derived seed candidates
+   - serendipity lane: up to 2 adjacent topics selected by high-temperature Haiku from current active interests plus memory context
    - when active-interest count exceeds `maxTopics`, active topics are randomly sampled (without replacement) up to the cap
-13. Enforce lane quotas:
+12. Enforce lane quotas:
    - adaptive split for target `10` based on active-interest count:
      - `<=2` active interests: `5 core + 5 serendipity`
      - `3-4` active interests: `7 core + 3 serendipity`
      - `>=5` active interests: `8 core + 2 serendipity`
    - core lane is allocated as evenly as possible across active interests (difference at most 1 slot)
-14. Select final candidates by per-topic quotas (no quality-pool backfill across dominant topics).
+13. Select final candidates by per-topic quotas.
+14. Backfill from the overall quality pool when quota selection underfills the target count.
 15. Build `diversityCard` on final output with hard thresholds for topic/domain spread.
 16. Enforce target-count contract:
    - derives topic seeds from `PERSONALITY` and `RECENT_FEEDBACK` when `ACTIVE_INTERESTS` is empty
@@ -98,4 +98,5 @@ Default `perTopicResults` is `7` (attempts 2+ increase by `+2` each).
 - `LOW_TOPIC_WINNER_SCORE_<n>`
 - `INSUFFICIENT_CORE_TOPIC_ALLOCATION:<actual>/<target>`
 - `INSUFFICIENT_SERENDIPITY_ALLOCATION:<actual>/<target>`
+- `BACKFILLED_FROM_QUALITY_POOL_<n>`
 - `CANDIDATE_FILTERED_<n>`

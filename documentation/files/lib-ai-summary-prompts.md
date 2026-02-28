@@ -4,9 +4,13 @@
 Builds deterministic per-item summary prompts for PR8.
 
 ## Export
+- `SUMMARY_SYSTEM_PROMPT`
 - `buildSummaryPrompt(args)`
 
 ## Contract
+System role:
+- `seasoned research editor`
+
 Input fields:
 - `title`
 - `url`

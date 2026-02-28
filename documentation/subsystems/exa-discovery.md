@@ -9,7 +9,6 @@ Implements candidate discovery stage only.
 - Anthropic Haiku single-link selection per topic (reorders topic candidates)
 - Result normalization and global URL dedupe
 - Attempt-tier quality/diversity early-stop gating
-- Suppression-aware primary selection with no suppressed fallback
 - Quality filtering for low-signal sources and low-score candidates
 - Quota-based output selection: evenly allocated core slots across active interests plus reserved serendipity slots
 
@@ -31,10 +30,11 @@ Integration hook:
 - discovery orchestration accepts an optional candidate include predicate for downstream policies (for example PR9 Bloom anti-repeat gating) before final selection.
 
 ## Policy Highlights
-- Suppressed interests are soft-ranked in topic derivation and excluded from both primary and fallback selection.
+- Current local implementation reads canonical memory via the 3-section parser (`PERSONALITY`, `ACTIVE_INTERESTS`, `RECENT_FEEDBACK`) while retaining legacy parse compatibility for older stored memory that still contains `SUPPRESSED_INTERESTS`.
 - Query construction is topic-focused with per-topic recency rotation (`last 7 days`, `last 30 days`, `last 90 days`, `last 12 months`, `since previous year`).
-- Sonar retrieval prompt enforces strict parseable output format (`[TITLE] || https://...`) for deterministic extraction.
+- Sonar retrieval now uses a more exploratory prompt stance and a higher generation temperature (`1.65`) while still enforcing strict parseable output format (`[TITLE] || https://...`) for deterministic extraction.
 - Haiku selector runs once per topic to choose best candidate link from Sonar outputs.
+- Active topics are selected first; serendipity only receives lane budget when `maxTopics` leaves room beyond the chosen active-topic set.
 - Discovery attempts use calibrated relaxed thresholds to improve first-attempt pass rate while preserving diversity checks.
-- Final selection is quota-based per topic and lane; it does not backfill excess slots from dominant topics when other topic quotas are underfilled.
+- Final selection is quota-based per topic and lane, then may backfill from the overall quality pool when strict per-topic quotas would otherwise underfill the target count.
 - Diversity and source-signal diagnostics are emitted in warnings and `diversityCard`.

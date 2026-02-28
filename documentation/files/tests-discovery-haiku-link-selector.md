@@ -4,6 +4,6 @@
 Unit coverage for per-topic Haiku selector parsing and model-call contract.
 
 ## Coverage
-- Parses integer-only model output into zero-based selected index.
-- Asserts selector request shape (`max_tokens`, `temperature`, and prompt contract).
+- Parses JSON selector output into zero-based selected index, including explicit `NULL`.
+- Asserts selector request shape (`max_tokens`, `temperature`, `system`, and user-prompt contract).
 - Returns `null` and avoids network call when candidate list is empty.

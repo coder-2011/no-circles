@@ -11,7 +11,7 @@ Runs an opt-in live Exa quality evaluation against the real discovery pipeline.
 
 ## What It Validates
 - discovery returns a minimum candidate count from live provider output
-- final candidates exclude suppressed topics
+- final candidates satisfy current quality and diversity gates under the 3-section memory path
 - minimum topic/domain diversity thresholds hold
 - highlight coverage and low-signal-source ratio meet quality gates
 - `diversityCard.passes` remains true under live conditions

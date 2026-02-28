@@ -86,9 +86,9 @@ This system is a website-first, email-delivered personalized newsletter product.
 1. User replies to newsletter email.
 2. Resend webhook posts inbound email to backend endpoint.
 3. Backend parses reply intent with a cheaper Claude model when possible.
-4. Parsed intent is merged into `users.interest_memory_text` with canonical memory validation and fallback.
+4. Parsed intent is merged into `users.interest_memory_text` via typed update operations against the canonical memory sections, with validation and fallback.
 5. If the user does not reply, nothing is updated (system continues from existing memory).
-6. Suppression duration for topics is inferred from user language and model judgment (not a rigid fixed-duration rule).
+6. Negative reply handling currently removes or demotes active interests and appends explicit feedback lines rather than writing a separate suppression section.
 7. Unknown-sender replies receive a guidance auto-reply and are ignored for memory mutation.
 
 ### 4) Idempotency and Duplicate Handling
@@ -115,7 +115,7 @@ V1 intentionally excludes a manual regenerate endpoint.
   - creates or updates `users` row
   - persists `preferred_name` from validated payload
   - routes `brain_dump_text` through onboarding memory processor
-  - persists canonical memory text (`PERSONALITY`, `ACTIVE_INTERESTS`, `SUPPRESSED_INTERESTS`, `RECENT_FEEDBACK`)
+  - persists canonical memory text (`PERSONALITY`, `ACTIVE_INTERESTS`, `RECENT_FEEDBACK`)
   - enforces hard cap of `800` words on stored memory
 - **Response**:
   - `{ ok: true, user_id: string }`
@@ -149,8 +149,8 @@ V1 intentionally excludes a manual regenerate endpoint.
   - verifies webhook signature
   - maps sender email -> `users` row
   - loads current `interest_memory_text`
-  - sends `{ current_interest_memory_text, inbound_reply_text }` to Claude with system prompt
-  - Claude returns updated memory
+  - sends `{ current_interest_memory_text, inbound_reply_text }` to Claude with separate system + user prompts
+  - Claude returns strict JSON update ops
   - applies deterministic fallback memory formatter when model output is invalid/unavailable
   - saves updated `interest_memory_text`
   - idempotent on provider message id when available (fallback `svix-id`) stored in `processed_webhooks(provider, webhook_id)`

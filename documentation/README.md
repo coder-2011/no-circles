@@ -47,6 +47,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/app-api-sample-brief-route.md`
 - `files/app-api-deepgram-token-route.md`
 - `files/app-art-page.md`
+- `files/app-home-page-css.md`
 - `files/app-api-onboarding-route.md`
 - `files/app-auth-callback-route.md`
 - `files/app-globals-css.md`
@@ -140,6 +141,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/tests-discovery-manual-eval-integration.md`
 - `files/tests-discovery-live-exa-integration.md`
 - `files/tests-summary-writer.md`
+- `files/tests-ai-memory-prompts.md`
 - `files/tests-ai-quote-prompts.md`
 - `files/tests-quote-selection.md`
 - `files/tests-bloom-user-url-bloom.md`
@@ -152,6 +154,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/tests-hyper-full-system-live-integration.md`
 - `files/tests-hyper-reply-evolution-live-integration.md`
 - `files/tests-hyper-query-system-live-integration.md`
+- `files/tests-hyper-serendipity-live-integration.md`
 - `files/lib-feedback-click-token.md`
 - `files/app-api-feedback-click-route.md`
 - `files/tests-feedback-click-token.md`

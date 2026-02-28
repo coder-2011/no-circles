@@ -31,6 +31,13 @@ Implements PR3 memory processing and inbound webhook update safety:
 10. If key is new, route updates `users.interest_memory_text` once and returns `updated`.
 11. Reply memory update path expects model JSON ops, validates via zod, applies deterministic merge rules, and falls back on invalid/unavailable model outputs.
 
+## Current Memory Shape
+- Current canonical write shape is:
+  - `PERSONALITY`
+  - `ACTIVE_INTERESTS`
+  - `RECENT_FEEDBACK`
+- Legacy reads still accept stored memory containing `SUPPRESSED_INTERESTS`, but local implementation is migrating away from suppression-specific ops toward remove-only negative handling plus explicit feedback lines in `RECENT_FEEDBACK`.
+
 ## Operational Notes
 - Memory processor emits lightweight structured logs for model success/failure/schema-invalid/fallback events.
 - This keeps fallback behavior measurable without introducing heavy observability infrastructure.

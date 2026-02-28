@@ -26,7 +26,7 @@ Defines zod validation for API boundaries.
 - Validates structured reply-memory update operations from the model.
 - Strict keys only:
   - `add_active`, `add_active_core`, `add_active_side`
-  - `add_suppressed`, `remove_active`, `remove_suppressed`
+  - `remove_active`
   - `move_core_to_side`, `move_side_to_core`
   - `personality_add`, `personality_remove`
   - `recent_feedback_add`

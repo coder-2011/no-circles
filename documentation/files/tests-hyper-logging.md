@@ -13,3 +13,4 @@ Shared helper for writing hyper integration trace artifacts to disk.
 - `full-system`
 - `reply-evolution`
 - `query-system`
+- `serendipity`
