@@ -1,4 +1,4 @@
-import { buildSummaryPrompt } from "@/lib/ai/summary-prompts";
+import { buildSummaryPrompt, SUMMARY_SYSTEM_PROMPT } from "@/lib/ai/summary-prompts";
 import { logInfo, logWarn } from "@/lib/observability/log";
 import { summaryWriterOutputSchema } from "@/lib/schemas";
 
@@ -32,6 +32,7 @@ const INSUFFICIENT_SOURCE_DETAIL = "INSUFFICIENT_SOURCE_DETAIL";
 
 type CallSummaryModelArgs = {
   prompt: string;
+  systemPrompt: string;
 };
 
 type SummarizeOneItemResult = {
@@ -154,6 +155,7 @@ async function callSummaryModel(args: CallSummaryModelArgs): Promise<string> {
       model: modelName,
       max_tokens: 350,
       temperature: 0,
+      system: args.systemPrompt,
       messages: [{ role: "user", content: args.prompt }]
     })
   });
@@ -212,7 +214,10 @@ async function summarizeOneItem(
         maxWords
       });
 
-      const modelText = await callSummaryModel({ prompt });
+      const modelText = await callSummaryModel({
+        systemPrompt: SUMMARY_SYSTEM_PROMPT,
+        prompt
+      });
       const parsedJson = parseJsonFromModelText(modelText);
       const parsed = summaryWriterOutputSchema.safeParse(parsedJson);
 
@@ -266,7 +271,8 @@ export async function generateNewsletterSummaries(input: GenerateSummariesInput)
     url: item.url,
     title: item.title.trim() || "Untitled",
     highlights: item.highlights.map((highlight) => highlight.trim()).filter(Boolean),
-    topic: item.topic?.trim() || undefined
+    topic: item.topic?.trim() || undefined,
+    isSerendipitous: item.isSerendipitous === true
   }));
 
   const results: NewsletterSummaryItem[] = [];

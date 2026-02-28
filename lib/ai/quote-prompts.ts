@@ -12,7 +12,7 @@ type BuildQuoteSelectionUserPromptArgs = {
 };
 
 export const QUOTE_SELECTION_SYSTEM_PROMPT =
-  "You are a personalized quote curator for a daily newsletter. You match one quote to the reader profile with high relevance and specificity.";
+  "You are a seasoned literary editor curating the closing quote for a personalized daily newsletter. You match one quote to the reader profile with high relevance, specificity, and tonal fit while avoiding generic inspiration.";
 
 export function buildQuoteSelectionUserPrompt(args: BuildQuoteSelectionUserPromptArgs): string {
   const candidates = args.candidates

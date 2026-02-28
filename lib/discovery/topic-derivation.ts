@@ -41,14 +41,6 @@ function parseBulletLines(section: string): string[] {
   return [...seen.values()];
 }
 
-function softSuppressed(topic: string, suppressedLines: string[]): boolean {
-  const normalizedTopic = topic.toLowerCase();
-  return suppressedLines.some((entry) => {
-    const normalizedEntry = entry.toLowerCase();
-    return normalizedEntry.includes(normalizedTopic) || normalizedTopic.includes(normalizedEntry);
-  });
-}
-
 function deriveSeedTopics(personalityLines: string[], feedbackLines: string[]): string[] {
   const seedLines = [...feedbackLines, ...personalityLines];
   const seen = new Map<string, string>();
@@ -70,36 +62,31 @@ function deriveSeedTopics(personalityLines: string[], feedbackLines: string[]): 
 
 export function extractTopicPoolsFromMemory(interestMemoryText: string): {
   activeTopics: string[];
-  suppressedTopics: string[];
   serendipitySeedTopics: string[];
 } {
   const sections = parseSections(interestMemoryText);
   if (!sections) {
     return {
       activeTopics: [],
-      suppressedTopics: [],
       serendipitySeedTopics: []
     };
   }
 
   const activeLaneTopics = parseActiveInterestLanes(sections.ACTIVE_INTERESTS);
   const activeTopics = [...activeLaneTopics.core, ...activeLaneTopics.side];
-  const suppressedTopics = parseBulletLines(sections.SUPPRESSED_INTERESTS);
   const personalityLines = parseBulletLines(sections.PERSONALITY);
   const feedbackLines = parseBulletLines(sections.RECENT_FEEDBACK);
   const seedTopics = deriveSeedTopics(personalityLines, feedbackLines);
 
   const activeKeys = new Set(activeTopics.map((topic) => topic.toLowerCase()));
-  const suppressedKeys = new Set(suppressedTopics.map((topic) => topic.toLowerCase()));
 
   const serendipitySeedTopics = seedTopics.filter((topic) => {
     const key = topic.toLowerCase();
-    return !activeKeys.has(key) && !suppressedKeys.has(key);
+    return !activeKeys.has(key);
   });
 
   return {
     activeTopics,
-    suppressedTopics,
     serendipitySeedTopics
   };
 }
@@ -124,8 +111,6 @@ export function deriveTopicsFromMemory(args: {
     return [];
   }
 
-  const suppressedLines = parseBulletLines(sections.SUPPRESSED_INTERESTS);
-
   const sideTopicKeys = new Set(activeLanes.side.map((topic) => topic.toLowerCase()));
 
   const topics = topicBase.map((topic, originalIndex) => ({
@@ -133,17 +118,13 @@ export function deriveTopicsFromMemory(args: {
     query: topic,
     topicRank: originalIndex,
     laneRank: sideTopicKeys.has(topic.toLowerCase()) ? 1 : 0,
-    softSuppressed: softSuppressed(topic, suppressedLines)
+    softSuppressed: false
   }));
 
   const maxTopics = args.maxTopics ?? DEFAULT_MAX_TOPICS;
 
   return topics
     .sort((a, b) => {
-      if (a.softSuppressed !== b.softSuppressed) {
-        return a.softSuppressed ? 1 : -1;
-      }
-
       if (a.laneRank !== b.laneRank) {
         return a.laneRank - b.laneRank;
       }

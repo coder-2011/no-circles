@@ -3,7 +3,7 @@ import { buildQuoteSelectionUserPrompt, QUOTE_SELECTION_SYSTEM_PROMPT } from "@/
 
 describe("quote prompts", () => {
   it("uses a role-only system prompt and keeps task contract in user prompt", () => {
-    expect(QUOTE_SELECTION_SYSTEM_PROMPT).toContain("personalized quote curator");
+    expect(QUOTE_SELECTION_SYSTEM_PROMPT).toContain("seasoned literary editor");
     expect(QUOTE_SELECTION_SYSTEM_PROMPT).not.toContain("Output strict JSON only");
 
     const prompt = buildQuoteSelectionUserPrompt({

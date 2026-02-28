@@ -37,7 +37,7 @@ function extractTextContent(value: unknown): string {
 
 function buildSystemPrompt(): string {
   return [
-    "You generate exactly one web-search query for a discovery pipeline.",
+    "You are a senior research librarian generating exactly one web-search query for a discovery pipeline.",
     "Return a single-line query string only.",
     "Be very creative, niche, and surprising in your angle selection.",
     "You have broad leeway to choose framing, terms, and direction.",

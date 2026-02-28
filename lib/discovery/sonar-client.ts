@@ -3,6 +3,7 @@ import { filterBlockedSearchResults } from "@/lib/discovery/search-blocklists";
 
 const PERPLEXITY_CHAT_COMPLETIONS_URL = "https://api.perplexity.ai/chat/completions";
 const DEFAULT_SONAR_MODEL = "sonar";
+const DEFAULT_SONAR_TEMPERATURE = 1.65;
 const MAX_SONAR_RESULTS = 10;
 const DEFAULT_SEARCH_CONTEXT_SIZE = "medium";
 
@@ -144,11 +145,12 @@ function buildSystemPrompt(numResults: number): string {
     "Role: produce parseable candidate lines for one ACTIVE_INTEREST_TOPIC query.",
     "Use only retrieved evidence; do not invent or guess links, titles, sources, incidents, dates, or entities.",
     "If evidence quality is weak or uncertain, return fewer lines (including zero).",
-    "Precision over recall: avoid filler candidates.",
+    "Favor exploratory and idea-expanding angles over overly narrow technical incident details unless the query explicitly asks for deep technical specifics.",
+    "Prioritize substantive, thought-provoking reads (analysis, synthesis, or well-grounded essays) over commodity explainers.",
     "Hard rejects:",
     "- logistics/admin pages (events, schedules, registration, jobs, funding, CFP, generic about/press pages)",
     "- synthetic/sensational pages or pages without concrete substance",
-    "- generic trend/opinion pages with no concrete mechanism, result, incident, metric, or decision",
+    "- shallow trend/opinion pages with no clear argument, evidence, or insight",
     "Output contract:",
     `- Return at most ${numResults} lines.`,
     "- One candidate per line only.",
@@ -192,7 +194,7 @@ export const searchSonar: ExaSearchFn = async ({ query, numResults }) => {
     },
     body: JSON.stringify({
       model: modelName,
-      temperature: 0.3,
+      temperature: DEFAULT_SONAR_TEMPERATURE,
       messages: [
         {
           role: "system",

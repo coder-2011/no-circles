@@ -92,6 +92,49 @@ describe("generateNewsletterSummaries", () => {
     );
   });
 
+  it("preserves isSerendipitous flag on output items", async () => {
+    process.env.ANTHROPIC_API_KEY = "test-key";
+    process.env.ANTHROPIC_SUMMARY_MODEL = "claude-haiku-4-5";
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: true,
+        json: async () => ({
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({
+                title: "Refined Serendipity",
+                summary:
+                  "The piece maps a niche adjacent field to concrete engineering constraints, names two practical mechanisms, and explains tradeoffs observed during real deployments."
+              })
+            }
+          ]
+        })
+      }))
+    );
+
+    const result = await generateNewsletterSummaries({
+      items: [
+        {
+          ...sourceItems[0],
+          isSerendipitous: true
+        }
+      ],
+      minWords: 20,
+      maxWords: 40
+    });
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual({
+      title: "Refined Serendipity",
+      url: "https://example.com/a",
+      summary: result[0].summary,
+      isSerendipitous: true
+    });
+  });
+
   it("retries once for transport/parse failures and skips item when output stays invalid", async () => {
     process.env.ANTHROPIC_API_KEY = "test-key";
     process.env.ANTHROPIC_SUMMARY_MODEL = "claude-haiku-4-5";

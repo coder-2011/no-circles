@@ -50,7 +50,7 @@ describe("selectBestTopicLink", () => {
       ok: true,
       status: 200,
       json: async () => ({
-        content: [{ type: "text", text: "{\"selected_index\":2,\"rationale\":\"Most concrete first-hand implementation evidence.\"}" }]
+        content: [{ type: "text", text: "{\"selected_index\":2}" }]
       })
     });
 
@@ -72,11 +72,13 @@ describe("selectBestTopicLink", () => {
       model: string;
       max_tokens: number;
       temperature: number;
+      system: string;
       messages: Array<{ role: string; content: string }>;
     };
     expect(requestBody.model).toBe("claude-3-5-haiku-latest");
     expect(requestBody.max_tokens).toBe(120);
     expect(requestBody.temperature).toBe(0);
+    expect(requestBody.system).toContain("senior research curator");
     expect(requestBody.messages[0]?.content).toContain("Task: choose one best candidate link for the topic.");
     expect(requestBody.messages[0]?.content).toContain(
       "Primary objective: select the candidate with the highest evidence density for the exact topic."
@@ -113,7 +115,7 @@ describe("selectBestTopicLink", () => {
       ok: true,
       status: 200,
       json: async () => ({
-        content: [{ type: "text", text: "{\"selected_index\":\"NULL\",\"rationale\":\"All candidates are generic SEO-style content.\"}" }]
+        content: [{ type: "text", text: "{\"selected_index\":\"NULL\"}" }]
       })
     });
 

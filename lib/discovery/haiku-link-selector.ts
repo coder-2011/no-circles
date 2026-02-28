@@ -72,6 +72,15 @@ function parseSelectedIndex(text: string, max: number): number | null {
   return parsed - 1;
 }
 
+function buildSelectorSystemPrompt(): string {
+  return [
+    "You are a senior research curator selecting one article for a personalized newsletter discovery pipeline.",
+    "Your job is to choose the single candidate with the strongest topic fit and evidence density.",
+    "Be skeptical of hype, thin abstraction, and title-only appeal.",
+    "Return only the requested JSON decision."
+  ].join("\n");
+}
+
 function buildSelectorPrompt(args: {
   topic: string;
   interestMemoryText: string;
@@ -115,7 +124,7 @@ function buildSelectorPrompt(args: {
     "- when uncertain between candidates, choose the one with lower hype language and higher specificity",
     "Tie-break: if two are close, prefer the one that adds a different angle from already selected items.",
     "Output strict JSON only with this shape:",
-    '{"selected_index": <1-based integer or "NULL">, "rationale": "<max 30 words>"}',
+    '{"selected_index": <1-based integer or "NULL">}',
     "",
     `Topic: ${args.topic}`,
     "User memory:",
@@ -164,6 +173,7 @@ export async function selectBestTopicLink(args: {
       model: modelName,
       max_tokens: 120,
       temperature: 0,
+      system: buildSelectorSystemPrompt(),
       messages: [
         {
           role: "user",

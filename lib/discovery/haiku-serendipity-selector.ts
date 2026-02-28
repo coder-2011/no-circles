@@ -40,42 +40,63 @@ function normalizeTopic(topic: string): string {
   return topic.replace(/\s+/g, " ").trim();
 }
 
+function buildMemoryContext(interestMemoryText: string): string {
+  const personalityMatch = interestMemoryText.match(/PERSONALITY:\s*([\s\S]*?)(?:\n\s*ACTIVE_INTERESTS:|\n\s*RECENT_FEEDBACK:|$)/i);
+  const feedbackMatch = interestMemoryText.match(/RECENT_FEEDBACK:\s*([\s\S]*?)$/i);
+
+  const personality = personalityMatch?.[1]?.trim() || "-";
+  const recentFeedback = feedbackMatch?.[1]?.trim() || "-";
+
+  return [
+    "PERSONALITY:",
+    personality,
+    "",
+    "RECENT_FEEDBACK:",
+    recentFeedback
+  ].join("\n");
+}
+
+function buildSystemPrompt(): string {
+  return [
+    "You are a senior cross-domain editor designing the serendipity lane for a personalized newsletter.",
+    "Your job is to propose adjacent topics that broaden the reader's lens without drifting into random or low-value territory.",
+    "Favor substantive, teachable adjacent areas over vague trend buckets.",
+    "Return only the requested JSON."
+  ].join("\n");
+}
+
 function buildPrompt(args: {
   activeTopics: string[];
-  suppressedTopics: string[];
   interestMemoryText: string;
   maxTopics: number;
 }): string {
   return [
     "Task: choose adjacent serendipity topics to complement the active-interest set.",
+    "Use the explicit Active interests list as the primary source for what the reader actively wants coverage on today.",
+    "Use PERSONALITY to infer learning style, abstraction level, and what kinds of adjacent topics will feel naturally interesting rather than random.",
+    "Use RECENT_FEEDBACK to expand toward recently reinforced directions and avoid adjacent areas that would repeat a downweighted theme.",
+    "Do not infer active topics from the memory context block below; the active-topic authority is the explicit Active interests list.",
     "Pick topics that are adjacent to active interests but not duplicates of active interests.",
-    "Prioritize breadth: the selected topics should add distinct lenses, not near-duplicates of each other.",
-    "Choose only high-value topics likely to yield concrete, substantive sources (not generic trend buckets).",
-    "Reject vague meta-topics and reject topics that are too far from the active-interest context.",
+    "Keep the topics at the same level of specificity as the active interests.",
+    "Choose high-value topics likely to yield concrete sources (not generic trend buckets).",
     "Interpret RECENT_FEEDBACK flags in User memory:",
     "- '+ [more_like_this] ...' means include adjacent expansion themes.",
     "- '- [less_like_this] ...' means avoid adjacent themes that reinforce that item/topic.",
     "Return JSON only with exactly this shape:",
-    '{"topics":["topic 1","topic 2"],"rationale":"<max 40 words>"}',
+    '{"topics":["topic 1","topic 2"]}',
     "",
     `Max topics to return: ${args.maxTopics}`,
     "Active interests:",
     ...args.activeTopics.map((topic, index) => `${index + 1}. ${topic}`),
     "",
-    "Suppressed interests (never propose these):",
-    ...(args.suppressedTopics.length > 0
-      ? args.suppressedTopics.map((topic, index) => `${index + 1}. ${topic}`)
-      : ["(none)"]),
-    "",
-    "User memory (context and constraints):",
-    args.interestMemoryText.slice(0, 1200)
+    "Memory context (non-active sections only):",
+    buildMemoryContext(args.interestMemoryText).slice(0, 1200)
   ].join("\n");
 }
 
 function parseSelectedTopics(args: {
   text: string;
   activeTopics: string[];
-  suppressedTopics: string[];
   maxTopics: number;
 }): string[] {
   const parsed = parseJsonFromModelText(args.text);
@@ -85,7 +106,6 @@ function parseSelectedTopics(args: {
   if (!Array.isArray(topics)) return [];
 
   const activeSet = new Set(args.activeTopics.map((topic) => topic.toLowerCase()));
-  const suppressedSet = new Set(args.suppressedTopics.map((topic) => topic.toLowerCase()));
   const selected: string[] = [];
   const seen = new Set<string>();
   for (const raw of topics) {
@@ -94,7 +114,7 @@ function parseSelectedTopics(args: {
     if (!normalized) continue;
     const key = normalized.toLowerCase();
     if (key.length < 3) continue;
-    if (activeSet.has(key) || suppressedSet.has(key)) continue;
+    if (activeSet.has(key)) continue;
     if (seen.has(key)) continue;
     seen.add(key);
     selected.push(normalized);
@@ -105,7 +125,6 @@ function parseSelectedTopics(args: {
 
 export async function selectSerendipityTopics(args: {
   activeTopics: string[];
-  suppressedTopics: string[];
   interestMemoryText: string;
   maxTopics?: number;
 }): Promise<string[]> {
@@ -136,12 +155,12 @@ export async function selectSerendipityTopics(args: {
         model: modelName,
         max_tokens: 140,
         temperature: 0.85,
+        system: buildSystemPrompt(),
         messages: [
           {
             role: "user",
               content: buildPrompt({
                 activeTopics: args.activeTopics,
-                suppressedTopics: args.suppressedTopics,
                 interestMemoryText: args.interestMemoryText,
                 maxTopics
               })
@@ -159,7 +178,6 @@ export async function selectSerendipityTopics(args: {
     const selected = parseSelectedTopics({
       text,
       activeTopics: args.activeTopics,
-      suppressedTopics: args.suppressedTopics,
       maxTopics
     });
 

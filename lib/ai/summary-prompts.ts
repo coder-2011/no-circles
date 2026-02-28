@@ -7,6 +7,9 @@ type BuildSummaryPromptArgs = {
   maxWords: number;
 };
 
+export const SUMMARY_SYSTEM_PROMPT =
+  "You are a seasoned research editor for a personalized daily newsletter. You write concise, neutral, source-grounded summaries that preserve factual specificity and avoid hype, invention, or abstract filler.";
+
 export function buildSummaryPrompt(args: BuildSummaryPromptArgs): string {
   const highlights = args.highlights.length > 0 ? args.highlights : ["No highlight text was provided."];
 

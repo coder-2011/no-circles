@@ -143,25 +143,14 @@ async function buildDiscoveryTopics(args: {
   serendipityTargetCount: number;
 }> {
   const pools = extractTopicPoolsFromMemory(args.interestMemoryText);
-  const isSuppressedTopic = (topic: string): boolean => {
-    const normalizedTopic = topic.toLowerCase();
-    return pools.suppressedTopics.some((suppressed) => {
-      const normalizedSuppressed = suppressed.toLowerCase();
-      return (
-        normalizedSuppressed === normalizedTopic ||
-        normalizedSuppressed.includes(normalizedTopic) ||
-        normalizedTopic.includes(normalizedSuppressed)
-      );
-    });
-  };
-  const activeTopicsSansSuppressed = pools.activeTopics.filter((topic) => !isSuppressedTopic(topic));
+  const activeTopics = pools.activeTopics;
 
   // Preserve legacy fallback when ACTIVE_INTERESTS is empty.
-  if (activeTopicsSansSuppressed.length === 0) {
+  if (activeTopics.length === 0) {
     const fallbackTopics = deriveTopicsFromMemory({
       interestMemoryText: args.interestMemoryText,
       maxTopics: args.maxTopics
-    }).filter((topic) => !isSuppressedTopic(topic.topic));
+    });
     return {
       topics: fallbackTopics,
       activeTopics: fallbackTopics.map((topic) => topic.topic),
@@ -171,15 +160,14 @@ async function buildDiscoveryTopics(args: {
     };
   }
 
-  const desiredSerendipityTargetCount = resolveSerendipityTargetCount(activeTopicsSansSuppressed.length, args.targetCount);
-  const activeTopicLimit = Math.max(1, Math.min(activeTopicsSansSuppressed.length, args.maxTopics));
-  const activeTopics = selectActiveTopicsRandomly(activeTopicsSansSuppressed, activeTopicLimit);
+  const desiredSerendipityTargetCount = resolveSerendipityTargetCount(activeTopics.length, args.targetCount);
+  const activeTopicLimit = Math.max(1, Math.min(activeTopics.length, args.maxTopics));
+  const selectedActiveTopics = selectActiveTopicsRandomly(activeTopics, activeTopicLimit);
   const serendipityTargetCount = desiredSerendipityTargetCount;
-  const serendipityLimit = Math.max(0, args.maxTopics - activeTopics.length);
+  const serendipityLimit = Math.max(0, args.maxTopics - selectedActiveTopics.length);
   const serendipityTopics = serendipityLimit > 0
     ? await selectSerendipityTopics({
-      activeTopics,
-      suppressedTopics: pools.suppressedTopics,
+      activeTopics: selectedActiveTopics,
       interestMemoryText: args.interestMemoryText,
       maxTopics: Math.min(serendipityLimit, serendipityTargetCount)
     })
@@ -188,7 +176,7 @@ async function buildDiscoveryTopics(args: {
   const effectiveCoreTargetCount = Math.max(1, args.targetCount - effectiveSerendipityTargetCount);
 
   const topics = [
-    ...activeTopics.map((topic, index) => ({
+    ...selectedActiveTopics.map((topic, index) => ({
       topic,
       query: topic,
       topicRank: index,
@@ -204,7 +192,7 @@ async function buildDiscoveryTopics(args: {
 
   return {
     topics,
-    activeTopics,
+    activeTopics: selectedActiveTopics,
     serendipityTopics,
     coreTargetCount: effectiveCoreTargetCount,
     serendipityTargetCount: effectiveSerendipityTargetCount
