@@ -398,10 +398,10 @@ export default function HomePage() {
           <div className={`${displayFont.className} text-center text-[45px] font-semibold leading-none text-[#2B3125] md:text-[57px]`}>
             The No-Circles Project
           </div>
-          <h1 className={`${displayFont.className} mt-5 text-[36px] font-medium leading-tight text-[#2B3125] md:text-[48px]`}>
+          <h1 className={`${displayFont.className} mt-8 text-[36px] font-medium leading-tight text-[#2B3125] md:mt-10 md:text-[48px]`}>
             Find what search would never show you.
           </h1>
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-16 flex flex-wrap gap-3 md:mt-20">
             <button
               ref={heroButtonRef}
               className={`${interfaceFont.className} rounded-lg border border-[#3D6F49] bg-[#3D6F49] px-5 py-3 text-base font-medium text-[#F3ECD8] transition hover:bg-[#315E3E] disabled:opacity-60`}
@@ -425,7 +425,7 @@ export default function HomePage() {
               </button>
             ) : null}
           </div>
-          <p className="mt-4 text-lg font-medium text-[#526149]">
+          <p className="mt-6 text-lg font-medium text-[#526149]">
             {authState === "signed_in" && email ? `Signed in as ${email}` : "Sign in to save onboarding securely."}
           </p>
           {authError ? <p className="mt-3 text-base text-rose-700">{authError}</p> : null}
