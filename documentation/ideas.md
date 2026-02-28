@@ -350,6 +350,23 @@ Result:
 - ensure references are accurate and contextually appropriate.
 - allow users to reset or trim memory history if they want less longitudinal personalization.
 
+## Streak System (Consistency Without Cheapening the Product)
+- Consider a streak system, but tie it to meaningful intellectual engagement rather than shallow opens.
+- Product intent:
+- reward continuity and habit formation without turning the product into a low-signal gamification loop.
+- Better versions:
+- reading streak: user opens/reads briefs consistently across days
+- interaction streak: user replies, clicks feedback, or saves items across consecutive issues
+- learning streak: user follows through on a topic thread or rabbit hole over multiple days
+- Why it could work:
+- gives users a visible sense of momentum
+- reinforces the identity of "I am someone who keeps up with my curiosity"
+- can increase retention when paired with progress-style messaging instead of empty badges
+- Guardrails:
+- do not reward meaningless opens alone if that trains shallow behavior
+- avoid Duolingo-style pressure that makes the product feel juvenile or guilt-driven
+- streak recovery should be soft (for example grace day / resume language) rather than punitive reset framing
+
 ## Capture to Personal Library
 - Give users a way to capture items directly from the newsletter.
 - Example actions:
