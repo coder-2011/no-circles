@@ -12,7 +12,7 @@ Runs the daily admin monitoring pass without touching the normal user newsletter
 1. validates cron authorization
 2. collects provider snapshots for Anthropic, Exa, Deepgram, Resend, and Perplexity
 3. emits `error` logs if a provider check itself fails
-4. sends threshold alerts for provider snapshots in `warn` or `error` state
+4. relies on the shared logger to forward provider-check failures as immediate error emails when they are logged
 5. sends one daily admin digest email
 6. returns the provider status summary as JSON
 

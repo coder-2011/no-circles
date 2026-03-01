@@ -227,7 +227,7 @@ function buildAnthropicSnapshot(args: {
 }
 
 async function fetchAnthropicSnapshot(window: ProviderCheckWindow, thresholds: ThresholdConfig): Promise<ProviderSnapshot> {
-  const adminApiKey = process.env.ANTHROPIC_ADMIN_API_KEY?.trim();
+  const adminApiKey = process.env.ANTHROPIC_ADMIN_API_KEY?.trim() || process.env.ANTHROPIC_API_KEY?.trim();
   if (!adminApiKey) {
     return {
       provider: "anthropic",
@@ -279,22 +279,95 @@ async function fetchAnthropicSnapshot(window: ProviderCheckWindow, thresholds: T
   return buildAnthropicSnapshot({ dailyCostUsd, dailyTokens, details, thresholds });
 }
 
-async function fetchExaSnapshot(window: ProviderCheckWindow, thresholds: ThresholdConfig): Promise<ProviderSnapshot> {
-  const serviceKey = process.env.EXA_SERVICE_API_KEY?.trim();
-  const apiKeyId = process.env.EXA_USAGE_API_KEY_ID?.trim();
+async function resolveExaUsageApiKeyId(serviceKey: string): Promise<{ id: string | null; details: string[] }> {
+  const configuredId = process.env.EXA_USAGE_API_KEY_ID?.trim();
+  if (configuredId) {
+    return { id: configuredId, details: [`Using configured Exa usage key id ${configuredId}.`] };
+  }
 
-  if (!serviceKey || !apiKeyId) {
+  const configuredName = process.env.EXA_USAGE_API_KEY_NAME?.trim();
+  const { json } = await fetchJson({
+    url: `${EXA_ADMIN_API_BASE}/api-keys`,
+    headers: {
+      "content-type": "application/json",
+      "x-api-key": serviceKey
+    }
+  });
+
+  const keys = Array.isArray((json as { apiKeys?: unknown }).apiKeys)
+    ? ((json as { apiKeys: unknown[] }).apiKeys as Array<Record<string, unknown>>)
+    : Array.isArray((json as { data?: unknown }).data)
+      ? ((json as { data: unknown[] }).data as Array<Record<string, unknown>>)
+    : Array.isArray(json)
+      ? (json as Array<Record<string, unknown>>)
+      : [];
+
+  const normalized = keys
+    .map((item) => {
+      const id = typeof item.id === "string" ? item.id.trim() : null;
+      const name = typeof item.name === "string" ? item.name.trim() : null;
+      return { id, name };
+    })
+    .filter((item): item is { id: string; name: string | null } => Boolean(item.id));
+
+  if (configuredName) {
+    const exactMatch = normalized.find((item) => item.name === configuredName);
+    if (exactMatch) {
+      return {
+        id: exactMatch.id,
+        details: [`Resolved Exa usage key id from EXA_USAGE_API_KEY_NAME=${configuredName}.`]
+      };
+    }
+
     return {
-      provider: "exa",
-      level: "unavailable",
-      summary: "Exa usage API is not fully configured.",
-      usageSummary: null,
-      costSummary: null,
-      details: ["Set EXA_SERVICE_API_KEY and EXA_USAGE_API_KEY_ID to enable official Exa usage monitoring."]
+      id: null,
+      details: [`No Exa API key matched EXA_USAGE_API_KEY_NAME=${configuredName}.`]
     };
   }
 
-  const usageUrl = `${EXA_ADMIN_API_BASE}/api-keys/${encodeURIComponent(apiKeyId)}/usage`;
+  if (normalized.length === 1) {
+    return {
+      id: normalized[0].id,
+      details: ["Resolved Exa usage key id automatically because exactly one Exa API key was returned."]
+    };
+  }
+
+  return {
+    id: null,
+    details:
+      normalized.length === 0
+        ? ["Exa API key listing returned no key ids."]
+        : ["Multiple Exa API keys exist. Set EXA_USAGE_API_KEY_ID or EXA_USAGE_API_KEY_NAME to choose one."]
+  };
+}
+
+async function fetchExaSnapshot(window: ProviderCheckWindow, thresholds: ThresholdConfig): Promise<ProviderSnapshot> {
+  const serviceKey = process.env.EXA_SERVICE_API_KEY?.trim() || process.env.EXA_API_KEY?.trim();
+
+  if (!serviceKey) {
+    return {
+      provider: "exa",
+      level: "unavailable",
+      summary: "Exa usage API is not configured.",
+      usageSummary: null,
+      costSummary: null,
+      details: ["Set EXA_SERVICE_API_KEY or EXA_API_KEY to enable Exa usage monitoring."]
+    };
+  }
+
+  const resolvedKey = await resolveExaUsageApiKeyId(serviceKey);
+  if (!resolvedKey.id) {
+    return {
+      provider: "exa",
+      level: "unavailable",
+      summary: "Exa usage key id could not be resolved automatically.",
+      usageSummary: null,
+      costSummary: null,
+      details: resolvedKey.details
+    };
+  }
+
+  const usageUrl = `${EXA_ADMIN_API_BASE}/api-keys/${encodeURIComponent(resolvedKey.id)}/usage`;
   const { json } = await fetchJson({
     url: usageUrl,
     headers: {
@@ -328,6 +401,7 @@ async function fetchExaSnapshot(window: ProviderCheckWindow, thresholds: Thresho
     costSummary: totalCostUsd === null ? "cost unavailable" : `${formatUsd(totalCostUsd)} total`,
     details: [
       `Window reference date: ${toIsoDate(window.now)}`,
+      ...resolvedKey.details,
       totalRequests !== null ? `Usage units counted: ${formatCount(totalRequests)}` : "Usage-unit total unavailable.",
       totalCostUsd !== null ? `Cost total: ${formatUsd(totalCostUsd)}` : "Cost total unavailable."
     ]

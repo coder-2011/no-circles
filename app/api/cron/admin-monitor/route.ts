@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { sendDailyDigest, sendThresholdAlert } from "@/lib/admin/alerts";
+import { sendDailyDigest } from "@/lib/admin/alerts";
 import { buildDailyDigestContent, collectProviderSnapshots } from "@/lib/admin/provider-monitoring";
 import { logError, logInfo, logWarn } from "@/lib/observability/log";
 
@@ -41,12 +41,6 @@ export async function POST(request: Request) {
         });
       }
 
-      if (snapshot.level === "warn" || snapshot.level === "error") {
-        await sendThresholdAlert({
-          provider: snapshot.provider,
-          snapshot
-        });
-      }
     }
 
     const digest = buildDailyDigestContent({
