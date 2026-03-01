@@ -61,6 +61,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${editorialFont.variable} ${uiFont.variable}`} suppressHydrationWarning>
+        <SiteCornerShards />
         <Link
           aria-label="Go to home"
           className="fixed left-3 top-3 z-50 inline-block leading-none"
@@ -76,9 +77,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             width={64}
           />
         </Link>
-        <SiteCornerShards />
-        {children}
-        <Analytics />
+        <div className="relative z-10">
+          {children}
+          <Analytics />
+        </div>
       </body>
     </html>
   );

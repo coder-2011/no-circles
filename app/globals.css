@@ -12,6 +12,7 @@ body {
   background: #f3ecd8;
   color: #2d3426;
   font-family: var(--font-ui), sans-serif;
+  position: relative;
 }
 
 h1,
@@ -48,7 +49,7 @@ body.site-cursor-active * {
   inset: 0;
   pointer-events: none;
   overflow: hidden;
-  z-index: 18;
+  z-index: 0;
   opacity: 1;
 }
 
@@ -56,21 +57,16 @@ body.site-cursor-active * {
   width: 100%;
   height: 100%;
   overflow: visible;
-  transform: scale(1.04);
+  transform: scale(1.06);
   transform-origin: center center;
 }
 
 .site-corner-shards__group {
   stroke: rgba(45, 52, 38, 0.15);
-  stroke-width: 1;
+  stroke-width: 0.92;
   stroke-linecap: square;
   stroke-linejoin: miter;
   fill: none;
-}
-
-.site-corner-shards__group--secondary {
-  stroke: rgba(45, 52, 38, 0.1);
-  stroke-width: 0.85;
 }
 
 .site-cursor {
