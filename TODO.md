@@ -15,6 +15,8 @@ Rules:
 
 ## Product
 - [x] Build the core personalized newsletter pipeline from onboarding through delivery and reply-driven memory updates.
+- [x] Write a canonical pricing and unit-economics spec for the live pipeline, including per-user monthly cost drivers and reflection-model upgrade costs.
+- [x] Draft a global top-right sharp-corner decorative chrome motif so the visual direction can be reviewed against the logo/system style.
 - [ ] Add a newsletter preview before onboarding save so users can inspect a sample issue before committing preferences.
 - [ ] Add one-click feedback chips beyond the current controls to speed up preference updates from the email surface.
 - [ ] Add source-quality preference controls so users can steer toward research-heavy or blog/newsletter-heavy mixes.
@@ -22,6 +24,7 @@ Rules:
 - [ ] Add digest intensity controls so users can choose lighter or denser daily issues.
 - [ ] Improve the contextual curiosity discovery loop so adjacent-topic recommendations feel less generic and more individually tailored.
 - [ ] Add a delivery-status panel that explains `last_sent_at`, `next_scheduled_send`, and timezone/send-time interpretation clearly.
+- [ ] Update the user-facing onboarding pricing copy to match the canonical pricing spec once the desired search/reflection configuration is chosen.
 
 ## Ops
 - [x] Replace the stale branch-by-branch roadmap with a single markdown task system in root `TODO.md`.

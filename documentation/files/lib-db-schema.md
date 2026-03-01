@@ -48,6 +48,15 @@ Declares Drizzle table definitions and DB constraints for V1 minimal persistence
 - `issue_variant` text nullable (`daily` | `welcome` for sent rows)
 - `created_at` timestamptz not null default `now()`
 
+### `admin_alert_state`
+- `alert_key` text PK
+- `kind` text not null (`error` | `digest` | `threshold`)
+- `last_sent_at` timestamptz not null
+- `send_count` integer not null default `1`
+- `last_payload_hash` text nullable
+- `created_at` timestamptz not null default `now()`
+- `updated_at` timestamptz not null default `now()`
+
 ## Indexes and Constraints
 - check constraint: `users_sent_url_bloom_bits_length_check` bounds `users.sent_url_bloom_bits` payload length
 - index: `users_send_time_local_minute_idx` supports due-bucket filtering in cron selector SQL
@@ -58,3 +67,5 @@ Declares Drizzle table definitions and DB constraints for V1 minimal persistence
 - index: `outbound_send_idempotency(user_id, local_issue_date)` for per-user/per-day lookups
 - index: `outbound_send_idempotency(status)` for operational visibility
 - index: `user_email_history(user_id, kind, created_at)` for recent sent/reply evidence retrieval
+- index: `admin_alert_state(kind)` for alert-kind filtering and cleanup
+- index: `admin_alert_state(last_sent_at)` for cooldown and recency checks

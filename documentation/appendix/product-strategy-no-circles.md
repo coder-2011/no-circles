@@ -21,10 +21,8 @@
 ## Payment and Trust Model
 - Transparent pricing direction: `total API costs + $1`.
 - The extra `$1` is explicit developer/project support.
-- Current API usage scenarios (monthly, per user):
-- Lean usage: `~$2.54/user/month`
-- Base usage: `~$3.89/user/month`
-- Heavy usage: `~$5.57/user/month`
+- Canonical monthly unit economics now live in `documentation/appendix/pricing-and-unit-economics.md`.
+- Do not hard-code monthly estimates in this strategy doc; derive user-facing numbers from the canonical pricing doc.
 - Keep the pricing math visible and understandable at all times.
 - Include a simple pie-chart breakdown in billing updates/emails.
 - If API costs change, user price may change; the profit target remains constant at `$1`.

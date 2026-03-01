@@ -13,6 +13,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 
 - `vision.md`: product goals, scope boundaries, and editorial policy
 - `architecture.md`: stack decisions, data model, system flows, and API contracts
+- `appendix/pricing-and-unit-economics.md`: canonical per-user monthly cost model, pricing assumptions, and optimization strategy
 - `subsystems/db-and-onboarding.md`: current DB + onboarding implementation status
 - `subsystems/inbound-reply-memory-update.md`: PR3 memory processing + inbound webhook idempotency contract
 - `subsystems/scheduler-and-cron.md`: Supabase scheduler ownership and cron trigger contract
@@ -24,12 +25,13 @@ This folder is the organized, source-of-truth documentation for the personalized
 
 1. `vision.md`
 2. `architecture.md`
-3. `subsystems/db-and-onboarding.md`
-4. `subsystems/inbound-reply-memory-update.md`
-5. `files/app-api-onboarding-route.md`
-6. `files/app-api-webhooks-resend-inbound-route.md`
-7. `files/lib-db-schema.md`
-8. `appendix/glossary.md`
+3. `appendix/pricing-and-unit-economics.md`
+4. `subsystems/db-and-onboarding.md`
+5. `subsystems/inbound-reply-memory-update.md`
+6. `files/app-api-onboarding-route.md`
+7. `files/app-api-webhooks-resend-inbound-route.md`
+8. `files/lib-db-schema.md`
+9. `appendix/glossary.md`
 
 ## Current Subsystem Docs
 
@@ -40,15 +42,19 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `subsystems/summary-generation.md`
 - `subsystems/send-and-bloom-delivery.md`
 - `subsystems/personalized-quote-selection.md`
+- `subsystems/ops-hardening-v1.md`
 - `subsystems/caring-reflection-memory.md`
 
 ## Current File Docs
 
 - `files/app-api-cron-generate-next-route.md`
+- `files/app-api-cron-admin-monitor-route.md`
 - `files/app-api-sample-brief-route.md`
 - `files/app-api-deepgram-token-route.md`
 - `files/app-art-page.md`
 - `files/app-home-page-css.md`
+- `files/app-home-page-nav.md`
+- `files/app-how-it-works-page.md`
 - `files/app-api-onboarding-route.md`
 - `files/app-auth-callback-route.md`
 - `files/proxy.md`
@@ -64,6 +70,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/app-page.md`
 - `files/app-home-page-content.md`
 - `files/components-json.md`
+- `files/components-site-corner-shards.md`
 - `files/components-site-cursor.md`
 - `files/components-dwitter-canvas.md`
 - `files/lib-db-client.md`
@@ -75,6 +82,8 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/lib-utils.md`
 - `files/lib-sample-brief-parse-newsletter-text.md`
 - `files/lib-observability-log.md`
+- `files/lib-admin-alerts.md`
+- `files/lib-admin-provider-monitoring.md`
 - `files/next-config.md`
 - `files/drizzle-config.md`
 - `files/vitest-hyper-config.md`
@@ -92,6 +101,8 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/db-migration-0016-firm-scope.md`
 - `files/db-migration-0017-clean-variant.md`
 - `files/db-migration-0018-brisk-recall.md`
+- `files/db-migration-0019-solid-initplan.md`
+- `files/db-migration-0020-alert-signal.md`
 - `files/db-migration-meta-0001-snapshot.md`
 - `files/db-migration-meta-0002-snapshot.md`
 - `files/db-migration-meta-journal.md`

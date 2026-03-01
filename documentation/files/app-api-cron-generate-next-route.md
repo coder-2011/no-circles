@@ -33,3 +33,4 @@ HTTP wrapper around DB-owned selector function plus PR9 single-user send runtime
 
 ## Logging
 - logs `unauthorized` (with failure reason), `invalid_payload`, `selected_batch`, `no_due_user`, per-user `insufficient_content`/`send_failed`, `method_not_allowed`, and fatal `error` events for cron observability.
+- `error`-level events now also flow into the admin alert subsystem via the shared logger, but the route does not send admin digest mail itself and remains separate from `POST /api/cron/admin-monitor`.

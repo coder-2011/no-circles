@@ -74,6 +74,10 @@ Versioned SQL history for database schema state.
   - recreates authenticated self-read/update RLS policies on `users`
   - recreates authenticated self-read RLS policy on `user_email_history`
   - removes remaining Supabase initplan linter warnings for JWT-email policy checks
+- `db/migrations/0020_alert_signal.sql`
+  - creates `admin_alert_state`
+  - stores only admin alert dedupe state (`alert_key`, `kind`, last send timestamp, send count, payload hash)
+  - supports admin error forwarding, threshold alerts, and once-daily digest suppression without adding analytics history tables
 
 ## Metadata
 - `db/migrations/meta/_journal.json`: migration journal

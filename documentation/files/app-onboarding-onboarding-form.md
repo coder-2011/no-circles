@@ -16,7 +16,7 @@ Renders onboarding UI as a presentational component driven by controller props.
 - show larger brain-dump guidance text and intentionally no example placeholder text
 - autofocus the brain-dump textarea on load
 - render save/sign-out controls, save badge, and lightweight slower-fall confetti celebration (multi-color particle variation) when onboarding save succeeds
-- render post-save pricing callout box below controls clarifying free access through mid-March and later minimal at-cost billing (no profit margin), including monthly per-user usage tiers: lean `~$2.54`, base `~$3.89`, heavy `~$5.57`
+- render post-save pricing callout box below controls clarifying free access through mid-March and later minimal at-cost billing; current copy still reflects historical monthly estimates and should stay aligned with `documentation/appendix/pricing-and-unit-economics.md`
 - show submit success/error message panel
 
 ## Input Contract

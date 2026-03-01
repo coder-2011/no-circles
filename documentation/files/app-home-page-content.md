@@ -5,7 +5,7 @@ Holds static content data for the public homepage so `app/page.tsx` can stay foc
 
 ## Behavior
 1. Exports the fallback sample daily brief items used before `GET /api/sample-brief` succeeds or when it fails.
-2. Exports the homepage about/subsystem descriptors shown in the public `About` section.
+2. Exports the longer, less-technical intro and descriptor copy shown on the public `How It Works` page.
 3. Exports the shared `SampleBriefItem` type so the page and fetched API response stay aligned.
 
 ## Why It Exists

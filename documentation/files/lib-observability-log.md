@@ -13,6 +13,7 @@ Provides a shared structured logger used by runtime subsystems to emit consisten
 ## Behavior
 - Serializes logs as JSON strings via `console.info`, `console.warn`, or `console.error`.
 - Normalizes top-level `Error` objects to `{ name, message, stack }` for readable diagnostics.
+- For every `logError(...)` call, asynchronously forwards the event into the admin alert path so the configured admin receives an email (subject to DB-backed dedupe/cooldown in `admin_alert_state`).
 - Exposes helper functions:
   - `logEvent(...)`
   - `logInfo(...)`

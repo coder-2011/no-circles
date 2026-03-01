@@ -15,3 +15,4 @@ Sends rendered newsletter email via Resend with immediate retry-once semantics.
 
 ## Additional API
 - exposes `sendTransactionalEmail(...)` for non-newsletter helper sends without the idempotency header (for example wrong-account guidance auto-replies).
+- Admin monitoring also uses `sendTransactionalEmail(...)` for error alerts, threshold alerts, and the daily admin digest. Those messages stay on a separate call path from the user newsletter pipeline and do not reuse newsletter idempotency state.
