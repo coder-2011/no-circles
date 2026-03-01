@@ -51,6 +51,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/app-home-page-css.md`
 - `files/app-api-onboarding-route.md`
 - `files/app-auth-callback-route.md`
+- `files/proxy.md`
 - `files/app-globals-css.md`
 - `files/app-layout.md`
 - `files/app-not-found.md`
@@ -68,6 +69,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/lib-db-schema.md`
 - `files/lib-auth-server-user.md`
 - `files/lib-auth-browser-client.md`
+- `files/lib-auth-proxy.md`
 - `files/lib-schemas.md`
 - `files/lib-utils.md`
 - `files/lib-sample-brief-parse-newsletter-text.md`

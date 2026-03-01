@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Session, SupabaseClient } from "@supabase/supabase-js";
 import { getBrowserSupabaseClient } from "@/lib/auth/browser-client";
 import {
   drawQuickSparksBatch,
@@ -48,6 +48,8 @@ function resolveSiteOrigin(): string {
 }
 
 const CELEBRATION_HIDE_MS = 3400;
+const AUTH_RECOVERY_TIMEOUT_MS = 2000;
+const AUTH_RECOVERY_POLL_MS = 150;
 
 type DeepgramTokenSuccess = { ok: true; accessToken: string; expiresAtMs: number };
 type DeepgramTokenFailure = { ok: false; status: number | null; serverMessage: string | null; networkError: boolean };
@@ -138,6 +140,7 @@ export function useOnboardingController(): OnboardingController {
   const wsRef = useRef<WebSocket | null>(null);
   const finalTranscriptRef = useRef("");
   const interimTranscriptRef = useRef("");
+  const authRecoveryInFlightRef = useRef(false);
   const pendingSamplesRef = useRef<number[]>([]);
   const dictationStateRef = useRef<DictationState>("idle");
   const brainDumpTextRef = useRef("");
@@ -151,6 +154,26 @@ export function useOnboardingController(): OnboardingController {
   const quickSparksSeenRef = useRef<string[]>([]);
 
   const brainDumpWordCount = countWords(brainDumpText);
+
+  function applySession(session: Session | null) {
+    const sessionEmail = session?.user?.email ?? null;
+    if (!sessionEmail) {
+      setEmail(null);
+      setAuthState("signed_out");
+      return;
+    }
+
+    setEmail(sessionEmail);
+    const metadataName = getPreferredNameFromOAuthProfile(session?.user?.user_metadata);
+    const inferredEmailName = getPreferredNameFromEmail(sessionEmail);
+    setPreferredName(metadataName ?? inferredEmailName ?? "Reader");
+    setAuthState("signed_in");
+
+    if (window.localStorage.getItem(ONBOARDING_REAUTH_RECOVERY_KEY) === "1") {
+      window.localStorage.removeItem(ONBOARDING_REAUTH_RECOVERY_KEY);
+      setMessage("Session restored. Your onboarding draft was recovered.");
+    }
+  }
 
   function setDictationMode(nextState: DictationState) {
     dictationStateRef.current = nextState;
@@ -494,24 +517,20 @@ export function useOnboardingController(): OnboardingController {
         return;
       }
 
-      const sessionEmail = data.session?.user?.email;
-      if (sessionEmail) {
-        setEmail(sessionEmail);
-        const metadataName = getPreferredNameFromOAuthProfile(data.session?.user?.user_metadata);
-        const inferredEmailName = getPreferredNameFromEmail(sessionEmail);
-        setPreferredName(metadataName ?? inferredEmailName ?? "Reader");
-        setAuthState("signed_in");
-        if (window.localStorage.getItem(ONBOARDING_REAUTH_RECOVERY_KEY) === "1") {
-          window.localStorage.removeItem(ONBOARDING_REAUTH_RECOVERY_KEY);
-          setMessage("Session restored. Your onboarding draft was recovered.");
-        }
-      } else {
-        setAuthState("signed_out");
+      applySession(data.session);
+    });
+
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) {
+        return;
       }
+
+      applySession(session);
     });
 
     return () => {
       mounted = false;
+      data.subscription.unsubscribe();
     };
   }, [supabase]);
 
@@ -533,6 +552,58 @@ export function useOnboardingController(): OnboardingController {
     if (error) {
       setMessage(error.message);
     }
+  }
+
+  async function recoverSessionAfterUnauthorized(): Promise<boolean> {
+    if (!supabase || authRecoveryInFlightRef.current) {
+      return false;
+    }
+
+    authRecoveryInFlightRef.current = true;
+
+    try {
+      const deadline = Date.now() + AUTH_RECOVERY_TIMEOUT_MS;
+
+      while (Date.now() < deadline) {
+        const { data, error } = await supabase.auth.getSession();
+        if (!error && data.session?.user?.email) {
+          applySession(data.session);
+          return true;
+        }
+
+        await new Promise((resolve) => window.setTimeout(resolve, AUTH_RECOVERY_POLL_MS));
+      }
+
+      const { data, error } = await supabase.auth.refreshSession();
+      if (!error && data.session?.user?.email) {
+        applySession(data.session);
+        return true;
+      }
+
+      return false;
+    } finally {
+      authRecoveryInFlightRef.current = false;
+    }
+  }
+
+  async function submitOnboardingRequest(resolvedPreferredName: string) {
+    const response = await fetch("/api/onboarding", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        preferred_name: resolvedPreferredName,
+        timezone,
+        send_time_local: sendTime,
+        brain_dump_text: brainDumpText
+      })
+    });
+
+    const body = (await response.json().catch(() => null)) as
+      | { ok: true; user_id: string }
+      | { ok: false; message?: string; error_code?: string }
+      | null;
+
+    return { response, body };
   }
 
   async function signOut() {
@@ -569,21 +640,15 @@ export function useOnboardingController(): OnboardingController {
       return;
     }
 
-    const response = await fetch("/api/onboarding", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        preferred_name: resolvedPreferredName,
-        timezone,
-        send_time_local: sendTime,
-        brain_dump_text: brainDumpText
-      })
-    });
+    let { response, body } = await submitOnboardingRequest(resolvedPreferredName);
 
-    const body = (await response.json().catch(() => null)) as
-      | { ok: true; user_id: string }
-      | { ok: false; message?: string; error_code?: string }
-      | null;
+    if (response.status === 401) {
+      setMessage("Finishing sign-in. Retrying save...");
+      const recovered = await recoverSessionAfterUnauthorized();
+      if (recovered) {
+        ({ response, body } = await submitOnboardingRequest(resolvedPreferredName));
+      }
+    }
 
     if (response.ok) {
       setSubmitState("saved");
@@ -596,7 +661,7 @@ export function useOnboardingController(): OnboardingController {
 
     setSubmitState("error");
     if (response.status === 401) {
-      setMessage("Your session expired. Redirecting to sign in...");
+      setMessage("We couldn't restore your session. Redirecting to sign in...");
       setAuthState("signed_out");
       window.localStorage.setItem(ONBOARDING_REAUTH_RECOVERY_KEY, "1");
       void signInWithGoogle();
