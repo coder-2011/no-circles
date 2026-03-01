@@ -18,12 +18,12 @@ Selects one personalized quote for a user and issue date.
    - non-empty author
    - dedupe by quote+author
 4. Build profile context from memory sections (`PERSONALITY`, `RECENT_FEEDBACK`).
-5. Ask Claude to select one quote index via strict JSON output.
+5. Ask the shared Anthropic-compatible text-model client to select one quote index via strict JSON output.
 6. Return `{ text, author, category, sourceDataset, rowIndex }`.
 
 ## Fallbacks
 - Hugging Face failure -> static local fallback quote.
-- Claude failure/invalid output -> first shortlist quote.
+- model failure/invalid output -> first shortlist quote.
 
 ## Notes
 - Uses deterministic sampling to keep same-day retries stable.

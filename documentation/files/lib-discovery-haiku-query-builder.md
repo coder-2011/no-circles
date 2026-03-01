@@ -1,7 +1,7 @@
 # File: `lib/discovery/haiku-query-builder.ts`
 
 ## Purpose
-Builds one creative, niche search query per topic/attempt using Anthropic Haiku for discovery retrieval.
+Builds one creative, niche search query per topic/attempt using the shared Anthropic-compatible text-model transport for discovery retrieval.
 
 ## Contract
 - Input:
@@ -27,7 +27,11 @@ Builds one creative, niche search query per topic/attempt using Anthropic Haiku 
 - Fallback is reserved for hard failures only (model call failure or empty/too-short output).
 
 ## Model Resolution
-- `ANTHROPIC_QUERY_BUILDER_MODEL`
+- `OPENROUTER_QUERY_BUILDER_MODEL`
+- fallback: `OPENROUTER_LINK_SELECTOR_MODEL`
+- fallback: `OPENROUTER_SUMMARY_MODEL`
+- fallback: `OPENROUTER_MEMORY_MODEL`
+- fallback: `ANTHROPIC_QUERY_BUILDER_MODEL`
 - fallback: `ANTHROPIC_LINK_SELECTOR_MODEL`
 - fallback: `ANTHROPIC_SUMMARY_MODEL`
 - fallback: `ANTHROPIC_MEMORY_MODEL`

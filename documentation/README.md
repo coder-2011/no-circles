@@ -131,6 +131,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/lib-webhooks-resend-signature.md`
 - `files/lib-webhooks-inbound-idempotency.md`
 - `files/lib-ai-memory-prompts.md`
+- `files/lib-ai-text-model-client.md`
 - `files/lib-ai-summary-prompts.md`
 - `files/lib-ai-quote-prompts.md`
 - `files/lib-art-dwitter-sketches.md`

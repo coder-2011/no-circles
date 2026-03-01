@@ -1,14 +1,15 @@
 # File: `lib/memory/model-client.ts`
 
 ## Purpose
-Wraps the Anthropic transport used by memory processing flows.
+Wraps the shared Anthropic-compatible transport used by memory processing flows.
 
 ## Responsibilities
-- load required Anthropic env vars for memory generation
-- send message requests with separated system and user prompts
+- resolve memory-model envs with OpenRouter-first fallback:
+  - `OPENROUTER_MEMORY_MODEL`
+  - `ANTHROPIC_MEMORY_MODEL`
+- call the shared Anthropic-compatible text-model client
 - detect auth failures distinctly via `ANTHROPIC_AUTH_ERROR`
-- extract plain text from Anthropic response content blocks
-- normalize invalid or empty response shapes into stable thrown error codes
+- keep existing memory-specific error codes stable (`MISSING_ANTHROPIC_*`, `ANTHROPIC_HTTP_*`) for low-churn migration
 
 ## Notes
 - This helper is transport-only; prompt building, retries, fallback behavior, and canonical-memory validation remain in `lib/memory/processors.ts`.

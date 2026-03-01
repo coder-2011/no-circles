@@ -5,7 +5,7 @@ Implements PR8 newsletter-item summary generation from discovery output.
 
 ## In Scope
 - Consume discovery candidates as input (`url`, `title`, `highlights`, optional `topic`)
-- Generate one summary per item using Claude Haiku 4.5 (`ANTHROPIC_SUMMARY_MODEL` when set, otherwise `ANTHROPIC_MEMORY_MODEL`)
+- Generate one summary per item using the shared Anthropic-compatible model transport with OpenRouter-first model selection (`OPENROUTER_SUMMARY_MODEL`, then `OPENROUTER_MEMORY_MODEL`, then Anthropic fallbacks)
 - Single model call per item with one retry max
 - Output final item contract only: `{ title, url, summary }`
 - Enforce fixed URL passthrough from source candidate

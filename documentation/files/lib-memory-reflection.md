@@ -10,7 +10,11 @@ Runs the bi-daily memory reflection review used by the daily send pipeline.
 ## Behavior
 - Gates reflection by issue variant and user-local 2-day cadence.
 - Builds the reflection prompt from current canonical memory plus recent sent/reply email history.
-- Calls Anthropic using `ANTHROPIC_REFLECTION_MODEL` with fallback to `ANTHROPIC_MEMORY_MODEL`.
+- Calls the shared Anthropic-compatible text-model client using:
+  - `OPENROUTER_REFLECTION_MODEL`
+  - fallback `OPENROUTER_MEMORY_MODEL`
+  - fallback `ANTHROPIC_REFLECTION_MODEL`
+  - fallback `ANTHROPIC_MEMORY_MODEL`
 - Validates model output with `memoryReflectionOutputSchema`.
 - Validates rewritten memory with canonical memory rules.
 - Falls back to `no_change` plus an empty discovery brief on model/schema/validation failure.

@@ -29,7 +29,7 @@ Default word range when only target is provided:
   - optional `isSerendipitous` (present only when true in source item)
 
 ## Behavior
-1. For each item, call Anthropic Messages API once per attempt.
+1. For each item, call the shared Anthropic-compatible text-model client once per attempt.
 2. Parse model text as JSON (`title`, `summary`).
 3. Validate with `summaryWriterOutputSchema`.
 4. Clamp summary into configured word range.
@@ -49,6 +49,11 @@ Default word range when only target is provided:
    - per-run counts (`summary_run_complete` with `skipped_count`)
 
 ## Environment
-- `ANTHROPIC_API_KEY`
-- `ANTHROPIC_SUMMARY_MODEL` (optional override)
-- `ANTHROPIC_MEMORY_MODEL` (default model when summary override is unset)
+- provider auth:
+  - `OPENROUTER_API_KEY` (preferred)
+  - `ANTHROPIC_API_KEY` (fallback)
+- model selection:
+  - `OPENROUTER_SUMMARY_MODEL` (preferred override)
+  - `OPENROUTER_MEMORY_MODEL`
+  - `ANTHROPIC_SUMMARY_MODEL`
+  - `ANTHROPIC_MEMORY_MODEL`
