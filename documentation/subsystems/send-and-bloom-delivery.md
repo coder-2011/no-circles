@@ -23,6 +23,6 @@ Implements real one-user-per-tick delivery runtime after scheduler selection.
 - render variants supported: `daily` and `welcome`
 - cron route status mapping: `sent`, `insufficient_content`, `send_failed`, `no_due_user`, `internal_error`
 - idempotency reserve outcomes:
-  - `claimed` / `retryable_failed_claimed` -> send proceeds
+  - `claimed` / `retryable_failed_claimed` / `stale_processing_claimed` -> send proceeds
   - `already_sent` -> pipeline returns `sent` without provider resend
   - `already_processing` -> pipeline returns `send_failed` (`IDEMPOTENCY_ALREADY_PROCESSING`)

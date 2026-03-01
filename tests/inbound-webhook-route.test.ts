@@ -279,6 +279,27 @@ describe("POST /api/webhooks/resend/inbound", () => {
     );
   });
 
+  it("returns ignored for no-reply sender before any content fetch", async () => {
+    const response = await POST(buildInboundRequest({
+      data: {
+        email_id: "re_google_notice",
+        from: "\"The Google Workspace Team\" <workspace-noreply@google.com>"
+      }
+    }));
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true, status: "ignored" });
+    expect(receivingGetMock).not.toHaveBeenCalled();
+    expect(emailGetMock).not.toHaveBeenCalled();
+    expect(transactionMock).not.toHaveBeenCalled();
+    expect(mergeReplyIntoMemoryMock).not.toHaveBeenCalled();
+    expect(logInfoMock).toHaveBeenCalledWith(
+      "webhook_inbound",
+      "ignored_no_reply_sender",
+      expect.objectContaining({ sender_email: "workspace-noreply@google.com" })
+    );
+  });
+
   it("updates memory once for valid event", async () => {
     const response = await POST(buildInboundRequest({
       data: {
@@ -411,13 +432,9 @@ describe("POST /api/webhooks/resend/inbound", () => {
     );
   });
 
-  it("falls back to emails.get when receiving text is missing", async () => {
+  it("returns ignored when receiving text is missing", async () => {
     receivingGetMock.mockResolvedValueOnce({
       data: { text: null },
-      error: null
-    });
-    emailGetMock.mockResolvedValueOnce({
-      data: { text: "more biology theory, less mech interp" },
       error: null
     });
 
@@ -429,21 +446,19 @@ describe("POST /api/webhooks/resend/inbound", () => {
     }));
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ ok: true, status: "updated", user_id: "user-1" });
+    expect(await response.json()).toEqual({ ok: true, status: "ignored" });
     expect(receivingGetMock).toHaveBeenCalledWith("re_payload_fallback");
-    expect(emailGetMock).toHaveBeenCalledWith("re_payload_fallback");
-    expect(mergeReplyIntoMemoryMock).toHaveBeenCalledWith(
-      expect.any(String),
-      "more biology theory, less mech interp"
+    expect(emailGetMock).not.toHaveBeenCalled();
+    expect(mergeReplyIntoMemoryMock).not.toHaveBeenCalled();
+    expect(logInfoMock).toHaveBeenCalledWith(
+      "webhook_inbound",
+      "ignored_empty_text",
+      expect.objectContaining({ sender_email: "naman@example.com", email_id_present: true })
     );
   });
 
   it("returns ignored when text is unavailable after fetch by email_id", async () => {
     receivingGetMock.mockResolvedValueOnce({
-      data: { text: null },
-      error: null
-    });
-    emailGetMock.mockResolvedValueOnce({
       data: { text: null },
       error: null
     });

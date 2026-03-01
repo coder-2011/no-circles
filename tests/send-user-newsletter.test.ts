@@ -321,6 +321,37 @@ describe("sendUserNewsletter", () => {
     expect(sendNewsletterFn).toHaveBeenCalledTimes(1);
   });
 
+  it("proceeds with send when stale processing idempotency row is reclaimed", async () => {
+    const sendNewsletterFn = vi.fn(async () => ({ ok: true, providerMessageId: "msg_stale_retry", attempts: 1, error: null }));
+    const markIdempotencySentFn = vi.fn(async () => undefined);
+    const selectQuoteFn = vi.fn(async () => selectedQuote);
+
+    const result = await sendUserNewsletter(
+      {
+        userId: user.id,
+        runAtUtc: new Date("2026-02-16T18:00:00.000Z")
+      },
+      makeDeps({
+        runDiscoveryFn: async () =>
+          makeDiscoveryResult(Array.from({ length: 10 }).map((_, index) => `https://example.com/${index + 1}`)),
+        getFinalHighlightsByUrlFn,
+        generateSummariesFn: async ({ items }) => items.map((item) => ({ title: item.title, summary: "summary", url: item.url })),
+        selectQuoteFn,
+        reserveIdempotencyFn: async () => ({
+          outcome: "stale_processing_claimed",
+          status: "processing",
+          providerMessageId: null
+        }),
+        markIdempotencySentFn,
+        persistSendSuccessFn: async () => undefined,
+        sendNewsletterFn
+      })
+    );
+
+    expect(result.status).toBe("sent");
+    expect(sendNewsletterFn).toHaveBeenCalledTimes(1);
+  });
+
   it("returns insufficient_content when final Exa highlights are missing", async () => {
     const result = await sendUserNewsletter(
       {

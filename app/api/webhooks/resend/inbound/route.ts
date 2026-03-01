@@ -30,6 +30,16 @@ function extractSenderEmail(fromField: string): string | null {
   return candidate.includes("@") ? candidate : null;
 }
 
+function isAutomatedNoReplySender(senderEmail: string): boolean {
+  const [localPart] = senderEmail.split("@");
+  if (!localPart) {
+    return false;
+  }
+
+  const normalizedLocalPart = localPart.replace(/[^a-z0-9]/g, "");
+  return normalizedLocalPart.includes("noreply") || normalizedLocalPart.includes("donotreply");
+}
+
 function toNonEmptyString(value: unknown): string | null {
   if (typeof value !== "string") {
     return null;
@@ -138,13 +148,7 @@ async function fetchInboundReplyText(emailId: string): Promise<string | null> {
   if (replyFromReceivingText) {
     return replyFromReceivingText;
   }
-
-  const emailResponse = await resend.emails.get(emailId);
-  if (emailResponse.error) {
-    throw new Error(emailResponse.error.message || "RESEND_EMAIL_GET_ERROR");
-  }
-
-  return extractNewestReplyText(emailResponse.data?.text);
+  return null;
 }
 
 function resolveMessageId(payload: (typeof resendInboundWebhookSchema)["_output"]): string | null {
@@ -330,6 +334,15 @@ export async function POST(request: Request) {
     logInfo("webhook_inbound", "ignored_invalid_sender", {
       route: INBOUND_ROUTE,
       svix_id: signatureHeaders.svixId
+    });
+    return NextResponse.json({ ok: true, status: "ignored" });
+  }
+
+  if (isAutomatedNoReplySender(senderEmail)) {
+    logInfo("webhook_inbound", "ignored_no_reply_sender", {
+      route: INBOUND_ROUTE,
+      svix_id: signatureHeaders.svixId,
+      sender_email: senderEmail
     });
     return NextResponse.json({ ok: true, status: "ignored" });
   }

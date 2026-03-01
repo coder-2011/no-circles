@@ -35,5 +35,8 @@ Rules:
 
 ## Ops
 - [x] Replace the stale branch-by-branch roadmap with a single markdown task system in root `TODO.md`.
+- [x] Remove the inbound webhook fallback that queried sent-email lookup for received-email IDs and caused repeat `404 Email not found` failures.
+- [x] Reclaim stale outbound send idempotency rows after a timeout so abandoned `processing` locks do not spam cron forever.
+- [x] Ignore obvious automated `noreply` inbound mail before content fetch so operational inbox notices do not trigger webhook noise.
 - [ ] Review the active backlog periodically and prune duplicated or obsolete tasks from `TODO.md`.
 - [ ] Investigate database records for newsletter emails showing an unexpected March 3 issue date and identify whether the source is scheduling, rendering, or timezone interpretation.

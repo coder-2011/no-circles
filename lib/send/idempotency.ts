@@ -5,9 +5,15 @@ import { outboundSendIdempotency } from "@/lib/db/schema";
 
 export type OutboundSendStatus = "processing" | "sent" | "failed";
 export type NewsletterIssueVariant = "daily" | "welcome";
+const STALE_PROCESSING_RECLAIM_MINUTES = 15;
 
 export type ReserveOutboundSendResult = {
-  outcome: "claimed" | "retryable_failed_claimed" | "already_sent" | "already_processing";
+  outcome:
+    | "claimed"
+    | "retryable_failed_claimed"
+    | "stale_processing_claimed"
+    | "already_sent"
+    | "already_processing";
   status: OutboundSendStatus;
   providerMessageId: string | null;
 };
@@ -75,6 +81,23 @@ export async function reserveOutboundSendIdempotency(args: {
         "provider_message_id"::text as provider_message_id,
         2 as priority
     ),
+    stale_reclaimed as (
+      update "outbound_send_idempotency"
+      set
+        "status" = 'processing',
+        "provider_message_id" = null,
+        "failure_reason" = null,
+        "updated_at" = now()
+      where
+        "idempotency_key" = ${args.idempotencyKey}
+        and "status" = 'processing'
+        and "updated_at" < now() - (${STALE_PROCESSING_RECLAIM_MINUTES}::text || ' minutes')::interval
+      returning
+        'stale_processing_claimed'::text as outcome,
+        "status"::text as status,
+        "provider_message_id"::text as provider_message_id,
+        3 as priority
+    ),
     existing as (
       select
         case
@@ -83,7 +106,7 @@ export async function reserveOutboundSendIdempotency(args: {
         end as outcome,
         "status"::text as status,
         "provider_message_id"::text as provider_message_id,
-        3 as priority
+        4 as priority
       from "outbound_send_idempotency"
       where "idempotency_key" = ${args.idempotencyKey}
     )
@@ -92,6 +115,8 @@ export async function reserveOutboundSendIdempotency(args: {
       select * from inserted
       union all
       select * from reclaimed
+      union all
+      select * from stale_reclaimed
       union all
       select * from existing
     ) as ranked
@@ -113,6 +138,7 @@ export async function reserveOutboundSendIdempotency(args: {
   if (
     outcome !== "claimed" &&
     outcome !== "retryable_failed_claimed" &&
+    outcome !== "stale_processing_claimed" &&
     outcome !== "already_sent" &&
     outcome !== "already_processing"
   ) {

@@ -43,7 +43,7 @@ Orchestrates single-user runtime: optional bi-daily reflection -> discovery -> B
 ## Idempotency Conflict Semantics
 - `already_sent`: returns `sent` without duplicate provider send (`itemCount` is `0` because replay path does not reconstruct historical sent count)
 - `already_processing`: returns `send_failed` with `IDEMPOTENCY_ALREADY_PROCESSING`
-- `claimed` / `retryable_failed_claimed`: continue with normal send flow
+- `claimed` / `retryable_failed_claimed` / `stale_processing_claimed`: continue with normal send flow
 
 ## Result Statuses
 - `sent`
