@@ -6,7 +6,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { Analytics } from "@vercel/analytics/next";
 import { Cormorant_Garamond, Source_Sans_3 } from "next/font/google";
-import { SiteCornerShards } from "@/components/site-corner-shards";
 
 const editorialFont = Cormorant_Garamond({
   subsets: ["latin"],
@@ -61,7 +60,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${editorialFont.variable} ${uiFont.variable}`} suppressHydrationWarning>
-        <SiteCornerShards />
         <Link
           aria-label="Go to home"
           className="fixed left-3 top-3 z-50 inline-block leading-none"
@@ -77,10 +75,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             width={64}
           />
         </Link>
-        <div className="relative z-10">
-          {children}
-          <Analytics />
-        </div>
+        {children}
+        <Analytics />
       </body>
     </html>
   );

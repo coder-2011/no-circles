@@ -23,6 +23,7 @@ Rules:
 - [x] Redistribute the background into sparse stepped line runs across the whole viewport, removing dense boxes and clustered collections.
 - [x] Rework the background into a smaller set of long connected stepped paths so the linework feels continuous across the full page.
 - [x] Remove stray background segments and force the linework behind all page content so it never overlaps readable text.
+- [x] Remove the decorative site-wide line background completely.
 - [ ] Add a newsletter preview before onboarding save so users can inspect a sample issue before committing preferences.
 - [ ] Add one-click feedback chips beyond the current controls to speed up preference updates from the email surface.
 - [ ] Add source-quality preference controls so users can steer toward research-heavy or blog/newsletter-heavy mixes.

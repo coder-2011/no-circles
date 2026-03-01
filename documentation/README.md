@@ -70,7 +70,6 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/app-page.md`
 - `files/app-home-page-content.md`
 - `files/components-json.md`
-- `files/components-site-corner-shards.md`
 - `files/components-site-cursor.md`
 - `files/components-dwitter-canvas.md`
 - `files/lib-db-client.md`
