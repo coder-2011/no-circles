@@ -17,6 +17,10 @@ Rules:
 - [x] Build the core personalized newsletter pipeline from onboarding through delivery and reply-driven memory updates.
 - [x] Write a canonical pricing and unit-economics spec for the live pipeline, including per-user monthly cost drivers and reflection-model upgrade costs.
 - [x] Draft a global top-right sharp-corner decorative chrome motif so the visual direction can be reviewed against the logo/system style.
+- [x] Expand the approved geometric line motif into a full-site background treatment while keeping the lines thin and low-contrast.
+- [x] Scale the approved full-site geometric background composition up substantially so the artwork reads larger and more architectural.
+- [x] Replace the prior geometric background with a stepped contour-line field based directly on the newer approved reference image.
+- [x] Redistribute the background into sparse stepped line runs across the whole viewport, removing dense boxes and clustered collections.
 - [ ] Add a newsletter preview before onboarding save so users can inspect a sample issue before committing preferences.
 - [ ] Add one-click feedback chips beyond the current controls to speed up preference updates from the email surface.
 - [ ] Add source-quality preference controls so users can steer toward research-heavy or blog/newsletter-heavy mixes.
@@ -29,3 +33,4 @@ Rules:
 ## Ops
 - [x] Replace the stale branch-by-branch roadmap with a single markdown task system in root `TODO.md`.
 - [ ] Review the active backlog periodically and prune duplicated or obsolete tasks from `TODO.md`.
+- [ ] Investigate database records for newsletter emails showing an unexpected March 3 issue date and identify whether the source is scheduling, rendering, or timezone interpretation.
