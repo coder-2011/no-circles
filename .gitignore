@@ -3,6 +3,7 @@ node_modules/
 
 # next
 .next/
+.next.stale*/
 out/
 
 # env
@@ -11,6 +12,7 @@ out/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.local.backup*
 
 # logs
 npm-debug.log*
