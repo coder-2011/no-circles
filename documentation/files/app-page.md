@@ -14,7 +14,7 @@ Landing/auth-entry client page for the product.
 8. Reuses the current auth handlers on both CTA buttons so the visual prototype remains wired to real sign-in and signed-in onboarding continuation.
 9. Hydrates the `Today's Brief` section from `GET /api/sample-brief` (latest `daily` sent brief text for the fixed source account) and falls back to a static 4-item exemplar when API data is unavailable.
 10. Shows the current date in the sample-brief header.
-11. Adds page-specific cursor treatment and trailing cursor ornaments on fine pointers, while respecting coarse-pointer and reduced-motion settings.
+11. Mounts the shared `components/site-cursor.tsx` custom cursor on the homepage while keeping page-specific magnetic CTA behavior.
 12. Pins a floating top-right auth CTA while scrolling so users can trigger `Get started` without returning to the hero section.
 13. Uses `app/home-page-content.ts` for fallback sample-brief content and the public subsystem/about copy so the page file stays more focused on behavior.
 

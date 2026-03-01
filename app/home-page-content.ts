@@ -31,41 +31,33 @@ export const SAMPLE_DAILY_BRIEF: SampleBriefItem[] = [
   }
 ];
 
+export const HOW_IT_WORKS_INTRO = [
+  "You tell it what you care about, it sends a daily issue, and it gets sharper over time."
+] as const;
+
 export const HOME_PAGE_SUBSYSTEMS = [
   {
     number: "01",
-    title: "Memory",
+    title: "Your interests",
     description:
-      "Onboarding and replies maintain one canonical profile with personality, active interests, and recent feedback."
+      "You write your brain dump once. After that, replies and feedback keep the brief aligned with your changing interests."
   },
   {
     number: "02",
-    title: "Discovery",
+    title: "Daily discovery",
     description:
-      "The system builds queries, searches current sources, and reserves part of each issue for adjacent serendipity."
+      "We comb through 150+ sources for every user, prioritize longform articles over mainstream media, and find the content we think you will love."
   },
   {
     number: "03",
-    title: "Grounding",
+    title: "Source-grounded",
     description:
-      "Winning links get real extracted highlights before summaries are written, so the brief stays source-tethered."
+      "Before a summary is written, we pull real detail from the article first. That keeps the brief grounded and keeps AI slop out."
   },
   {
     number: "04",
-    title: "Anti-repeat",
+    title: "Reflection loop",
     description:
-      "A per-user Bloom filter suppresses likely repeats without needing a huge row-per-link history table."
-  },
-  {
-    number: "05",
-    title: "Delivery",
-    description:
-      "Postgres claims due users by local send time, the app runs bounded batch sends, and Resend handles delivery."
-  },
-  {
-    number: "06",
-    title: "Feedback loop",
-    description:
-      "Replies, one-click feedback, and a bi-daily reflection pass all help tomorrow's issue adjust without overreacting."
+      "A reflection pass checks what is working, what feels stale, and what to shift next, so each email stays built around you."
   }
 ] as const;

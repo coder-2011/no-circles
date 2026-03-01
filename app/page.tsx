@@ -1,6 +1,8 @@
 "use client";
 
-import { HOME_PAGE_SUBSYSTEMS, SAMPLE_DAILY_BRIEF, type SampleBriefItem } from "@/app/home-page-content";
+import { SAMPLE_DAILY_BRIEF, type SampleBriefItem } from "@/app/home-page-content";
+import { HomePageNav } from "@/app/home-page-nav";
+import { SiteCursor } from "@/components/site-cursor";
 import { getBrowserSupabaseClient } from "@/lib/auth/browser-client";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Fraunces, Sora } from "next/font/google";
@@ -13,7 +15,6 @@ const displayFont = Fraunces({ subsets: ["latin"], weight: ["500", "600"] });
 const interfaceFont = Sora({ subsets: ["latin"], weight: ["500", "600"] });
 const MAGNETIC_ACTIVATION_RADIUS_PX = 96;
 const MAGNETIC_MAX_SHIFT_PX = 12;
-const MOUSE_TAIL_COUNT = 8;
 function resolveSiteOrigin(): string {
   return window.location.origin;
 }
@@ -51,8 +52,6 @@ function formatBriefIndex(index: number): string {
 }
 export default function HomePage() {
   const router = useRouter();
-  const cursorRef = useRef<HTMLDivElement | null>(null);
-  const tailDotRefs = useRef<Array<HTMLSpanElement | null>>([]);
   const topButtonRef = useRef<HTMLButtonElement | null>(null);
   const heroButtonRef = useRef<HTMLButtonElement | null>(null);
   const [authState, setAuthState] = useState<AuthState>("loading");
@@ -222,81 +221,6 @@ export default function HomePage() {
     };
   }, [pointerEffectsEnabled]);
 
-  useEffect(() => {
-    if (!pointerEffectsEnabled) {
-      return;
-    }
-
-    const cursor = cursorRef.current;
-    const tailDots = tailDotRefs.current.filter((dot): dot is HTMLSpanElement => dot !== null);
-    if (!cursor || tailDots.length === 0) {
-      return;
-    }
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const trail = tailDots.map(() => ({ x: -999, y: -999 }));
-    let visible = false;
-    let cursorX = -999;
-    let cursorY = -999;
-    let targetX = -999;
-    let targetY = -999;
-    let frameId = 0;
-
-    const updatePointerState = (target: EventTarget | null) => {
-      const isPointer = target instanceof Element && target.closest("a,button");
-      cursor.classList.toggle("home-page__cursor--pointer", Boolean(isPointer));
-    };
-
-    const handleMouseMove = (event: MouseEvent) => {
-      targetX = event.clientX;
-      targetY = event.clientY;
-      visible = true;
-      updatePointerState(event.target);
-    };
-
-    const handleMouseLeave = () => {
-      visible = false;
-      cursor.classList.remove("home-page__cursor--pointer");
-    };
-
-    const render = () => {
-      cursorX += (targetX - cursorX) * 0.28;
-      cursorY += (targetY - cursorY) * 0.28;
-      cursor.style.opacity = visible ? "1" : "0";
-      cursor.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0) translate(-50%, -50%)`;
-
-      if (!prefersReducedMotion) {
-        for (let index = 0; index < trail.length; index += 1) {
-          const point = trail[index];
-          const leader = index === 0 ? { x: targetX, y: targetY } : trail[index - 1];
-          const easing = index === 0 ? 0.3 : 0.23;
-
-          point.x += (leader.x - point.x) * easing;
-          point.y += (leader.y - point.y) * easing;
-
-          const dot = tailDots[index];
-          const opacity = visible ? Math.max(0, 0.52 - index * 0.06) : 0;
-          const scale = 1 - index * 0.08;
-          const rotation = 45 + index * 7;
-
-          dot.style.opacity = String(opacity);
-          dot.style.transform = `translate3d(${point.x - 7}px, ${point.y - 7}px, 0) rotate(${rotation}deg) scale(${scale})`;
-        }
-      }
-
-      frameId = window.requestAnimationFrame(render);
-    };
-
-    window.addEventListener("mousemove", handleMouseMove, { passive: true });
-    window.addEventListener("mouseleave", handleMouseLeave, { passive: true });
-    frameId = window.requestAnimationFrame(render);
-
-    return () => {
-      window.cancelAnimationFrame(frameId);
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseleave", handleMouseLeave);
-    };
-  }, [pointerEffectsEnabled]);
-
   async function signInWithGoogle() {
     if (authState === "signed_in") {
       router.replace("/onboarding");
@@ -348,20 +272,7 @@ export default function HomePage() {
 
   return (
     <div className="home-page-shell" style={shellStyle}>
-      {pointerEffectsEnabled ? (
-        <div className="home-page__mouse-tail-layer" aria-hidden="true">
-          {Array.from({ length: MOUSE_TAIL_COUNT }).map((_, index) => (
-            <span
-              className="home-page__mouse-tail-dot"
-              key={index}
-              ref={(element) => {
-                tailDotRefs.current[index] = element;
-              }}
-            />
-          ))}
-        </div>
-      ) : null}
-      {pointerEffectsEnabled ? <div aria-hidden="true" className="home-page__cursor" ref={cursorRef} /> : null}
+      <SiteCursor />
       <button
         className={[
           "home-page__button",
@@ -381,6 +292,9 @@ export default function HomePage() {
       <main className="home-page" id="top">
         <div className="home-page__bg-glow" />
         <div className="home-page__container">
+          <section className="home-page__panel home-page__topbar">
+            <HomePageNav activeTab="home" />
+          </section>
           <section className="home-page__panel home-page__hero">
             <p className="home-page__brand">The No-Circles Project</p>
             <h1 className="home-page__headline">Find what search would never show you.</h1>
@@ -420,28 +334,6 @@ export default function HomePage() {
               stay fresh without drifting into generic AI sludge.
             </p>
           </section>
-          <section className="home-page__panel home-page__sample home-page__about" id="about">
-            <div className="home-page__brief-head">
-              <div>
-                <p className="home-page__kicker">About</p>
-                <h2 className="home-page__section-title">What no-circles.com is actually doing behind the scenes.</h2>
-                <p className="home-page__brief-note">
-                  Each issue is powered by a small set of focused subsystems instead of one opaque black box.
-                </p>
-              </div>
-            </div>
-            <div className="home-page__steps home-page__steps--stacked">
-              {HOME_PAGE_SUBSYSTEMS.map((subsystem) => (
-                <article className="home-page__step" key={subsystem.number}>
-                  <span className="home-page__step-num">{subsystem.number}</span>
-                  <div className="home-page__step-copy">
-                    <strong>{subsystem.title}</strong>
-                    <p>{subsystem.description}</p>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </section>
           <section className="home-page__panel home-page__flow" id="flow">
             <p className="home-page__kicker home-page__kicker--flow">Flow</p>
             <div className="home-page__steps">
@@ -472,7 +364,9 @@ export default function HomePage() {
             <div className="home-page__brief-head">
               <div>
                 <h2 className="home-page__section-title">A Recent Daily Issue</h2>
-                <p className="home-page__brief-note">This preview is pulled from a recent real No-Circles daily brief.</p>
+                <p className="home-page__brief-note">
+                  This preview is pulled from a recent real No-Circles daily brief.
+                </p>
               </div>
               <p className="home-page__date-chip">{currentDateLabel}</p>
             </div>

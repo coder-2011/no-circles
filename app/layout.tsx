@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Analytics } from "@vercel/analytics/next";
 import { Cormorant_Garamond, Source_Sans_3 } from "next/font/google";
+import { SiteCornerShards } from "@/components/site-corner-shards";
 
 const editorialFont = Cormorant_Garamond({
   subsets: ["latin"],
@@ -75,6 +76,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             width={64}
           />
         </Link>
+        <SiteCornerShards />
         {children}
         <Analytics />
       </body>

@@ -38,6 +38,114 @@ a {
   font-family: var(--font-ui), sans-serif;
 }
 
+body.site-cursor-active,
+body.site-cursor-active * {
+  cursor: none !important;
+}
+
+.site-corner-shards {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(34vw, 24rem);
+  height: min(29vw, 19rem);
+  pointer-events: none;
+  z-index: 18;
+  opacity: 0.48;
+}
+
+.site-corner-shards__svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.site-corner-shards__group {
+  stroke: rgba(45, 52, 38, 0.34);
+  stroke-width: 1.2;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+
+.site-corner-shards__group--core {
+  stroke-width: 1.35;
+}
+
+.site-corner-shards__group--micro {
+  stroke: rgba(45, 52, 38, 0.28);
+  stroke-width: 1.05;
+}
+
+.site-corner-shards__group--outer {
+  stroke: rgba(45, 52, 38, 0.22);
+  stroke-width: 1;
+}
+
+.site-cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 24px;
+  height: 24px;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 9999;
+  transition: opacity 160ms ease;
+}
+
+.site-cursor::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: rgba(45, 52, 38, 0.82);
+  box-shadow:
+    0 0 0 4px rgba(251, 247, 235, 0.68),
+    0 10px 24px rgba(45, 52, 38, 0.14);
+  transform: translate(-50%, -50%) rotate(45deg);
+  transition:
+    width 160ms ease,
+    height 160ms ease,
+    border-radius 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.site-cursor--pointer::before {
+  width: 15px;
+  height: 15px;
+  border-radius: 5px;
+  background: rgba(34, 40, 29, 0.94);
+  box-shadow:
+    0 0 0 5px rgba(251, 247, 235, 0.74),
+    0 12px 28px rgba(45, 52, 38, 0.18);
+  transform: translate(-50%, -50%) rotate(45deg) scale(1.04);
+}
+
+.site-cursor__tail-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+}
+
+.site-cursor__tail-dot {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 1px solid rgba(45, 52, 38, 0.28);
+  background: rgba(251, 247, 235, 0.5);
+  border-radius: 3px;
+  transform: translate3d(-999px, -999px, 0) rotate(45deg);
+  will-change: transform, opacity;
+  opacity: 0;
+  mix-blend-mode: multiply;
+}
+
 @keyframes dictation-meter-boot {
   0% {
     transform: scaleY(0.45);
@@ -119,5 +227,31 @@ a {
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@media (pointer: coarse) {
+  body.site-cursor-active,
+  body.site-cursor-active * {
+    cursor: auto !important;
+  }
+
+  .site-cursor,
+  .site-cursor__tail-layer {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .site-corner-shards {
+    width: 13rem;
+    height: 9.75rem;
+    opacity: 0.38;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-cursor__tail-layer {
+    display: none;
   }
 }
