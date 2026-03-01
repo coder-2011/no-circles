@@ -4,12 +4,15 @@ import {
   buildReflectionMemoryPrompt,
   REFLECTION_MEMORY_SYSTEM_PROMPT
 } from "@/lib/ai/memory-prompts";
+import {
+  callAnthropicCompatibleTextModel,
+  requireFirstEnv
+} from "@/lib/ai/text-model-client";
 import { logInfo, logWarn } from "@/lib/observability/log";
 import { memoryReflectionOutputSchema } from "@/lib/schemas";
 import type { DiscoveryBrief } from "@/lib/discovery/types";
 import type { RecentEmailRecord } from "@/lib/memory/email-history";
 
-const ANTHROPIC_MESSAGES_API_URL = "https://api.anthropic.com/v1/messages";
 const EMPTY_DISCOVERY_BRIEF: DiscoveryBrief = {
   reinforceTopics: [],
   avoidPatterns: [],
@@ -25,38 +28,6 @@ function logReflectionEvent(level: "info" | "warn", event: string, details: Reco
 
   logInfo("memory_reflection", event, details);
 }
-
-function extractTextContent(value: unknown): string {
-  if (!value || typeof value !== "object") {
-    throw new Error("INVALID_REFLECTION_RESPONSE");
-  }
-
-  const content = (value as { content?: unknown }).content;
-  if (!Array.isArray(content)) {
-    throw new Error("INVALID_REFLECTION_RESPONSE");
-  }
-
-  const text = content
-    .filter((chunk): chunk is { type: string; text: string } => {
-      if (!chunk || typeof chunk !== "object") {
-        return false;
-      }
-
-      const candidate = chunk as { type?: unknown; text?: unknown };
-      return candidate.type === "text" && typeof candidate.text === "string";
-    })
-    .map((chunk) => chunk.text.trim())
-    .filter(Boolean)
-    .join("\n")
-    .trim();
-
-  if (!text) {
-    throw new Error("EMPTY_REFLECTION_RESPONSE");
-  }
-
-  return text;
-}
-
 function parseJsonFromModelText(text: string): unknown {
   const trimmed = text.trim();
   const fencedMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
@@ -87,43 +58,27 @@ export function shouldRunBiDailyReflection(args: {
 }
 
 async function callReflectionModel(prompt: string): Promise<string> {
-  const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
-  const modelName = process.env.ANTHROPIC_REFLECTION_MODEL?.trim() || process.env.ANTHROPIC_MEMORY_MODEL?.trim();
+  const modelName = requireFirstEnv(
+    [
+      "OPENROUTER_REFLECTION_MODEL",
+      "OPENROUTER_MEMORY_MODEL",
+      "ANTHROPIC_REFLECTION_MODEL",
+      "ANTHROPIC_MEMORY_MODEL"
+    ],
+    "MISSING_ANTHROPIC_REFLECTION_OR_MEMORY_MODEL"
+  );
 
-  if (!apiKey) {
-    throw new Error("MISSING_ANTHROPIC_API_KEY");
-  }
-
-  if (!modelName) {
-    throw new Error("MISSING_ANTHROPIC_REFLECTION_OR_MEMORY_MODEL");
-  }
-
-  const response = await fetch(ANTHROPIC_MESSAGES_API_URL, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01"
-    },
-    body: JSON.stringify({
-      model: modelName,
-      max_tokens: 1000,
-      temperature: 0,
-      system: REFLECTION_MEMORY_SYSTEM_PROMPT,
-      messages: [{ role: "user", content: prompt }]
-    })
+  return callAnthropicCompatibleTextModel({
+    model: modelName,
+    systemPrompt: REFLECTION_MEMORY_SYSTEM_PROMPT,
+    userPrompt: prompt,
+    maxTokens: 1000,
+    temperature: 0,
+    missingApiKeyError: "MISSING_ANTHROPIC_API_KEY",
+    invalidResponseError: "INVALID_REFLECTION_RESPONSE",
+    emptyResponseError: "EMPTY_REFLECTION_RESPONSE",
+    httpErrorPrefix: "ANTHROPIC_REFLECTION_HTTP_"
   });
-
-  if (!response.ok) {
-    throw new Error(`ANTHROPIC_REFLECTION_HTTP_${response.status}`);
-  }
-
-  const json = (await response.json().catch(() => null)) as unknown;
-  if (!json) {
-    throw new Error("INVALID_REFLECTION_RESPONSE");
-  }
-
-  return extractTextContent(json);
 }
 
 export async function runBiDailyReflection(args: {

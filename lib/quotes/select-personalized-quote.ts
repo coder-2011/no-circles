@@ -1,10 +1,13 @@
 import { z } from "zod";
+import {
+  callAnthropicCompatibleTextModel,
+  requireFirstEnv
+} from "@/lib/ai/text-model-client";
 import { buildQuoteSelectionUserPrompt, QUOTE_SELECTION_SYSTEM_PROMPT } from "@/lib/ai/quote-prompts";
 import { parseSections } from "@/lib/memory/contract";
 import { logInfo, logWarn } from "@/lib/observability/log";
 import { normalizeEnvString } from "@/lib/utils";
 
-const ANTHROPIC_MESSAGES_API_URL = "https://api.anthropic.com/v1/messages";
 const HF_DATASET_ROWS_API_URL = "https://datasets-server.huggingface.co/rows";
 
 const DEFAULT_DATASET = "jstet/quotes-500k";
@@ -88,37 +91,6 @@ function parseJsonFromModelText(text: string): unknown {
   const fencedMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
   const candidate = (fencedMatch?.[1] ?? trimmed).trim();
   return JSON.parse(candidate);
-}
-
-function extractTextContent(value: unknown): string {
-  if (!value || typeof value !== "object") {
-    throw new Error("INVALID_QUOTE_SELECTOR_RESPONSE");
-  }
-
-  const content = (value as { content?: unknown }).content;
-  if (!Array.isArray(content)) {
-    throw new Error("INVALID_QUOTE_SELECTOR_RESPONSE");
-  }
-
-  const text = content
-    .filter((chunk): chunk is { type: string; text: string } => {
-      if (!chunk || typeof chunk !== "object") {
-        return false;
-      }
-
-      const candidate = chunk as { type?: unknown; text?: unknown };
-      return candidate.type === "text" && typeof candidate.text === "string";
-    })
-    .map((chunk) => chunk.text.trim())
-    .filter(Boolean)
-    .join("\n")
-    .trim();
-
-  if (!text) {
-    throw new Error("EMPTY_QUOTE_SELECTOR_RESPONSE");
-  }
-
-  return text;
 }
 
 function fnv1a32(input: string): number {
@@ -320,55 +292,38 @@ async function selectQuoteIndexWithModel(args: {
   recentFeedbackSection: string;
   candidates: QuoteCandidate[];
 }): Promise<number | null> {
-  const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
-  const modelName =
-    process.env.ANTHROPIC_QUOTE_MODEL?.trim() ||
-    process.env.ANTHROPIC_SUMMARY_MODEL?.trim() ||
-    process.env.ANTHROPIC_MEMORY_MODEL?.trim();
+  const modelName = requireFirstEnv(
+    [
+      "OPENROUTER_QUOTE_MODEL",
+      "OPENROUTER_SUMMARY_MODEL",
+      "OPENROUTER_MEMORY_MODEL",
+      "ANTHROPIC_QUOTE_MODEL",
+      "ANTHROPIC_SUMMARY_MODEL",
+      "ANTHROPIC_MEMORY_MODEL"
+    ],
+    "MISSING_ANTHROPIC_QUOTE_OR_FALLBACK_MODEL"
+  );
 
-  if (!apiKey) {
-    throw new Error("MISSING_ANTHROPIC_API_KEY");
-  }
-  if (!modelName) {
-    throw new Error("MISSING_ANTHROPIC_QUOTE_OR_FALLBACK_MODEL");
-  }
-
-  const response = await fetch(ANTHROPIC_MESSAGES_API_URL, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01"
-    },
-    body: JSON.stringify({
-      model: modelName,
-      max_tokens: 160,
-      temperature: 0,
-      system: QUOTE_SELECTION_SYSTEM_PROMPT,
-      messages: [
-        {
-          role: "user",
-          content: buildQuoteSelectionUserPrompt({
-            personalitySection: args.personalitySection,
-            recentFeedbackSection: args.recentFeedbackSection,
-            candidates: args.candidates.map((candidate, index) => ({
-              index: index + 1,
-              text: candidate.text,
-              author: candidate.author,
-              category: candidate.category
-            }))
-          })
-        }
-      ]
-    })
+  const text = await callAnthropicCompatibleTextModel({
+    model: modelName,
+    systemPrompt: QUOTE_SELECTION_SYSTEM_PROMPT,
+    userPrompt: buildQuoteSelectionUserPrompt({
+      personalitySection: args.personalitySection,
+      recentFeedbackSection: args.recentFeedbackSection,
+      candidates: args.candidates.map((candidate, index) => ({
+        index: index + 1,
+        text: candidate.text,
+        author: candidate.author,
+        category: candidate.category
+      }))
+    }),
+    maxTokens: 160,
+    temperature: 0,
+    missingApiKeyError: "MISSING_ANTHROPIC_API_KEY",
+    invalidResponseError: "INVALID_SELECTOR_RESPONSE",
+    emptyResponseError: "EMPTY_SELECTOR_RESPONSE",
+    httpErrorPrefix: "ANTHROPIC_QUOTE_HTTP_"
   });
-
-  if (!response.ok) {
-    throw new Error(`ANTHROPIC_QUOTE_HTTP_${response.status}`);
-  }
-
-  const json = (await response.json().catch(() => null)) as unknown;
-  const text = extractTextContent(json);
   return parseSelectedIndex(text, args.candidates.length);
 }
 

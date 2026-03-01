@@ -123,7 +123,7 @@ export async function POST(request: Request) {
         {
           ok: false,
           error_code: "MODEL_AUTH_ERROR",
-          message: "Anthropic authentication failed. Check server API key env and restart dev server."
+          message: "Model provider authentication failed. Check the configured API key env and restart dev server."
         },
         { status: 500 }
       );

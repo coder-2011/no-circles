@@ -1,4 +1,8 @@
-const ANTHROPIC_MESSAGES_API_URL = "https://api.anthropic.com/v1/messages";
+import {
+  callAnthropicCompatibleTextModel,
+  requireFirstEnv
+} from "@/lib/ai/text-model-client";
+
 const DEFAULT_SERENDIPITY_TOPIC_COUNT = 2;
 
 type DiscoveryBrief = {
@@ -13,34 +17,6 @@ function parseJsonFromModelText(text: string): unknown {
   const fencedMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
   const candidate = (fencedMatch?.[1] ?? trimmed).trim();
   return JSON.parse(candidate);
-}
-
-function extractTextContent(value: unknown): string {
-  if (!value || typeof value !== "object") {
-    throw new Error("INVALID_SERENDIPITY_SELECTOR_RESPONSE");
-  }
-
-  const content = (value as { content?: unknown }).content;
-  if (!Array.isArray(content)) {
-    throw new Error("INVALID_SERENDIPITY_SELECTOR_RESPONSE");
-  }
-
-  const text = content
-    .filter((chunk): chunk is { type: string; text: string } => {
-      if (!chunk || typeof chunk !== "object") return false;
-      const candidate = chunk as { type?: unknown; text?: unknown };
-      return candidate.type === "text" && typeof candidate.text === "string";
-    })
-    .map((chunk) => chunk.text.trim())
-    .filter(Boolean)
-    .join("\n")
-    .trim();
-
-  if (!text) {
-    throw new Error("EMPTY_SERENDIPITY_SELECTOR_RESPONSE");
-  }
-
-  return text;
 }
 
 function normalizeTopic(topic: string): string {
@@ -153,51 +129,38 @@ export async function selectSerendipityTopics(args: {
   const maxTopics = Math.max(1, Math.floor(args.maxTopics ?? DEFAULT_SERENDIPITY_TOPIC_COUNT));
   if (args.activeTopics.length === 0) return [];
 
-  const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
-  const modelName =
-    process.env.ANTHROPIC_SERENDIPITY_MODEL?.trim() ||
-    process.env.ANTHROPIC_LINK_SELECTOR_MODEL?.trim() ||
-    process.env.ANTHROPIC_SUMMARY_MODEL?.trim() ||
-    process.env.ANTHROPIC_MEMORY_MODEL?.trim();
+  const modelName = requireFirstEnv(
+    [
+      "OPENROUTER_SERENDIPITY_MODEL",
+      "OPENROUTER_LINK_SELECTOR_MODEL",
+      "OPENROUTER_SUMMARY_MODEL",
+      "OPENROUTER_MEMORY_MODEL",
+      "ANTHROPIC_SERENDIPITY_MODEL",
+      "ANTHROPIC_LINK_SELECTOR_MODEL",
+      "ANTHROPIC_SUMMARY_MODEL",
+      "ANTHROPIC_MEMORY_MODEL"
+    ],
+    "MISSING_ANTHROPIC_SERENDIPITY_MODEL"
+  );
 
   // No deterministic topic synthesis fallback: caller can continue without serendipity lane.
-  if (!apiKey || !modelName) {
-    return [];
-  }
-
   try {
-    const response = await fetch(ANTHROPIC_MESSAGES_API_URL, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01"
-      },
-      body: JSON.stringify({
-        model: modelName,
-        max_tokens: 140,
-        temperature: 0.85,
-        system: buildSystemPrompt(),
-        messages: [
-          {
-            role: "user",
-              content: buildPrompt({
-                activeTopics: args.activeTopics,
-                interestMemoryText: args.interestMemoryText,
-                discoveryBrief: args.discoveryBrief,
-                maxTopics
-              })
-          }
-        ]
-      })
+    const text = await callAnthropicCompatibleTextModel({
+      model: modelName,
+      systemPrompt: buildSystemPrompt(),
+      userPrompt: buildPrompt({
+        activeTopics: args.activeTopics,
+        interestMemoryText: args.interestMemoryText,
+        discoveryBrief: args.discoveryBrief,
+        maxTopics
+      }),
+      maxTokens: 140,
+      temperature: 0.85,
+      missingApiKeyError: "MISSING_ANTHROPIC_API_KEY",
+      invalidResponseError: "INVALID_SERENDIPITY_SELECTOR_RESPONSE",
+      emptyResponseError: "EMPTY_SERENDIPITY_SELECTOR_RESPONSE",
+      httpErrorPrefix: "ANTHROPIC_SERENDIPITY_SELECTOR_HTTP_"
     });
-
-    if (!response.ok) {
-      throw new Error(`ANTHROPIC_SERENDIPITY_SELECTOR_HTTP_${response.status}`);
-    }
-
-    const json = (await response.json().catch(() => null)) as unknown;
-    const text = extractTextContent(json);
     const selected = parseSelectedTopics({
       text,
       activeTopics: args.activeTopics,

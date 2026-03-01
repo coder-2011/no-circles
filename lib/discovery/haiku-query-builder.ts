@@ -1,4 +1,8 @@
-const ANTHROPIC_MESSAGES_API_URL = "https://api.anthropic.com/v1/messages";
+import {
+  callAnthropicCompatibleTextModel,
+  requireFirstEnv
+} from "@/lib/ai/text-model-client";
+
 const MAX_QUERY_LENGTH = 140;
 const MIN_QUERY_LENGTH = 12;
 const QUERY_BUILDER_TEMPERATURE = 0.85;
@@ -12,34 +16,6 @@ type DiscoveryBrief = {
 
 function normalizeLine(value: string): string {
   return value.replace(/\s+/g, " ").trim();
-}
-
-function extractTextContent(value: unknown): string {
-  if (!value || typeof value !== "object") {
-    throw new Error("INVALID_QUERY_BUILDER_RESPONSE");
-  }
-
-  const content = (value as { content?: unknown }).content;
-  if (!Array.isArray(content)) {
-    throw new Error("INVALID_QUERY_BUILDER_RESPONSE");
-  }
-
-  const text = content
-    .filter((chunk): chunk is { type: string; text: string } => {
-      if (!chunk || typeof chunk !== "object") return false;
-      const candidate = chunk as { type?: unknown; text?: unknown };
-      return candidate.type === "text" && typeof candidate.text === "string";
-    })
-    .map((chunk) => chunk.text.trim())
-    .filter(Boolean)
-    .join(" ")
-    .trim();
-
-  if (!text) {
-    throw new Error("EMPTY_QUERY_BUILDER_RESPONSE");
-  }
-
-  return text;
 }
 
 function buildSystemPrompt(): string {
@@ -106,50 +82,39 @@ export async function buildHaikuQuery(args: {
   attempt: number;
   referenceDateUtc?: Date;
 }): Promise<string> {
-  const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
-  const modelName =
-    process.env.ANTHROPIC_QUERY_BUILDER_MODEL?.trim() ||
-    process.env.ANTHROPIC_LINK_SELECTOR_MODEL?.trim() ||
-    process.env.ANTHROPIC_SUMMARY_MODEL?.trim() ||
-    process.env.ANTHROPIC_MEMORY_MODEL?.trim();
-
-  if (!apiKey) throw new Error("MISSING_ANTHROPIC_API_KEY");
-  if (!modelName) throw new Error("MISSING_ANTHROPIC_QUERY_BUILDER_MODEL");
+  const modelName = requireFirstEnv(
+    [
+      "OPENROUTER_QUERY_BUILDER_MODEL",
+      "OPENROUTER_LINK_SELECTOR_MODEL",
+      "OPENROUTER_SUMMARY_MODEL",
+      "OPENROUTER_MEMORY_MODEL",
+      "ANTHROPIC_QUERY_BUILDER_MODEL",
+      "ANTHROPIC_LINK_SELECTOR_MODEL",
+      "ANTHROPIC_SUMMARY_MODEL",
+      "ANTHROPIC_MEMORY_MODEL"
+    ],
+    "MISSING_ANTHROPIC_QUERY_BUILDER_MODEL"
+  );
 
   const referenceDateUtc = (args.referenceDateUtc ?? new Date()).toISOString();
-  const response = await fetch(ANTHROPIC_MESSAGES_API_URL, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01"
-    },
-    body: JSON.stringify({
-      model: modelName,
-      max_tokens: 90,
-      temperature: QUERY_BUILDER_TEMPERATURE,
-      system: buildSystemPrompt(),
-      messages: [
-        {
-          role: "user",
-          content: buildUserPrompt({
-            topic: args.topic,
-            interestMemoryText: args.interestMemoryText,
-            discoveryBrief: args.discoveryBrief,
-            attempt: args.attempt,
-            referenceDateUtc
-          })
-        }
-      ]
-    })
+  const modelText = await callAnthropicCompatibleTextModel({
+    model: modelName,
+    systemPrompt: buildSystemPrompt(),
+    userPrompt: buildUserPrompt({
+      topic: args.topic,
+      interestMemoryText: args.interestMemoryText,
+      discoveryBrief: args.discoveryBrief,
+      attempt: args.attempt,
+      referenceDateUtc
+    }),
+    maxTokens: 90,
+    temperature: QUERY_BUILDER_TEMPERATURE,
+    missingApiKeyError: "MISSING_ANTHROPIC_API_KEY",
+    invalidResponseError: "INVALID_QUERY_BUILDER_RESPONSE",
+    emptyResponseError: "EMPTY_QUERY_BUILDER_RESPONSE",
+    httpErrorPrefix: "ANTHROPIC_QUERY_BUILDER_HTTP_"
   });
-
-  if (!response.ok) {
-    throw new Error(`ANTHROPIC_QUERY_BUILDER_HTTP_${response.status}`);
-  }
-
-  const json = (await response.json().catch(() => null)) as unknown;
-  const rawQuery = normalizeLine(extractTextContent(json)).replace(/^["'`]+|["'`]+$/g, "");
+  const rawQuery = normalizeLine(modelText).replace(/^["'`]+|["'`]+$/g, "");
   const singleLineQuery = rawQuery.split("\n")[0]?.trim() ?? "";
   const query = singleLineQuery.length > MAX_QUERY_LENGTH ? singleLineQuery.slice(0, MAX_QUERY_LENGTH).trim() : singleLineQuery;
   const validation = validateQuery(query);

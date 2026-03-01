@@ -1,4 +1,8 @@
 import { buildSummaryPrompt, SUMMARY_SYSTEM_PROMPT } from "@/lib/ai/summary-prompts";
+import {
+  callAnthropicCompatibleTextModel,
+  requireFirstEnv
+} from "@/lib/ai/text-model-client";
 import { parseSections } from "@/lib/memory/contract";
 import { logInfo, logWarn } from "@/lib/observability/log";
 import { summaryWriterOutputSchema } from "@/lib/schemas";
@@ -26,7 +30,6 @@ type GenerateSummariesInput = {
   maxWords?: number;
 };
 
-const ANTHROPIC_MESSAGES_API_URL = "https://api.anthropic.com/v1/messages";
 const DEFAULT_TARGET_WORDS = 100;
 const DEFAULT_WORD_RANGE_DELTA = 20;
 const MAX_RETRY_COUNT = 1;
@@ -56,37 +59,6 @@ function logSummaryEvent(level: "info" | "warn", event: string, details: Record<
   }
 
   logInfo("summary_writer", event, details);
-}
-
-function extractTextContent(value: unknown): string {
-  if (!value || typeof value !== "object") {
-    throw new Error("INVALID_MODEL_RESPONSE");
-  }
-
-  const content = (value as { content?: unknown }).content;
-  if (!Array.isArray(content)) {
-    throw new Error("INVALID_MODEL_RESPONSE");
-  }
-
-  const text = content
-    .filter((chunk): chunk is { type: string; text: string } => {
-      if (!chunk || typeof chunk !== "object") {
-        return false;
-      }
-
-      const candidate = chunk as { type?: unknown; text?: unknown };
-      return candidate.type === "text" && typeof candidate.text === "string";
-    })
-    .map((chunk) => chunk.text.trim())
-    .filter(Boolean)
-    .join("\n")
-    .trim();
-
-  if (!text) {
-    throw new Error("EMPTY_MODEL_RESPONSE");
-  }
-
-  return text;
 }
 
 function parseJsonFromModelText(text: string): unknown {
@@ -135,43 +107,22 @@ function isQualityFailure(errorMessage: string): boolean {
 }
 
 async function callSummaryModel(args: CallSummaryModelArgs): Promise<string> {
-  const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
-  const modelName = process.env.ANTHROPIC_SUMMARY_MODEL?.trim() || process.env.ANTHROPIC_MEMORY_MODEL?.trim();
+  const modelName = requireFirstEnv(
+    ["OPENROUTER_SUMMARY_MODEL", "OPENROUTER_MEMORY_MODEL", "ANTHROPIC_SUMMARY_MODEL", "ANTHROPIC_MEMORY_MODEL"],
+    "MISSING_ANTHROPIC_SUMMARY_OR_MEMORY_MODEL"
+  );
 
-  if (!apiKey) {
-    throw new Error("MISSING_ANTHROPIC_API_KEY");
-  }
-
-  if (!modelName) {
-    throw new Error("MISSING_ANTHROPIC_SUMMARY_OR_MEMORY_MODEL");
-  }
-
-  const response = await fetch(ANTHROPIC_MESSAGES_API_URL, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01"
-    },
-    body: JSON.stringify({
-      model: modelName,
-      max_tokens: 350,
-      temperature: 0,
-      system: args.systemPrompt,
-      messages: [{ role: "user", content: args.prompt }]
-    })
+  return callAnthropicCompatibleTextModel({
+    model: modelName,
+    systemPrompt: args.systemPrompt,
+    userPrompt: args.prompt,
+    maxTokens: 350,
+    temperature: 0,
+    missingApiKeyError: "MISSING_ANTHROPIC_API_KEY",
+    invalidResponseError: "INVALID_MODEL_RESPONSE",
+    emptyResponseError: "EMPTY_MODEL_RESPONSE",
+    httpErrorPrefix: "ANTHROPIC_HTTP_"
   });
-
-  if (!response.ok) {
-    throw new Error(`ANTHROPIC_HTTP_${response.status}`);
-  }
-
-  const json = (await response.json().catch(() => null)) as unknown;
-  if (!json) {
-    throw new Error("INVALID_MODEL_RESPONSE");
-  }
-
-  return extractTextContent(json);
 }
 
 function resolveWordRange(input: GenerateSummariesInput): { minWords: number; maxWords: number } {
