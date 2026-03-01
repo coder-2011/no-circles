@@ -3,7 +3,13 @@ import path from "node:path";
 
 const LOG_ROOT = path.join(process.cwd(), "logs", "hyper");
 
-export type HyperLogGroup = "pipeline-seam" | "full-system" | "reply-evolution" | "query-system" | "serendipity";
+export type HyperLogGroup =
+  | "pipeline-seam"
+  | "full-system"
+  | "reply-evolution"
+  | "query-system"
+  | "serendipity"
+  | "reflection-live";
 
 export async function writeHyperLog(args: {
   group: HyperLogGroup;

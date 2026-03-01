@@ -65,6 +65,11 @@ hyper-reply-evolution-live:
 	set -a; [ -f ./.env.local ] && . ./.env.local; set +a; \
 	npx vitest run --config vitest.hyper.config.ts tests/hyper/reply-evolution-live.integration.test.ts
 
+# Run caring reflection hyper live integration test with local env loaded
+hyper-reflection-live:
+	set -a; [ -f ./.env.local ] && . ./.env.local; set +a; \
+	npx vitest run --config vitest.hyper.config.ts tests/hyper/reflection-live.integration.test.ts
+
 # Run query-system hyper live integration test with local env loaded
 hyper-query-system-live:
 	set -a; [ -f ./.env.local ] && . ./.env.local; set +a; \
