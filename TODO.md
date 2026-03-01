@@ -14,7 +14,10 @@ Rules:
 - [ ] Design, produce, and distribute physical bookmarks as a GTM experiment.
 
 ## Product
+- [x] Create a screenshot-inspired lilac-parchment newsletter theme preview in `reports/` for review before production theme integration.
 - [x] Evaluate Qwen 3.5 family models against the current OpenRouter recommendation using repo-shaped tasks and publish the result.
+- [x] Lower the default newsletter summary target to 75 words to reduce density without abruptly changing the product feel.
+- [x] Rewrite newsletter title rules so confusing source headlines can be recast for immediate clarity.
 - [x] Build the core personalized newsletter pipeline from onboarding through delivery and reply-driven memory updates.
 - [x] Write a canonical pricing and unit-economics spec for the live pipeline, including per-user monthly cost drivers and reflection-model upgrade costs.
 - [x] Draft a global top-right sharp-corner decorative chrome motif so the visual direction can be reviewed against the logo/system style.
@@ -35,6 +38,8 @@ Rules:
 - [ ] Update the user-facing onboarding pricing copy to match the canonical pricing spec once the desired search/reflection configuration is chosen.
 
 ## Ops
+- [x] Research reliable paywalled-site detection signals and design a script to filter them from discovery results.
+- [x] Publish a clean comparison doc for the latest reply-evolution live run versus the closest previous live run, with fallback context from the nearest successful prior run.
 - [x] Align `.env.local` OpenRouter model routing to the approved non-Qwen-3.5 production map.
 - [x] Validate the OpenRouter Qwen migration against the full hyper Vitest configuration and fix any regressions in live model routing or hyper test assumptions.
 - [x] Migrate the text-model stack to the approved OpenRouter Qwen routing plan, replacing the Anthropic-specific LLM call layer while keeping Perplexity/Exa and the rest of the stack scoped separately.
