@@ -45,6 +45,10 @@ Output:
 - Neutral, factual, source-grounded.
 - Mild connective phrasing allowed.
 - No speculative claims beyond provided highlights.
-- Summaries should cover core concepts/mechanisms/findings from highlights, not only meta high-level framing.
+- Clarity outranks compression: summaries should explain the main idea coherently rather than trying to cover every available detail.
+- Summaries should cover the core concepts/mechanisms/findings from highlights, not only meta high-level framing.
+- The writer should choose the `2-4` concrete details that best make the article understandable.
+- Simple, direct language is preferred when it can preserve the substance.
+- The prompt encourages explanatory prose over fact-dense sentence packing and avoids note-like/list-like writing.
 - Default reader assumption stays `curious generalist`.
 - `PERSONALITY` can locally tune depth, jargon tolerance, and framing, including topic-scoped preferences when the current item clearly matches them.
