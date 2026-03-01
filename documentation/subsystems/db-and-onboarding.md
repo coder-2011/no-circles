@@ -8,6 +8,7 @@ Implements foundational persistence and onboarding write path for V1:
 
 ## Current Implementation
 - DB client: `lib/db/client.ts`
+- Auth refresh proxy: `proxy.ts`, `lib/auth/proxy.ts`
 - Schema: `lib/db/schema.ts`
 - Migration tooling: `drizzle.config.ts` + `db/migrations/*`
 - Route: `app/api/onboarding/route.ts`
@@ -27,6 +28,10 @@ Implements foundational persistence and onboarding write path for V1:
 6. If upsert is a first insert, route sends welcome intro transactional email immediately.
 7. Route then triggers deferred welcome issue send (5 items, `welcome` variant) via `after(...)`.
 8. Response returns `{ ok: true, user_id }`.
+
+Auth/session note:
+- request-time Supabase auth refresh runs in `proxy.ts` so fresh OAuth sessions are visible to server auth checks on the next request
+- onboarding client retries one short session recovery before forcing a second OAuth round-trip on `401`
 
 Error cases:
 - invalid payload -> `400 INVALID_PAYLOAD`

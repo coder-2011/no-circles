@@ -11,10 +11,11 @@ Handles OAuth callback code exchange and writes Supabase session cookies for ser
 ## Behavior
 1. Creates Supabase server client with request cookies.
 2. Exchanges `code` for a session when present.
-3. Resolves redirect origin from request context with environment guard:
+3. Writes refreshed auth cookies that are then kept aligned on later requests by `proxy.ts`.
+4. Resolves redirect origin from request context with environment guard:
    - if `callback_origin` is provided and is a localhost-origin, use it as highest-priority redirect origin
    - localhost request URLs (`localhost`/`127.0.0.1`/`::1`) always use request origin, even in production mode
    - non-production: otherwise always uses request origin (`request.url`) to prevent proxy/header drift in local dev
    - production: uses forwarded host/proto when present, else request origin
-4. Redirects to `next` path on success.
-5. Redirects to `/?auth=oauth_error` on code-exchange failure.
+5. Redirects to `next` path on success.
+6. Redirects to `/?auth=oauth_error` on code-exchange failure.

@@ -13,7 +13,9 @@ Encapsulates onboarding page state, side effects, and action handlers as a reusa
 - submit onboarding payload to `POST /api/onboarding`
 - on successful save, clear onboarding drafts, keep user on onboarding page, show celebratory save state, and display near-term intro/first-email status copy
 - auto-hide celebratory save state after a short timeout (`3400ms`)
-- on `401` submit response, persist reauth-recovery flag, redirect to Google sign-in, and show draft-recovered message after session restore
+- subscribe to `supabase.auth.onAuthStateChange(...)` so the page reacts to freshly established browser sessions after OAuth
+- on `401` submit response, attempt one short browser-session recovery + retry before falling back to Google sign-in
+- if reauth is still required, persist reauth-recovery flag, redirect to Google sign-in, and show draft-recovered message after session restore
 - build OAuth redirect URL from current browser origin (`window.location.origin`) so localhost and production always stay on their active host
 - include `callback_origin` query param in OAuth redirect URL so callback can explicitly preserve localhost final redirect in fallback-heavy environments
 - derive no-permission local defaults:
@@ -32,6 +34,7 @@ Encapsulates onboarding page state, side effects, and action handlers as a reusa
 - `send_time_local` is derived from hour/minute/meridiem state via `buildSendTime`, avoiding redundant state syncing.
 - onboarding prefs draft writes include a schema version, and legacy unschematized `6:00 PM` auto-default drafts are ignored so current default `8:00 AM` local is preserved.
 - auth bootstrap reads from Supabase `getSession()` for lower-latency client-side state initialization.
+- auth bootstrap is paired with `onAuthStateChange()` so onboarding can recover from post-callback session races more reliably.
 - Deepgram dictation warmup prefetches both token + dictation module with cooldown gating; start flow reuses cached token when it is still outside safety window.
 - Deepgram dictation helpers are lazy-imported and promise-deduped, so parallel warmup/start interactions do not trigger duplicate module loads.
 - quick-sparks are loaded from `public/onboarding-quick-sparks.txt` and consumed from a persisted non-repeating deck (`unseen` -> `seen`) so refreshes avoid repeats until the pool is exhausted.
