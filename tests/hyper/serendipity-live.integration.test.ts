@@ -30,14 +30,20 @@ const ACTIVE_TOPICS = [
 
 function missingLiveEnv(): string[] {
   const missing: string[] = [];
-  if (!process.env.ANTHROPIC_API_KEY) missing.push("ANTHROPIC_API_KEY");
+  if (!process.env.OPENROUTER_API_KEY && !process.env.ANTHROPIC_API_KEY) {
+    missing.push("OPENROUTER_API_KEY|ANTHROPIC_API_KEY");
+  }
   if (
+    !process.env.OPENROUTER_SERENDIPITY_MODEL &&
+    !process.env.OPENROUTER_LINK_SELECTOR_MODEL &&
+    !process.env.OPENROUTER_SUMMARY_MODEL &&
+    !process.env.OPENROUTER_MEMORY_MODEL &&
     !process.env.ANTHROPIC_SERENDIPITY_MODEL &&
     !process.env.ANTHROPIC_LINK_SELECTOR_MODEL &&
     !process.env.ANTHROPIC_SUMMARY_MODEL &&
     !process.env.ANTHROPIC_MEMORY_MODEL
   ) {
-    missing.push("ANTHROPIC_*_MODEL");
+    missing.push("OPENROUTER_*_MODEL|ANTHROPIC_*_MODEL");
   }
   return missing;
 }

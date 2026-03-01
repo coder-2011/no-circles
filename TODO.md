@@ -35,6 +35,8 @@ Rules:
 - [ ] Update the user-facing onboarding pricing copy to match the canonical pricing spec once the desired search/reflection configuration is chosen.
 
 ## Ops
+- [x] Align `.env.local` OpenRouter model routing to the approved non-Qwen-3.5 production map.
+- [x] Validate the OpenRouter Qwen migration against the full hyper Vitest configuration and fix any regressions in live model routing or hyper test assumptions.
 - [x] Migrate the text-model stack to the approved OpenRouter Qwen routing plan, replacing the Anthropic-specific LLM call layer while keeping Perplexity/Exa and the rest of the stack scoped separately.
 - [x] Run a temporary Exa-vs-Sonar discovery evaluation with prompt/query variants and publish a clean comparison report for manual quality review.
 - [x] Replace the stale branch-by-branch roadmap with a single markdown task system in root `TODO.md`.

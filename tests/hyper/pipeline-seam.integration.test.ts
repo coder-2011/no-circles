@@ -53,6 +53,7 @@ describe("hyper integration: pipeline seam", () => {
       preferredName: "Hyper",
       timezone: "UTC",
       interestMemoryText: memory,
+      lastReflectionAt: null,
       sentUrlBloomBits: null as string | null
     };
 
@@ -112,6 +113,22 @@ describe("hyper integration: pipeline seam", () => {
         {
           loadUserFn: async () => ({ ...mutableUser }),
           runDiscoveryFn,
+          loadRecentEmailHistoryFn: async () => ({
+            recentSentEmails: [],
+            recentReplyEmails: []
+          }),
+          runBiDailyReflectionFn: async () => ({
+            reviewedAt: runAtUtc,
+            decision: "no_change" as const,
+            memoryText: mutableUser.interestMemoryText,
+            discoveryBrief: {
+              reinforceTopics: [],
+              avoidPatterns: [],
+              preferredAngles: [],
+              noveltyMoves: []
+            }
+          }),
+          persistReflectionResultFn: async () => undefined,
           getFinalHighlightsByUrlFn: async ({ urls }) => new Map(urls.map((url) => [url, [`Highlight for ${url}`]])),
           generateSummariesFn: async ({ items }) => {
             summaryUrlRuns.push(items.map((item) => item.url));
@@ -119,11 +136,13 @@ describe("hyper integration: pipeline seam", () => {
           },
           sendNewsletterFn: async () => ({ ok: true, providerMessageId: "msg_hyper", attempts: 1, error: null }),
           reserveIdempotencyFn: async () => ({ outcome: "claimed", status: "processing", providerMessageId: null }),
+          markIdempotencySentFn: async () => undefined,
           markIdempotencyFailedFn: async () => undefined,
           persistSendSuccessFn: async ({ bloomState, runAtUtc: persistedRunAtUtc }) => {
             mutableUser.sentUrlBloomBits = encodeBloomBitsBase64(bloomState);
             void persistedRunAtUtc;
-          }
+          },
+          recordSentEmailHistoryFn: async () => undefined
         }
       );
     };

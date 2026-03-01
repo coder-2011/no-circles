@@ -62,9 +62,16 @@ function missingLiveEnv(): string[] {
   const missing: string[] = [];
   if (!process.env.DATABASE_URL) missing.push("DATABASE_URL");
   if (!process.env.PERPLEXITY_API_KEY) missing.push("PERPLEXITY_API_KEY");
-  if (!process.env.ANTHROPIC_API_KEY) missing.push("ANTHROPIC_API_KEY");
-  if (!process.env.ANTHROPIC_MEMORY_MODEL && !process.env.ANTHROPIC_SUMMARY_MODEL) {
-    missing.push("ANTHROPIC_MEMORY_MODEL|ANTHROPIC_SUMMARY_MODEL");
+  if (!process.env.OPENROUTER_API_KEY && !process.env.ANTHROPIC_API_KEY) {
+    missing.push("OPENROUTER_API_KEY|ANTHROPIC_API_KEY");
+  }
+  if (
+    !process.env.OPENROUTER_MEMORY_MODEL &&
+    !process.env.OPENROUTER_SUMMARY_MODEL &&
+    !process.env.ANTHROPIC_MEMORY_MODEL &&
+    !process.env.ANTHROPIC_SUMMARY_MODEL
+  ) {
+    missing.push("OPENROUTER_MEMORY_MODEL|OPENROUTER_SUMMARY_MODEL|ANTHROPIC_MEMORY_MODEL|ANTHROPIC_SUMMARY_MODEL");
   }
   return missing;
 }
