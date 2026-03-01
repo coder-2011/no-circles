@@ -13,7 +13,8 @@ Provides a shared structured logger used by runtime subsystems to emit consisten
 ## Behavior
 - Serializes logs as JSON strings via `console.info`, `console.warn`, or `console.error`.
 - Normalizes top-level `Error` objects to `{ name, message, stack }` for readable diagnostics.
-- For every `logError(...)` call, asynchronously forwards the event into the admin alert path so the configured admin receives an email (subject to DB-backed dedupe/cooldown in `admin_alert_state`).
+- For every `logError(...)` call, lazily imports the admin alert path and forwards the event only when admin alerts are enabled and an admin email is configured. This keeps logger imports safe in test or local contexts where DB env is intentionally absent.
+- Forwarded admin error emails are still subject to DB-backed dedupe/cooldown in `admin_alert_state`.
 - Exposes helper functions:
   - `logEvent(...)`
   - `logInfo(...)`

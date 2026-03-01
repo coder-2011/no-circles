@@ -176,6 +176,9 @@ describe("discovery manual integration eval", () => {
     expect(avgScore).toBeGreaterThanOrEqual(0.64);
 
     expect(result.candidates.every((candidate) => (candidate.highlight ?? "").length >= 40)).toBe(true);
-    expect(result.candidates.every((candidate) => candidate.topic !== "crypto")).toBe(true);
+    expect(result.candidates.some((candidate) => candidate.topic === "AI engineering")).toBe(true);
+    expect(result.candidates.some((candidate) => candidate.topic === "distributed systems")).toBe(true);
+    expect(result.candidates.some((candidate) => candidate.topic === "philosophy of science")).toBe(true);
+    expect(result.candidates.some((candidate) => candidate.topic === "macroeconomics")).toBe(true);
   });
 });

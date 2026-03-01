@@ -95,6 +95,7 @@ describe("sendUserNewsletter", () => {
 
     const sendNewsletterFn = vi.fn(async () => ({ ok: true, providerMessageId: "msg_1", attempts: 1, error: null }));
     const markIdempotencyFailedFn = vi.fn(async () => undefined);
+    const markIdempotencySentFn = vi.fn(async () => undefined);
     const persistSendSuccessFn = vi.fn(async () => undefined);
     const selectQuoteFn = vi.fn(async () => selectedQuote);
     const renderNewsletterFn = vi.fn(() => ({
@@ -117,6 +118,7 @@ describe("sendUserNewsletter", () => {
         selectThemeTemplateFn: () => "07-merlot-ink",
         sendNewsletterFn,
         reserveIdempotencyFn: async () => ({ outcome: "claimed", status: "processing", providerMessageId: null }),
+        markIdempotencySentFn,
         markIdempotencyFailedFn,
         persistSendSuccessFn
       })
@@ -294,6 +296,7 @@ describe("sendUserNewsletter", () => {
 
   it("proceeds with send when failed idempotency row is reclaimed", async () => {
     const sendNewsletterFn = vi.fn(async () => ({ ok: true, providerMessageId: "msg_retry", attempts: 1, error: null }));
+    const markIdempotencySentFn = vi.fn(async () => undefined);
     const selectQuoteFn = vi.fn(async () => selectedQuote);
 
     const result = await sendUserNewsletter(
@@ -308,6 +311,7 @@ describe("sendUserNewsletter", () => {
         generateSummariesFn: async ({ items }) => items.map((item) => ({ title: item.title, summary: "summary", url: item.url })),
         selectQuoteFn,
         reserveIdempotencyFn: async () => ({ outcome: "retryable_failed_claimed", status: "processing", providerMessageId: null }),
+        markIdempotencySentFn,
         persistSendSuccessFn: async () => undefined,
         sendNewsletterFn
       })
@@ -336,6 +340,7 @@ describe("sendUserNewsletter", () => {
   });
 
   it("drops entries with missing highlights and still sends remaining items", async () => {
+    const markIdempotencySentFn = vi.fn(async () => undefined);
     const renderNewsletterFn = vi.fn(() => ({
       subject: "Daily",
       html: "<p>daily</p>",
@@ -360,6 +365,7 @@ describe("sendUserNewsletter", () => {
         generateSummariesFn: async ({ items }) => items.map((item) => ({ title: item.title, summary: "summary", url: item.url })),
         selectQuoteFn: async () => selectedQuote,
         reserveIdempotencyFn: async () => ({ outcome: "claimed", status: "processing", providerMessageId: null }),
+        markIdempotencySentFn,
         renderNewsletterFn,
         sendNewsletterFn: async () => ({ ok: true, providerMessageId: "msg_partial", attempts: 1, error: null }),
         persistSendSuccessFn: async () => undefined
@@ -379,6 +385,7 @@ describe("sendUserNewsletter", () => {
   });
 
   it("supports welcome variant with configurable target item count", async () => {
+    const markIdempotencySentFn = vi.fn(async () => undefined);
     const renderNewsletterFn = vi.fn(() => ({
       subject: "Welcome to No Circles - your first issue",
       html: "<p>welcome</p>",
@@ -399,6 +406,7 @@ describe("sendUserNewsletter", () => {
         generateSummariesFn: async ({ items }) => items.map((item) => ({ title: item.title, summary: "summary", url: item.url })),
         selectQuoteFn: async () => selectedQuote,
         reserveIdempotencyFn: async () => ({ outcome: "claimed", status: "processing", providerMessageId: null }),
+        markIdempotencySentFn,
         renderNewsletterFn,
         selectThemeTemplateFn: () => "10-mint-fig",
         sendNewsletterFn: async () => ({ ok: true, providerMessageId: "msg_welcome", attempts: 1, error: null }),

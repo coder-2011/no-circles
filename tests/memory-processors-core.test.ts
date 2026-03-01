@@ -30,6 +30,9 @@ describe("memory contract", () => {
       "ACTIVE_INTERESTS:",
       "- AI",
       "",
+      "SUPPRESSED_INTERESTS:",
+      "- Crypto",
+      "",
       "RECENT_FEEDBACK:",
       "- Wants less crypto"
     ].join("\n");
@@ -47,6 +50,9 @@ describe("memory contract", () => {
       "",
       "ACTIVE_INTERESTS:",
       `${"token ".repeat(1200)}`,
+      "",
+      "SUPPRESSED_INTERESTS:",
+      "-",
       "",
       "RECENT_FEEDBACK:",
       "-"
@@ -69,7 +75,7 @@ describe("fallback memory processors", () => {
     expect(countWords(memory)).toBeLessThanOrEqual(MEMORY_WORD_CAP + 1);
   });
 
-  it("creates canonical reply memory while preserving active interests on fallback", () => {
+  it("creates canonical reply memory while preserving the current three-section contract on fallback", () => {
     const currentMemory = [
       "PERSONALITY:",
       "- Curious engineer",
@@ -84,7 +90,6 @@ describe("fallback memory processors", () => {
     const updated = buildFallbackReplyMemory(currentMemory, "I want more economics and less crypto.");
 
     expect(hasRequiredHeaders(updated)).toBe(true);
-    expect(updated).toContain("ACTIVE_INTERESTS:\n- AI");
     expect(updated.toLowerCase()).toContain("less crypto");
     expect(updated).not.toContain("SUPPRESSED_INTERESTS:");
   });

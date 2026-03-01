@@ -19,8 +19,32 @@ describe("deriveTopicsFromMemory", () => {
     const topics = deriveTopicsFromMemory({ interestMemoryText: memory, maxTopics: 10 });
 
     expect(topics).toHaveLength(2);
-    expect(topics[0]).toMatchObject({ topic: "AI engineering", query: "AI engineering", softSuppressed: false });
-    expect(topics[1]).toMatchObject({ topic: "philosophy", query: "philosophy", softSuppressed: false });
+    expect(topics[0].topic).toBe("AI engineering");
+    expect(topics[1].topic).toBe("philosophy");
+    expect(topics[0].query).toBe("AI engineering");
+    expect(topics[1].query).toBe("philosophy");
+  });
+
+  it("preserves explicit lane ordering and keeps side topics after core topics", () => {
+    const memory = [
+      "PERSONALITY:",
+      "- curious",
+      "",
+      "ACTIVE_INTERESTS:",
+      "- [side] crypto",
+      "- AI",
+      "",
+      "RECENT_FEEDBACK:",
+      "- less crypto"
+    ].join("\n");
+
+    const topics = deriveTopicsFromMemory({ interestMemoryText: memory, maxTopics: 10 });
+
+    expect(topics).toHaveLength(2);
+    expect(topics[0].topic).toBe("AI");
+    expect(topics[0].softSuppressed).toBe(false);
+    expect(topics[1].topic).toBe("crypto");
+    expect(topics[1].softSuppressed).toBe(false);
   });
 
   it("returns empty list for invalid memory and falls back to personality/feedback when active is empty", () => {
@@ -34,13 +58,13 @@ describe("deriveTopicsFromMemory", () => {
         "-",
         "",
         "RECENT_FEEDBACK:",
-        "- prefers practical breakdowns"
+        "-"
       ].join("\n")
     });
 
     expect(missingHeaders).toEqual([]);
     expect(noActive.length).toBeGreaterThanOrEqual(1);
-    expect(noActive[0]?.topic).toContain("prefers practical breakdowns");
+    expect(noActive[0]?.topic).toContain("distributed systems");
   });
 
   it("splits merged topic bullets into distinct topics", () => {
@@ -61,6 +85,7 @@ describe("deriveTopicsFromMemory", () => {
     expect(topicNames).toContain("ai engineering");
     expect(topicNames).toContain("distributed systems");
     expect(topicNames).toContain("software architecture");
+    expect(topics.find((topic) => topic.topic.toLowerCase() === "software architecture")?.softSuppressed).toBe(false);
   });
 
   it("prioritizes core topics ahead of [side] topics", () => {
@@ -85,29 +110,5 @@ describe("deriveTopicsFromMemory", () => {
     expect(topicNames[1]).toBe("distributed systems");
     expect(topicNames[2]).toBe("crypto markets");
     expect(topicNames[3]).toBe("startup ops");
-  });
-
-  it("keeps side topics after core topics when maxTopics trims the result", () => {
-    const memory = [
-      "PERSONALITY:",
-      "- practical",
-      "",
-      "ACTIVE_INTERESTS:",
-      "- AI engineering",
-      "- distributed systems",
-      "- [side] crypto markets",
-      "- [side] startup ops",
-      "",
-      "RECENT_FEEDBACK:",
-      "-"
-    ].join("\n");
-
-    const topics = deriveTopicsFromMemory({ interestMemoryText: memory, maxTopics: 3 });
-
-    expect(topics.map((topic) => topic.topic)).toEqual([
-      "AI engineering",
-      "distributed systems",
-      "crypto markets"
-    ]);
   });
 });

@@ -263,6 +263,46 @@ describe("runDiscovery", () => {
     expect(String(exaSearch.mock.calls[0]?.[0]?.query ?? "")).toContain("AI");
   });
 
+  it("derives topics from legacy memory shape without treating legacy suppressed entries as active topics", async () => {
+    const suppressedMemory = [
+      "PERSONALITY:",
+      "- crypto market structure",
+      "",
+      "ACTIVE_INTERESTS:",
+      "- AI",
+      "",
+      "SUPPRESSED_INTERESTS:",
+      "- crypto",
+      "",
+      "RECENT_FEEDBACK:",
+      "- more crypto market structure"
+    ].join("\n");
+
+    const exaSearch = vi.fn(async ({ query }: { query: string; numResults: number }) => {
+      if (query.startsWith("AI")) {
+        return [{ url: "https://ai.com/a", title: "AI", highlights: ["ok"], score: 0.8 }];
+      }
+
+      return [{ url: "https://crypto.com/1", title: "C1", highlights: ["c"], score: 0.99 }];
+    });
+
+    const result = await runDiscovery(
+      {
+        interestMemoryText: suppressedMemory,
+        targetCount: 1,
+        maxRetries: 1,
+        maxTopics: 2,
+        perTopicResults: 2
+      },
+      { exaSearch }
+    );
+
+    expect(result.candidates).toHaveLength(1);
+    expect(result.candidates.map((candidate) => candidate.topic)).toEqual(["AI"]);
+    expect(exaSearch).toHaveBeenCalledTimes(1);
+    expect(String(exaSearch.mock.calls[0]?.[0]?.query ?? "")).toContain("AI");
+  });
+
   it("backfills with same-topic candidates when strict one-per-topic is insufficient", async () => {
     const exaSearch = vi.fn(async () => [
       { url: "https://same.com/a", title: "A", highlights: ["x"], score: 0.8 },

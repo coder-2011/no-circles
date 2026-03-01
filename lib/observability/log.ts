@@ -1,5 +1,3 @@
-import { notifyAdminOfError } from "@/lib/admin/alerts";
-
 export type LogLevel = "info" | "warn" | "error";
 
 type LogRecord = {
@@ -29,6 +27,15 @@ function normalizeDetails(details: Record<string, unknown>): Record<string, unkn
   }
 
   return normalized;
+}
+
+function shouldForwardAdminErrors(): boolean {
+  const enabled = process.env.ADMIN_ALERTS_ENABLED?.trim().toLowerCase();
+  if (enabled === "false" || enabled === "0" || enabled === "no") {
+    return false;
+  }
+
+  return Boolean(process.env.ADMIN_ALERT_EMAIL?.trim());
 }
 
 export function logEvent(args: {
@@ -69,7 +76,13 @@ export function logWarn(subsystem: string, event: string, details?: Record<strin
 
 export function logError(subsystem: string, event: string, details?: Record<string, unknown>): void {
   logEvent({ level: "error", subsystem, event, details });
-  void notifyAdminOfError({ subsystem, event, details }).catch((error) => {
+  if (!shouldForwardAdminErrors()) {
+    return;
+  }
+
+  void import("@/lib/admin/alerts")
+    .then(({ notifyAdminOfError }) => notifyAdminOfError({ subsystem, event, details }))
+    .catch((error) => {
     console.error(
       JSON.stringify({
         ts: new Date().toISOString(),
@@ -81,5 +94,5 @@ export function logError(subsystem: string, event: string, details?: Record<stri
         error: normalizeValue(error)
       })
     );
-  });
+    });
 }
