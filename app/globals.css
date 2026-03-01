@@ -45,40 +45,32 @@ body.site-cursor-active * {
 
 .site-corner-shards {
   position: fixed;
-  top: 0;
-  right: 0;
-  width: min(34vw, 24rem);
-  height: min(29vw, 19rem);
+  inset: 0;
   pointer-events: none;
+  overflow: hidden;
   z-index: 18;
-  opacity: 0.48;
+  opacity: 1;
 }
 
 .site-corner-shards__svg {
   width: 100%;
   height: 100%;
   overflow: visible;
+  transform: scale(1.04);
+  transform-origin: center center;
 }
 
 .site-corner-shards__group {
-  stroke: rgba(45, 52, 38, 0.34);
-  stroke-width: 1.2;
+  stroke: rgba(45, 52, 38, 0.15);
+  stroke-width: 1;
   stroke-linecap: square;
   stroke-linejoin: miter;
+  fill: none;
 }
 
-.site-corner-shards__group--core {
-  stroke-width: 1.35;
-}
-
-.site-corner-shards__group--micro {
-  stroke: rgba(45, 52, 38, 0.28);
-  stroke-width: 1.05;
-}
-
-.site-corner-shards__group--outer {
-  stroke: rgba(45, 52, 38, 0.22);
-  stroke-width: 1;
+.site-corner-shards__group--secondary {
+  stroke: rgba(45, 52, 38, 0.1);
+  stroke-width: 0.85;
 }
 
 .site-cursor {
@@ -244,9 +236,7 @@ body.site-cursor-active * {
 
 @media (max-width: 768px) {
   .site-corner-shards {
-    width: 13rem;
-    height: 9.75rem;
-    opacity: 0.38;
+    opacity: 0.86;
   }
 }
 
