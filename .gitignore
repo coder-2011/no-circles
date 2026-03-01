@@ -20,6 +20,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 logs/
+reports/
 
 # misc
 .DS_Store
@@ -29,7 +30,7 @@ playwright-report/
 
 # local agent state
 .codex/STATE.md
-.codex/STATE.md
+.task/
 
 images/
 .vercel
