@@ -44,7 +44,7 @@ Error cases:
 
 ## RLS Notes
 - `users` authenticated self-access is enforced by JWT email match.
-- Current policy form uses `(select auth.jwt() ->> 'email')` so Postgres can cache the auth lookup as an initplan instead of re-evaluating it per row.
+- Current policy form routes JWT email lookup through `public.current_auth_email()` and calls it as `(select public.current_auth_email())` so Postgres can cache the auth lookup as an initplan instead of re-evaluating it per row.
 
 ## Anti-Repeat Direction
 - Anti-repeat authority is per-user Bloom filter state.

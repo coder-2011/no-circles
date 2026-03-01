@@ -65,6 +65,15 @@ Versioned SQL history for database schema state.
   - adds `outbound_send_idempotency.issue_variant`
   - backfills existing rows to `daily`
   - separates future `daily` vs `welcome` send identity
+- `db/migrations/0018_brisk_recall.sql`
+  - adds `users.last_reflection_at`
+  - creates `user_email_history` with authenticated self-read policy
+  - persists recent sent/reply evidence for the bi-daily reflection pass
+- `db/migrations/0019_solid_initplan.sql`
+  - creates `public.current_auth_email()`
+  - recreates authenticated self-read/update RLS policies on `users`
+  - recreates authenticated self-read RLS policy on `user_email_history`
+  - removes remaining Supabase initplan linter warnings for JWT-email policy checks
 
 ## Metadata
 - `db/migrations/meta/_journal.json`: migration journal

@@ -134,6 +134,13 @@
       "when": 1772272800000,
       "tag": "0018_brisk_recall",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1772276400000,
+      "tag": "0019_solid_initplan",
+      "breakpoints": true
     }
   ]
 }
