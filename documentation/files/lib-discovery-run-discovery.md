@@ -18,6 +18,7 @@ Optional dependency hook:
 - `linkSelector({ topic, interestMemoryText, discoveryBrief, candidates, alreadySelected }) -> selectedIndex | null` to override per-topic winner ordering before normalization.
   - `alreadySelected` contains progressive `{ topic, title }` context from prior topic selections in the same run.
 - `excerptExtractor({ url, maxCharacters }) -> string | null` to provide custom URL excerpt extraction when enabled.
+- `pageSnapshotExtractor({ url, maxCharacters }) -> { finalUrl, status, contentType, html, excerpt } | null` to provide one-shot page fetch + paywall-aware extraction when enabled.
 - `queryBuilder({ topic, interestMemoryText, discoveryBrief, attempt }) -> string` to generate one creative topic query before deterministic recency append.
 
 ## Core Behavior
@@ -30,7 +31,10 @@ Optional dependency hook:
    - Sonar system prompt requires strict line format: `[TITLE] || https://...`.
    - malformed lines are ignored during parse.
 5. Optional URL excerpt stage (`requireUrlExcerpt`):
+   - prefilters obvious paywalled URLs using the vendored BPC domain corpus plus premium-path hints
    - fetches local excerpt (default 1500 chars) per candidate URL
+   - inspects fetched HTML for paywall structured data, vendor markers, and paywall copy
+   - drops candidates when paywall score crosses the block threshold
    - drops candidates when excerpt extraction fails
    - drops candidates when excerpt is navigation-heavy or not-found/metadata-like
 6. Apply `includeCandidate` gating before Haiku selection so selector input excludes pre-filtered URLs (for example per-user Bloom repeat hits).
@@ -90,6 +94,7 @@ Default `perTopicResults` is `7` (attempts 2+ increase by `+2` each).
 - `EXA_TOPIC_FAILURE:<topic>:<reason>` (legacy code preserved; includes Sonar failures)
 - `TOPIC_SELECTOR_FAILURE:<topic>:<reason>`
 - `CANDIDATE_EXTRACTION_FAILED:<topic>:<url>`
+- `CANDIDATE_PAYWALL_FILTERED:<topic>:<url>[:<reason,...>]`
 - `CANDIDATE_LOW_SIGNAL_EXCERPT:<topic>:<url>`
 - `TOPIC_NO_EXTRACTED_CANDIDATES:<topic>`
 - `TOPIC_NO_SELECTOR_ELIGIBLE_CANDIDATES:<topic>`
@@ -103,3 +108,4 @@ Default `perTopicResults` is `7` (attempts 2+ increase by `+2` each).
 - `INSUFFICIENT_SERENDIPITY_ALLOCATION:<actual>/<target>`
 - `BACKFILLED_FROM_QUALITY_POOL_<n>`
 - `CANDIDATE_FILTERED_<n>`
+- `PAYWALL_FILTERED_<n>`

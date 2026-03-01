@@ -1,7 +1,8 @@
+import { assessPaywallRisk, filterLikelyPaywalledSearchResults } from "@/lib/discovery/paywall-filter";
 import { selectBestTopicLink } from "@/lib/discovery/haiku-link-selector";
 import { buildHaikuQuery } from "@/lib/discovery/haiku-query-builder";
 import { searchSonar } from "@/lib/discovery/sonar-client";
-import { fetchUrlExcerpt } from "@/lib/discovery/url-excerpt";
+import { fetchUrlExcerpt, fetchUrlSnapshot, type UrlSnapshot } from "@/lib/discovery/url-excerpt";
 import { logInfo } from "@/lib/observability/log";
 import {
   buildDiscoveryTopics,
@@ -164,6 +165,22 @@ function backfillFromQualityPool(args: {
   return filled;
 }
 
+function toFallbackSnapshot(args: { url: string; excerpt: string | null }): UrlSnapshot | null {
+  if (!args.excerpt) return null;
+  return {
+    finalUrl: args.url,
+    status: 200,
+    contentType: "text/html",
+    html: null,
+    excerpt: args.excerpt
+  };
+}
+
+function formatPaywallWarning(topic: string, url: string, reasons: string[]): string {
+  const detail = reasons.filter(Boolean).join(",");
+  return detail ? `CANDIDATE_PAYWALL_FILTERED:${topic}:${url}:${detail}` : `CANDIDATE_PAYWALL_FILTERED:${topic}:${url}`;
+}
+
 export async function runDiscovery(
   input: DiscoveryRunInput,
   deps: {
@@ -177,6 +194,7 @@ export async function runDiscovery(
       alreadySelected: Array<{ topic: string; title: string }>;
     }) => Promise<number | null>;
     excerptExtractor?: (args: { url: string; maxCharacters: number }) => Promise<string | null>;
+    pageSnapshotExtractor?: (args: { url: string; maxCharacters: number }) => Promise<UrlSnapshot | null>;
     queryBuilder?: (args: {
       topic: string;
       interestMemoryText: string;
@@ -195,6 +213,15 @@ export async function runDiscovery(
   const includeCandidate = deps.includeCandidate ?? (() => true);
   const linkSelector = deps.linkSelector ?? selectBestTopicLink;
   const excerptExtractor = deps.excerptExtractor ?? fetchUrlExcerpt;
+  const pageSnapshotExtractor =
+    deps.pageSnapshotExtractor ??
+    (deps.excerptExtractor
+      ? async (args: { url: string; maxCharacters: number }) =>
+          toFallbackSnapshot({
+            url: args.url,
+            excerpt: await excerptExtractor(args)
+          })
+      : fetchUrlSnapshot);
   const queryBuilder = deps.queryBuilder ?? buildHaikuQuery;
 
   const topicPlan = await buildDiscoveryTopics({
@@ -215,6 +242,7 @@ export async function runDiscovery(
 
   const aggregateCandidates: DiscoveryCandidate[] = [];
   let candidateFilterExcludedCount = 0;
+  let paywallFilteredCount = 0;
   let attemptsUsed = 0;
   let earlyStopped = false;
   const alreadySelected: Array<{ topic: string; title: string }> = [];
@@ -263,29 +291,55 @@ export async function runDiscovery(
 
       try {
         const rawResults = await exaSearch({ query, numResults: perTopicResults });
-        let selectorCandidates: ExaSearchResult[] = rawResults;
+        const prefilteredPaywall = filterLikelyPaywalledSearchResults(rawResults);
+        let selectorCandidates: ExaSearchResult[] = prefilteredPaywall.kept;
+
+        if (prefilteredPaywall.filtered.length > 0) {
+          paywallFilteredCount += prefilteredPaywall.filtered.length;
+          for (const filtered of prefilteredPaywall.filtered) {
+            warnings.push(
+              formatPaywallWarning(topic.topic, filtered.result.url, filtered.assessment.reasons)
+            );
+          }
+        }
 
         if (input.requireUrlExcerpt) {
           const extracted: ExaSearchResult[] = [];
-          for (const rawResult of rawResults) {
-            const excerpt = await excerptExtractor({
+          for (const rawResult of selectorCandidates) {
+            const snapshot = await pageSnapshotExtractor({
               url: rawResult.url,
               maxCharacters: 1500
             });
 
-            if (!excerpt) {
+            if (!snapshot?.excerpt) {
               warnings.push(`CANDIDATE_EXTRACTION_FAILED:${topic.topic}:${rawResult.url}`);
               continue;
             }
-            if (isLowSignalExcerpt(excerpt)) {
+
+            const paywallAssessment = assessPaywallRisk({
+              url: rawResult.url,
+              finalUrl: snapshot.finalUrl,
+              html: snapshot.html,
+              excerpt: snapshot.excerpt
+            });
+            if (paywallAssessment.blocked) {
+              paywallFilteredCount += 1;
+              warnings.push(
+                formatPaywallWarning(topic.topic, snapshot.finalUrl || rawResult.url, paywallAssessment.reasons)
+              );
+              continue;
+            }
+
+            if (isLowSignalExcerpt(snapshot.excerpt)) {
               warnings.push(`CANDIDATE_LOW_SIGNAL_EXCERPT:${topic.topic}:${rawResult.url}`);
               continue;
             }
 
             extracted.push({
               ...rawResult,
-              excerpt,
-              highlights: [excerpt]
+              url: snapshot.finalUrl || rawResult.url,
+              excerpt: snapshot.excerpt,
+              highlights: [snapshot.excerpt]
             });
           }
 
@@ -461,6 +515,9 @@ export async function runDiscovery(
 
   if (candidateFilterExcludedCount > 0) {
     warnings.push(`CANDIDATE_FILTERED_${candidateFilterExcludedCount}`);
+  }
+  if (paywallFilteredCount > 0) {
+    warnings.push(`PAYWALL_FILTERED_${paywallFilteredCount}`);
   }
 
   return {

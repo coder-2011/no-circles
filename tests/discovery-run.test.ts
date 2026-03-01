@@ -43,6 +43,76 @@ describe("runDiscovery", () => {
     expect(result.warnings.some((warning) => warning.startsWith("CANDIDATE_EXTRACTION_FAILED:"))).toBe(true);
   });
 
+  it("drops paywalled results before selector input when the URL is high-confidence paywalled", async () => {
+    const exaSearch = vi.fn(async () => [
+      { url: "https://www.wsj.com/subscribe/article", title: "Blocked", highlights: ["legacy"], score: 0.9 },
+      { url: "https://example.com/kept", title: "Kept", highlights: ["legacy"], score: 0.85 }
+    ]);
+    const linkSelector = vi.fn(async () => 0);
+
+    const result = await runDiscovery(
+      {
+        interestMemoryText: memory,
+        targetCount: 1,
+        maxRetries: 1,
+        perTopicResults: 2,
+        maxTopics: 1
+      },
+      { exaSearch, linkSelector }
+    );
+
+    expect(result.candidates).toHaveLength(1);
+    expect(result.candidates[0]?.canonicalUrl).toBe("https://example.com/kept");
+    expect(linkSelector).not.toHaveBeenCalled();
+    expect(result.warnings.some((warning) => warning.startsWith("CANDIDATE_PAYWALL_FILTERED:"))).toBe(true);
+    expect(result.warnings).toContain("PAYWALL_FILTERED_1");
+  });
+
+  it("drops paywalled pages after excerpt fetch when HTML exposes explicit paywall metadata", async () => {
+    const exaSearch = vi.fn(async () => [
+      { url: "https://example.com/paywalled", title: "Blocked", highlights: ["legacy"], score: 0.9 },
+      { url: "https://example.com/free", title: "Free", highlights: ["legacy"], score: 0.85 }
+    ]);
+    const pageSnapshotExtractor = vi.fn(async ({ url }: { url: string; maxCharacters: number }) => {
+      if (url.includes("paywalled")) {
+        return {
+          finalUrl: url,
+          status: 200,
+          contentType: "text/html",
+          html: '<html><head><script type="application/ld+json">{"@type":"NewsArticle","isAccessibleForFree":false}</script></head><body>Subscribe to continue reading.</body></html>',
+          excerpt: "Subscribe to continue reading."
+        };
+      }
+
+      return {
+        finalUrl: url,
+        status: 200,
+        contentType: "text/html",
+        html: "<html><body><article>Free article body with enough concrete implementation detail to pass extraction gates.</article></body></html>",
+        excerpt: "Free article body with enough concrete implementation detail to pass extraction gates."
+      };
+    });
+    const linkSelector = vi.fn(async () => 0);
+
+    const result = await runDiscovery(
+      {
+        interestMemoryText: memory,
+        targetCount: 1,
+        maxRetries: 1,
+        perTopicResults: 2,
+        maxTopics: 1,
+        requireUrlExcerpt: true
+      },
+      { exaSearch, pageSnapshotExtractor, linkSelector }
+    );
+
+    expect(result.candidates).toHaveLength(1);
+    expect(result.candidates[0]?.canonicalUrl).toBe("https://example.com/free");
+    expect(linkSelector).not.toHaveBeenCalled();
+    expect(result.warnings.some((warning) => warning.startsWith("CANDIDATE_PAYWALL_FILTERED:"))).toBe(true);
+    expect(result.warnings).toContain("PAYWALL_FILTERED_1");
+  });
+
   it("excludes includeCandidate-rejected URLs before Haiku selector input", async () => {
     const exaSearch = vi.fn(async () => [
       { url: "https://example.com/repeated", title: "Repeated", highlights: ["legacy"], score: 0.9 },

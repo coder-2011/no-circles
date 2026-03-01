@@ -4,6 +4,9 @@
 Validates discovery orchestration behavior end-to-end at service level with mocked Exa responses.
 
 ## Coverage
+- URL-excerpt gating, including extraction failures and low-signal rejection
+- Paywall filtering before selector input for high-confidence paywalled URLs
+- Paywall filtering after HTML fetch when explicit paywall metadata is present
 - Deterministic dedupe, one-winner-per-topic primary selection, and backfill-to-target behavior
 - Topic-balanced backfill behavior that prefers underrepresented topics before repeating dominant topics
 - Retry path when topic-winner pool is insufficient before backfill
