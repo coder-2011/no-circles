@@ -43,6 +43,8 @@ Output:
 - avoid list-like or note-style prose
 - require at least two concrete details; otherwise output `summary = INSUFFICIENT_SOURCE_DETAIL`
 - ban counterfactual/future-projection framing unless explicitly present in highlights
-- preserve original title by default; if edited, change at most 8 words and keep named entities
+- make small plain-English adjustments when titles are hard to interpret
+- simplify or clarify academic, jargon-heavy, overly long, or confusing titles without changing the core meaning
+- preserve named entities and the core claim without adding new claims; avoid full rewrites unless necessary for clarity
 - keep the existing word target, but use the available space to make the idea understandable rather than maximizing detail count
 - return strict JSON only (`title`, `summary`)

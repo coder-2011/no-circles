@@ -402,7 +402,7 @@ export async function sendUserNewsletter(
         isSerendipitous: serendipityTopicSet.has(candidate.topic)
       })),
       interestMemoryText: effectiveInterestMemoryText,
-      targetWords: 100
+      targetWords: 75
     });
     sentSummaryCount = summaries.length;
 

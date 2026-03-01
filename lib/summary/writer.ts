@@ -30,7 +30,7 @@ type GenerateSummariesInput = {
   maxWords?: number;
 };
 
-const DEFAULT_TARGET_WORDS = 100;
+const DEFAULT_TARGET_WORDS = 75;
 const DEFAULT_WORD_RANGE_DELTA = 20;
 const MAX_RETRY_COUNT = 1;
 const INSUFFICIENT_SOURCE_DETAIL = "INSUFFICIENT_SOURCE_DETAIL";

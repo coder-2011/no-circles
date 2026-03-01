@@ -9,7 +9,7 @@ Implements PR8 newsletter-item summary generation from discovery output.
 - Single model call per item with one retry max
 - Output final item contract only: `{ title, url, summary }`
 - Enforce fixed URL passthrough from source candidate
-- Apply soft word-range targeting (default target 100 words, default range 80-120)
+- Apply soft word-range targeting (default target 75 words, default range 55-95)
 - Use `PERSONALITY` from user memory as editorial calibration for depth/tone while keeping the default reader assumption as curious generalist
 
 ## Out of Scope

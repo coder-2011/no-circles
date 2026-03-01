@@ -88,7 +88,10 @@ describe("generateNewsletterSummaries", () => {
       "If fewer than 2 concrete details are present, set summary to exactly: INSUFFICIENT_SOURCE_DETAIL."
     );
     expect(requestBody.messages[0]?.content).toContain(
-      "If title edit is required, change at most 8 words, preserve named entities, and do not add new claims."
+      "Title policy: make small adjustments when needed so the title is easy to interpret in plain English."
+    );
+    expect(requestBody.messages[0]?.content).toContain(
+      "If the original title is academic, jargon-heavy, overly long, or confusing out of context, simplify or clarify it without changing the core meaning."
     );
     expect(requestBody.messages[0]?.content).toContain("Reader profile (PERSONALITY):");
     expect(requestBody.messages[0]?.content).toContain("Assume curious generalist, not domain specialist.");
@@ -239,7 +242,7 @@ describe("generateNewsletterSummaries", () => {
     expect(count).toBeLessThanOrEqual(30);
   });
 
-  it("uses default 80-120 word range when no word controls are provided", async () => {
+  it("uses default 55-95 word range when no word controls are provided", async () => {
     process.env.ANTHROPIC_API_KEY = "test-key";
     process.env.ANTHROPIC_SUMMARY_MODEL = "claude-haiku-4-5";
 
@@ -267,8 +270,8 @@ describe("generateNewsletterSummaries", () => {
     });
 
     const count = wordCount(result[0].summary);
-    expect(count).toBeGreaterThanOrEqual(80);
-    expect(count).toBeLessThanOrEqual(120);
+    expect(count).toBeGreaterThanOrEqual(55);
+    expect(count).toBeLessThanOrEqual(95);
   });
 
   it("rejects placeholder-style model summaries and drops the item", async () => {
