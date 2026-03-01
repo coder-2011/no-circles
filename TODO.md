@@ -14,6 +14,7 @@ Rules:
 - [ ] Design, produce, and distribute physical bookmarks as a GTM experiment.
 
 ## Product
+- [x] Evaluate Qwen 3.5 family models against the current OpenRouter recommendation using repo-shaped tasks and publish the result.
 - [x] Build the core personalized newsletter pipeline from onboarding through delivery and reply-driven memory updates.
 - [x] Write a canonical pricing and unit-economics spec for the live pipeline, including per-user monthly cost drivers and reflection-model upgrade costs.
 - [x] Draft a global top-right sharp-corner decorative chrome motif so the visual direction can be reviewed against the logo/system style.
@@ -34,6 +35,8 @@ Rules:
 - [ ] Update the user-facing onboarding pricing copy to match the canonical pricing spec once the desired search/reflection configuration is chosen.
 
 ## Ops
+- [ ] Migrate the text-model stack to the approved OpenRouter Qwen 3.5 routing plan, replacing the current Anthropic-specific LLM call layer while keeping Perplexity/Exa and the rest of the stack scoped separately.
+- [x] Run a temporary Exa-vs-Sonar discovery evaluation with prompt/query variants and publish a clean comparison report for manual quality review.
 - [x] Replace the stale branch-by-branch roadmap with a single markdown task system in root `TODO.md`.
 - [x] Remove the inbound webhook fallback that queried sent-email lookup for received-email IDs and caused repeat `404 Email not found` failures.
 - [x] Reclaim stale outbound send idempotency rows after a timeout so abandoned `processing` locks do not spam cron forever.
