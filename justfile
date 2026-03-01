@@ -1,31 +1,14 @@
 set shell := ["bash", "-cu"]
 
-# Taskwarrior helpers (project-scoped)
-task-next:
-	task rc:.taskrc project:no-circles next
+# TODO.md helpers (project-scoped)
+todo-show:
+	sed -n '1,240p' TODO.md
 
-task-add description:
-	task rc:.taskrc add project:no-circles "{{description}}"
-
-task-add-pri description priority:
-	task rc:.taskrc add project:no-circles priority:{{priority}} "{{description}}"
-
-task-done id:
-	task rc:.taskrc {{id}} done
-
-task-work:
-	task rc:.taskrc project:no-circles all
-
-task-ready:
-	task rc:.taskrc project:no-circles status:pending or status:waiting
-
-task-overdue:
-	task rc:.taskrc project:no-circles overdue
-
-task-sync-prompts:
-	cp .codex/prompts/taskwarrior-daily.md /Users/namanchetwani/.codex/prompts/taskwarrior-daily.md
-	cp .codex/prompts/taskwarrior-planning.md /Users/namanchetwani/.codex/prompts/taskwarrior-planning.md
-	cp .codex/prompts/taskwarrior-review.md /Users/namanchetwani/.codex/prompts/taskwarrior-review.md
+todo-sync-prompts:
+	cp .codex/prompts/todo-daily.md /Users/namanchetwani/.codex/prompts/todo-daily.md
+	cp .codex/prompts/todo-planning.md /Users/namanchetwani/.codex/prompts/todo-planning.md
+	cp .codex/prompts/todo-review.md /Users/namanchetwani/.codex/prompts/todo-review.md
+	cp .codex/prompts/todo-capture.md /Users/namanchetwani/.codex/prompts/todo-capture.md
 
 # Show git status + branch quickly
 repo-state:
@@ -69,6 +52,11 @@ hyper-reply-evolution-live:
 hyper-reflection-live:
 	set -a; [ -f ./.env.local ] && . ./.env.local; set +a; \
 	npx vitest run --config vitest.hyper.config.ts tests/hyper/reflection-live.integration.test.ts
+
+# Run seeded-history caring reflection rewrite hyper test with local env loaded
+hyper-reflection-seeded-history-live:
+	set -a; [ -f ./.env.local ] && . ./.env.local; set +a; \
+	npx vitest run --config vitest.hyper.config.ts tests/hyper/reflection-seeded-history-live.integration.test.ts
 
 # Run query-system hyper live integration test with local env loaded
 hyper-query-system-live:
