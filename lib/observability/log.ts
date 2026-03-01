@@ -1,3 +1,5 @@
+import { notifyAdminOfError } from "@/lib/admin/alerts";
+
 export type LogLevel = "info" | "warn" | "error";
 
 type LogRecord = {
@@ -67,4 +69,17 @@ export function logWarn(subsystem: string, event: string, details?: Record<strin
 
 export function logError(subsystem: string, event: string, details?: Record<string, unknown>): void {
   logEvent({ level: "error", subsystem, event, details });
+  void notifyAdminOfError({ subsystem, event, details }).catch((error) => {
+    console.error(
+      JSON.stringify({
+        ts: new Date().toISOString(),
+        level: "error",
+        subsystem: "admin_alert",
+        event: "notify_failed",
+        source_subsystem: subsystem,
+        source_event: event,
+        error: normalizeValue(error)
+      })
+    );
+  });
 }

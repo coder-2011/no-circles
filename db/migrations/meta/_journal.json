@@ -141,6 +141,13 @@
       "when": 1772276400000,
       "tag": "0019_solid_initplan",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1772283600000,
+      "tag": "0020_alert_signal",
+      "breakpoints": true
     }
   ]
 }

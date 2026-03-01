@@ -25,6 +25,14 @@ where exists (
   where jobname = 'prune-processed-webhooks-daily'
 );
 
+-- Remove old admin monitor schedule if it exists.
+select cron.unschedule('admin-monitor-daily')
+where exists (
+  select 1
+  from cron.job
+  where jobname = 'admin-monitor-daily'
+);
+
 -- Schedule: every minute, call the app cron route (which runs claim + send pipeline).
 select cron.schedule(
   'newsletter-generate-next-every-minute',
@@ -55,5 +63,21 @@ select cron.schedule(
   $$
 );
 
+-- Schedule: daily admin monitoring digest and provider threshold checks.
+select cron.schedule(
+  'admin-monitor-daily',
+  '11 7 * * *',
+  $$
+  select net.http_post(
+    url := 'https://APP_BASE_URL/api/cron/admin-monitor',
+    headers := jsonb_build_object(
+      'authorization', 'Bearer CRON_SECRET_VALUE',
+      'content-type', 'application/json'
+    ),
+    body := '{}'::jsonb
+  );
+  $$
+);
+
 -- Optional check: inspect active jobs.
--- select jobid, jobname, schedule, active, command from cron.job where jobname in ('newsletter-generate-next-every-minute', 'prune-processed-webhooks-daily');
+-- select jobid, jobname, schedule, active, command from cron.job where jobname in ('newsletter-generate-next-every-minute', 'prune-processed-webhooks-daily', 'admin-monitor-daily');

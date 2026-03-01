@@ -88,3 +88,20 @@ export const userEmailHistory = pgTable(
     userKindCreatedAtIdx: index("user_email_history_user_kind_created_at_idx").on(table.userId, table.kind, table.createdAt)
   })
 );
+
+export const adminAlertState = pgTable(
+  "admin_alert_state",
+  {
+    alertKey: text("alert_key").primaryKey(),
+    kind: text("kind").notNull(),
+    lastSentAt: timestamp("last_sent_at", { withTimezone: true }).notNull(),
+    sendCount: integer("send_count").notNull().default(1),
+    lastPayloadHash: text("last_payload_hash"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => ({
+    kindIdx: index("admin_alert_state_kind_idx").on(table.kind),
+    lastSentAtIdx: index("admin_alert_state_last_sent_at_idx").on(table.lastSentAt)
+  })
+);
