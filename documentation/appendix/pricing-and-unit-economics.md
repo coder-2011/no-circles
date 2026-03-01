@@ -35,7 +35,7 @@
 - `.env.local` currently sets only `ANTHROPIC_MEMORY_MODEL="claude-haiku-4-5"`.
 - No separate summary/query/link/quote/reflection overrides are currently set locally.
 - In practice, that means most Anthropic tasks currently fall back to Haiku 4.5 unless deployment env differs.
-- Perplexity search context defaults to `medium` in `lib/discovery/sonar-client.ts`.
+- Perplexity search context now defaults to `low` in `lib/discovery/sonar-client.ts`; the medium-context tables below remain useful as higher-cost comparison scenarios.
 
 ## Official Vendor Pricing Used
 - Anthropic

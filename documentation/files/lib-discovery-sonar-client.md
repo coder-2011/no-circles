@@ -10,7 +10,7 @@ Implements Perplexity Sonar retrieval for discovery topics with strict, parseabl
    - exploratory generation temperature (`1.65`)
    - concise output-contract system prompt that still enforces parseable lines, abstention on weak evidence, and no fabricated links/titles/entities while biasing toward more idea-expanding candidate framing
    - optional `search_domain_filter` from env `PERPLEXITY_SEARCH_DOMAIN_FILTER` (comma-separated)
-   - `web_search_options.search_context_size` from env `PERPLEXITY_SEARCH_CONTEXT_SIZE` (`low|medium|high`, default `medium`)
+   - `web_search_options.search_context_size` from env `PERPLEXITY_SEARCH_CONTEXT_SIZE` (`low|medium|high`, default `low`)
    - user prompt framed as `ACTIVE_INTEREST_TOPIC:` plus topic query.
 3. Parses source metadata first (`search_results`, fallback `citations`) and uses metadata URLs as source-of-truth.
 4. Falls back to parsing strict model text line format only when metadata URLs are absent (compatibility path).

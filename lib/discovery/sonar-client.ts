@@ -5,7 +5,7 @@ const PERPLEXITY_CHAT_COMPLETIONS_URL = "https://api.perplexity.ai/chat/completi
 const DEFAULT_SONAR_MODEL = "sonar";
 const DEFAULT_SONAR_TEMPERATURE = 1.65;
 const MAX_SONAR_RESULTS = 10;
-const DEFAULT_SEARCH_CONTEXT_SIZE = "medium";
+const DEFAULT_SEARCH_CONTEXT_SIZE = "low";
 
 function normalizeLine(value: string): string {
   return value.replace(/\s+/g, " ").trim();
@@ -173,7 +173,7 @@ function resolveSearchContextSize(): "low" | "medium" | "high" {
     | "low"
     | "medium"
     | "high";
-  return value === "low" || value === "high" ? value : "medium";
+  return value === "medium" || value === "high" ? value : "low";
 }
 
 export const searchSonar: ExaSearchFn = async ({ query, numResults }) => {

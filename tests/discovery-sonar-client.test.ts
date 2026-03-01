@@ -187,7 +187,7 @@ describe("searchSonar", () => {
     await expect(searchSonar({ query: "x", numResults: 3 })).rejects.toThrow("MISSING_PERPLEXITY_API_KEY");
   });
 
-  it("uses medium search context when configured value is invalid", async () => {
+  it("uses low search context when configured value is invalid", async () => {
     process.env.PERPLEXITY_API_KEY = "test-key";
     process.env.PERPLEXITY_SEARCH_CONTEXT_SIZE = "invalid";
     process.env.DISCOVERY_SEARCH_BLOCKLIST_SUBSCRIPTIONS = "https://example.com/empty-blocklist.txt";
@@ -212,6 +212,6 @@ describe("searchSonar", () => {
     const requestBody = JSON.parse(String(requestInit.body)) as {
       web_search_options?: { search_context_size?: string };
     };
-    expect(requestBody.web_search_options?.search_context_size).toBe("medium");
+    expect(requestBody.web_search_options?.search_context_size).toBe("low");
   });
 });
