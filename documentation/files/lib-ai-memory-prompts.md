@@ -36,3 +36,6 @@ Contains memory prompt builders for onboarding formatting and reply-driven memor
   - returns strict JSON `decision` (`no_change` or `rewrite`)
   - emits a small ephemeral `discoveryBrief`
   - only rewrites memory when recent email evidence clearly justifies it
+  - now frames rewrites as mid-sized section/bullet cleanup passes rather than either tiny edits or unnecessary full paraphrases
+  - now explicitly assigns cognitive archetypes/style filters to `PERSONALITY` and subject coverage areas to `ACTIVE_INTERESTS`
+  - now tells the model to use rewrites to merge redundancy and clean section placement

@@ -9,7 +9,8 @@ export type HyperLogGroup =
   | "reply-evolution"
   | "query-system"
   | "serendipity"
-  | "reflection-live";
+  | "reflection-live"
+  | "reflection-seeded-history";
 
 export async function writeHyperLog(args: {
   group: HyperLogGroup;

@@ -167,6 +167,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/tests-hyper-full-system-live-integration.md`
 - `files/tests-hyper-reply-evolution-live-integration.md`
 - `files/tests-hyper-reflection-live-integration.md`
+- `files/tests-hyper-reflection-seeded-history-live-integration.md`
 - `files/tests-hyper-query-system-live-integration.md`
 - `files/tests-hyper-serendipity-live-integration.md`
 - `files/lib-feedback-click-token.md`

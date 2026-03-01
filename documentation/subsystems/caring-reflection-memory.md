@@ -97,6 +97,7 @@ Only `memoryText` persists. `discoveryBrief` is ephemeral and applies only to th
 3. If due, it loads recent email evidence from `user_email_history`.
 4. It runs the reflection prompt.
 5. If the model returns `rewrite`, the rewritten memory is validated against canonical memory rules.
+   - prompt guidance now aims for targeted section/bullet rewrites and cleanup, not all-or-nothing paraphrasing
 6. The pipeline persists:
    - `users.last_reflection_at`
    - optionally updated `users.interest_memory_text`

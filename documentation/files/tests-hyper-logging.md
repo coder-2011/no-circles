@@ -15,3 +15,4 @@ Shared helper for writing hyper integration trace artifacts to disk.
 - `query-system`
 - `serendipity`
 - `reflection-live`
+- `reflection-seeded-history`
