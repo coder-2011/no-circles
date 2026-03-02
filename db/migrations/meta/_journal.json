@@ -148,6 +148,13 @@
       "when": 1772283600000,
       "tag": "0020_alert_signal",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1772456400000,
+      "tag": "0021_guarded_alerts",
+      "breakpoints": true
     }
   ]
 }

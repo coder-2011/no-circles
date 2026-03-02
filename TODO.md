@@ -40,6 +40,7 @@ Rules:
 ## Ops
 - [x] Research reliable paywalled-site detection signals and design a script to filter them from discovery results.
 - [x] Implement layered paywall filtering in discovery using a vendored BPC domain corpus plus page-level heuristics.
+- [x] Set RLS policies for the new table.
 - [x] Publish a clean comparison doc for the latest reply-evolution live run versus the closest previous live run, with fallback context from the nearest successful prior run.
 - [x] Align `.env.local` OpenRouter model routing to the approved non-Qwen-3.5 production map.
 - [x] Validate the OpenRouter Qwen migration against the full hyper Vitest configuration and fix any regressions in live model routing or hyper test assumptions.

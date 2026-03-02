@@ -56,6 +56,7 @@ Declares Drizzle table definitions and DB constraints for V1 minimal persistence
 - `last_payload_hash` text nullable
 - `created_at` timestamptz not null default `now()`
 - `updated_at` timestamptz not null default `now()`
+- RLS: enabled; `service_role` has full access, no authenticated-user policy
 
 ## Indexes and Constraints
 - check constraint: `users_sent_url_bloom_bits_length_check` bounds `users.sent_url_bloom_bits` payload length

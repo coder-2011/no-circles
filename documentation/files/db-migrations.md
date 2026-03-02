@@ -78,6 +78,10 @@ Versioned SQL history for database schema state.
   - creates `admin_alert_state`
   - stores only admin alert dedupe state (`alert_key`, `kind`, last send timestamp, send count, payload hash)
   - supports admin error forwarding, threshold alerts, and once-daily digest suppression without adding analytics history tables
+- `db/migrations/0021_guarded_alerts.sql`
+  - enables RLS on `admin_alert_state`
+  - grants `service_role` full access under RLS
+  - keeps the table internal to server-side admin alert dedupe/cooldown logic
 
 ## Metadata
 - `db/migrations/meta/_journal.json`: migration journal
