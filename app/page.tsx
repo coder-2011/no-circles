@@ -329,9 +329,8 @@ export default function HomePage() {
             <p className="home-page__kicker">Overview</p>
             <h2 className="home-page__section-title">A cleaner way to follow your real interests.</h2>
             <p className="home-page__section-copy">
-              No-Circles sends a daily issue built from your evolving interests, not from a fixed feed. The product is
-              a compact stack of systems for memory, discovery, grounding, delivery, and feedback, so each issue can
-              stay fresh without drifting into generic AI sludge.
+              No-Circles delivers 10 personalized long-form reads based on your current interests. Reply to the
+              email, and tommorow&apos;s issue adjusts
             </p>
           </section>
           <section className="home-page__panel home-page__flow" id="flow">
