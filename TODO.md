@@ -14,10 +14,12 @@ Rules:
 - [ ] Design, produce, and distribute physical bookmarks as a GTM experiment.
 
 ## Product
+- [x] Widen the newsletter email layout on phones without changing the desktop presentation or touching the cron pipeline.
 - [x] Create a screenshot-inspired lilac-parchment newsletter theme preview in `reports/` for review before production theme integration.
 - [x] Evaluate Qwen 3.5 family models against the current OpenRouter recommendation using repo-shaped tasks and publish the result.
 - [x] Lower the default newsletter summary target to 75 words to reduce density without abruptly changing the product feel.
 - [x] Rewrite newsletter title rules so confusing source headlines can be recast for immediate clarity.
+- [x] Update onboarding brain-dump guidance to invite job and broader life context, not just topic requests.
 - [x] Build the core personalized newsletter pipeline from onboarding through delivery and reply-driven memory updates.
 - [x] Write a canonical pricing and unit-economics spec for the live pipeline, including per-user monthly cost drivers and reflection-model upgrade costs.
 - [x] Draft a global top-right sharp-corner decorative chrome motif so the visual direction can be reviewed against the logo/system style.

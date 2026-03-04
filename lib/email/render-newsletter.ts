@@ -339,14 +339,14 @@ export function renderNewsletter(args: RenderNewsletterArgs): RenderedNewsletter
       const feedbackLinks = args.feedbackLinksByItemUrl?.[item.url];
       const feedbackActions = feedbackLinks
         ? [
-            `<div style=\"margin: 10px 0 0;\">`,
-            `<a href=\"${escapeHtml(feedbackLinks.moreLikeThisUrl)}\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"display: inline-block; margin-right: 8px; border: 1px solid ${theme.feedbackMoreBorder}; border-radius: 999px; background: ${theme.feedbackMoreBackground}; color: ${theme.feedbackMoreText}; text-decoration: none; padding: 4px 10px; font-size: 12px;\">More like this</a>`,
-            `<a href=\"${escapeHtml(feedbackLinks.lessLikeThisUrl)}\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"display: inline-block; border: 1px solid ${theme.feedbackLessBorder}; border-radius: 999px; background: ${theme.feedbackLessBackground}; color: ${theme.feedbackLessText}; text-decoration: none; padding: 4px 10px; font-size: 12px;\">Less like this</a>`,
+            `<div class=\"feedback-row\" style=\"margin: 10px 0 0;\">`,
+            `<a class=\"feedback-chip\" href=\"${escapeHtml(feedbackLinks.moreLikeThisUrl)}\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"display: inline-block; margin-right: 8px; border: 1px solid ${theme.feedbackMoreBorder}; border-radius: 999px; background: ${theme.feedbackMoreBackground}; color: ${theme.feedbackMoreText}; text-decoration: none; padding: 4px 10px; font-size: 12px;\">More like this</a>`,
+            `<a class=\"feedback-chip\" href=\"${escapeHtml(feedbackLinks.lessLikeThisUrl)}\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"display: inline-block; border: 1px solid ${theme.feedbackLessBorder}; border-radius: 999px; background: ${theme.feedbackLessBackground}; color: ${theme.feedbackLessText}; text-decoration: none; padding: 4px 10px; font-size: 12px;\">Less like this</a>`,
             `</div>`
           ].join("\n")
         : "";
       return [
-        `<section style=\"margin: 0 0 14px; border: 1px solid ${theme.itemBorder}; background: ${theme.itemBackground}; border-radius: 12px; padding: 14px 16px;\">`,
+        `<section class=\"item-card\" style=\"margin: 0 0 14px; border: 1px solid ${theme.itemBorder}; background: ${theme.itemBackground}; border-radius: 12px; padding: 14px 16px;\">`,
         `<h3 style=\"margin: 0 0 8px; font-size: 19px; line-height: 1.35; font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 600;\">`,
         `<a href=\"${escapeHtml(item.url)}\" style=\"color: ${theme.linkText}; text-decoration: underline; text-decoration-color: ${theme.linkDecoration}; text-decoration-thickness: 2px; text-underline-offset: 4px;\">${index + 1}. ${escapeHtml(item.title)}</a>`,
         `</h3>`,
@@ -377,8 +377,8 @@ export function renderNewsletter(args: RenderNewsletterArgs): RenderedNewsletter
   const quoteHtml = args.quote
     ? [
         `<div style=\"margin: 0 0 14px;\">`,
-        `<p style=\"margin: 0 0 8px; color: ${theme.quoteTitle}; font-size: 26px; line-height: 1.15; font-weight: 700; font-family: 'Segoe Script', 'Lucida Handwriting', 'Apple Chancery', cursive;\">Quote of the Day</p>`,
-        `<blockquote style=\"margin: 0 0 8px; color: ${theme.quoteBody}; font-size: 18px; line-height: 1.55; font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic;\">${escapeHtml(args.quote.text)}</blockquote>`,
+        `<p class=\"quote-title\" style=\"margin: 0 0 8px; color: ${theme.quoteTitle}; font-size: 26px; line-height: 1.15; font-weight: 700; font-family: 'Segoe Script', 'Lucida Handwriting', 'Apple Chancery', cursive;\">Quote of the Day</p>`,
+        `<blockquote class=\"quote-body\" style=\"margin: 0 0 8px; color: ${theme.quoteBody}; font-size: 18px; line-height: 1.55; font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic;\">${escapeHtml(args.quote.text)}</blockquote>`,
         `<p style=\"margin: 0; color: ${theme.quoteAuthor}; font-size: 13px;\">- ${escapeHtml(args.quote.author)}</p>`,
         `</div>`
       ].join("\n")
@@ -387,18 +387,61 @@ export function renderNewsletter(args: RenderNewsletterArgs): RenderedNewsletter
   const quoteText = args.quote ? [`Quote of the Day:`, `"${args.quote.text}"`, `- ${args.quote.author}`, ""].join("\n") : "";
 
   const html = [
-    `<div style=\"font-family: 'Source Sans 3', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: ${theme.outerBackground}; color: ${theme.bodyText}; max-width: 720px; margin: 0 auto; padding: 24px;\">`,
-    `<div style=\"border: 1px solid ${theme.panelBorder}; background: ${theme.panelBackground}; border-radius: 18px; padding: 20px;\">`,
-    `<h2 style=\"margin: 0 0 8px; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 34px; line-height: 1.15; color: ${theme.headingText};\">Hi ${escapeHtml(greetingName)},</h2>`,
+    "<!doctype html>",
+    `<html lang=\"en\">`,
+    `<head>`,
+    `<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />`,
+    `<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />`,
+    `<meta name=\"x-apple-disable-message-reformatting\" />`,
+    `<style>`,
+    `body, table, td, p, h2, h3 { margin: 0; padding: 0; }`,
+    `img { border: 0; outline: none; text-decoration: none; }`,
+    `table { border-collapse: collapse; }`,
+    `body { width: 100% !important; height: 100% !important; background: ${theme.outerBackground}; }`,
+    `@media only screen and (max-width: 600px) {`,
+    `  .email-shell { padding: 12px !important; }`,
+    `  .email-panel { padding: 16px !important; border-radius: 16px !important; }`,
+    `  .item-card { padding: 12px 14px !important; }`,
+    `  .email-title { font-size: 31px !important; line-height: 1.12 !important; }`,
+    `  .quote-title { font-size: 24px !important; }`,
+    `  .quote-body { font-size: 17px !important; }`,
+    `  .reply-cta { font-size: 18px !important; }`,
+    `  .feedback-row { margin-top: 9px !important; }`,
+    `  .feedback-chip { padding: 4px 9px !important; font-size: 12px !important; }`,
+    `}`,
+    `</style>`,
+    `</head>`,
+    `<body style=\"margin: 0; padding: 0; background: ${theme.outerBackground}; color: ${theme.bodyText}; font-family: 'Source Sans 3', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;\">`,
+    `<center style=\"width: 100%; background: ${theme.outerBackground};\">`,
+    `<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"width: 100%; background: ${theme.outerBackground};\">`,
+    `<tr>`,
+    `<td class=\"email-shell\" align=\"center\" style=\"padding: 24px;\">`,
+    `<!--[if mso]>`,
+    `<table role=\"presentation\" width=\"720\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td>`,
+    `<![endif]-->`,
+    `<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"width: 100%; max-width: 720px; margin: 0 auto;\">`,
+    `<tr>`,
+    `<td class=\"email-panel\" style=\"border: 1px solid ${theme.panelBorder}; background: ${theme.panelBackground}; border-radius: 18px; padding: 20px;\">`,
+    `<h2 class=\"email-title\" style=\"margin: 0 0 8px; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 34px; line-height: 1.15; color: ${theme.headingText}; font-weight: 600;\">Hi ${escapeHtml(greetingName)},</h2>`,
     variant === "welcome"
-      ? `<p style=\"line-height: 1.6; color: ${theme.bodyText}; margin: 0 0 14px;\">Here is your first issue with ${itemCount} curated links.</p>`
-      : `<p style=\"line-height: 1.6; color: ${theme.bodyText}; margin: 0 0 14px;\">Here are your ${itemCount} curated links for today.</p>`,
+      ? `<p style=\"line-height: 1.6; color: ${theme.bodyText}; margin: 0 0 14px; font-size: 15px;\">Here is your first issue with ${itemCount} curated links.</p>`
+      : `<p style=\"line-height: 1.6; color: ${theme.bodyText}; margin: 0 0 14px; font-size: 15px;\">Here are your ${itemCount} curated links for today.</p>`,
     htmlItems,
     `<hr style=\"margin: 24px 0; border: 0; border-top: 1px solid ${theme.panelBorder};\"/>`,
     quoteHtml,
-    `<p style=\"color: ${theme.footerText}; font-size: 14px; margin: 0;\"><strong style=\"font-family: 'Cambria Math', Cambria, Georgia, serif; font-size: 20px; color: ${theme.replyAccent};\">Reply with what you want more or less of, and tomorrow's issue will adapt.</strong></p>`,
-    `</div>`,
-    `</div>`
+    `<p style=\"color: ${theme.footerText}; font-size: 14px; margin: 0;\"><strong class=\"reply-cta\" style=\"font-family: 'Cambria Math', Cambria, Georgia, serif; font-size: 20px; color: ${theme.replyAccent};\">Reply with what you want more or less of, and tomorrow's issue will adapt.</strong></p>`,
+    `</td>`,
+    `</tr>`,
+    `</table>`,
+    `<!--[if mso]>`,
+    `</td></tr></table>`,
+    `<![endif]-->`,
+    `</td>`,
+    `</tr>`,
+    `</table>`,
+    `</center>`,
+    `</body>`,
+    `</html>`
   ].join("\n");
 
   const text = [

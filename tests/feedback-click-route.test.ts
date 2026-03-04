@@ -113,6 +113,10 @@ describe("GET /api/feedback/click", () => {
 
     expect(response.status).toBe(200);
     expect(html).toContain("Got it. We will include more content like this.");
+    expect(html).toContain("Continue to article");
+    expect(html).toContain("https://example.com/1");
+    expect(html).toContain("window.history.back()");
+    expect(html).toContain("window.location.replace(returnUrl)");
     expect(reserveWebhookEventMock).toHaveBeenCalledWith("feedback_click", expect.any(String));
     expect(appendRecentFeedbackLinesMock).toHaveBeenCalledWith(
       expect.any(String),
@@ -137,6 +141,8 @@ describe("GET /api/feedback/click", () => {
 
     expect(response.status).toBe(200);
     expect(html).toContain("Feedback already recorded. Thank you.");
+    expect(html).toContain("Read article anyway");
+    expect(html).not.toContain("pointer: fine");
     expect(appendRecentFeedbackLinesMock).not.toHaveBeenCalled();
   });
 

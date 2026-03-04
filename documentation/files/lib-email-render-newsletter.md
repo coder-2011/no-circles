@@ -21,6 +21,7 @@ Renders final newsletter content into subject + HTML + plain text from curated e
 - when `quote` is provided, renders an inline `Quote of the Day` section directly above the reply-adaptation footer line in both HTML and plain text outputs
 - when feedback links are provided, renders per-item in-email actions (`More like this`, `Less like this`) in HTML and includes equivalent link lines in plain text output
 - uses tokenized colors from a curated 10-template registry (`NEWSLETTER_THEME_TEMPLATES`) so every email is a real template, not ad hoc inline color changes
+- uses a table-first email shell with a fluid `width="100%"` outer wrapper, a desktop-capped `720px` inner container, and mobile media-query spacing overrides so phone layouts can widen without changing desktop presentation
 - defaults to a safe baseline template when no template is provided
 - exports `getNewsletterThemeTemplateKeys()` and `pickRandomNewsletterThemeTemplate()` so runtime pipelines can select templates explicitly
 - includes safe greeting fallback when `preferredName` is empty

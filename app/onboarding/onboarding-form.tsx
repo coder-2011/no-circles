@@ -169,7 +169,7 @@ export function OnboardingForm({ controller }: OnboardingFormProps) {
                 Interest brain dump
               </label>
               <p className="mb-2 text-base leading-7 text-[#5E6B54]">
-                Tell us a little bit about yourself. Mention what you want more of, less of, and what kind of insight is useful to you.
+                Tell us a little bit about yourself and who you are. What are you into? What are you curious about?
               </p>
               <textarea
                 autoFocus
