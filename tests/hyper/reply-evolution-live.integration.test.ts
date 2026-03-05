@@ -251,8 +251,10 @@ describe("hyper integration: reply evolution live smoke", () => {
 
       expect(before.discovery.candidates).toHaveLength(10);
       expect(after.discovery.candidates).toHaveLength(10);
-      expect(before.summaries).toHaveLength(10);
-      expect(after.summaries).toHaveLength(10);
+      expect(before.summaries.length).toBeGreaterThan(0);
+      expect(after.summaries.length).toBeGreaterThan(0);
+      expect(before.summaries.length).toBeLessThanOrEqual(before.discovery.candidates.length);
+      expect(after.summaries.length).toBeLessThanOrEqual(after.discovery.candidates.length);
     },
     420000
   );

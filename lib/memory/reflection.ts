@@ -6,6 +6,7 @@ import {
 } from "@/lib/ai/memory-prompts";
 import {
   callAnthropicCompatibleTextModel,
+  readFirstEnv,
   requireFirstEnv
 } from "@/lib/ai/text-model-client";
 import { logInfo, logWarn } from "@/lib/observability/log";
@@ -67,9 +68,11 @@ async function callReflectionModel(prompt: string): Promise<string> {
     ],
     "MISSING_ANTHROPIC_REFLECTION_OR_MEMORY_MODEL"
   );
+  const fallbackModel = readFirstEnv(["ANTHROPIC_REFLECTION_MODEL", "ANTHROPIC_MEMORY_MODEL"]);
 
   return callAnthropicCompatibleTextModel({
     model: modelName,
+    fallbackModel,
     systemPrompt: REFLECTION_MEMORY_SYSTEM_PROMPT,
     userPrompt: prompt,
     maxTokens: 1000,

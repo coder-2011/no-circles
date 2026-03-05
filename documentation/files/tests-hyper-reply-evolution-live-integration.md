@@ -22,6 +22,7 @@ If any required env var is missing, test is auto-skipped.
 8. Repeat discovery + summary with the same strict-first fallback strategy.
 9. Persist before/after traces for side-by-side inspection.
 10. If both strict and relaxed discovery fail for either phase, log the skip reason and exit without failing this live smoke test.
+11. Discovery still targets `10` candidates, but summary output may be smaller because strict summary generation drops low-detail items instead of fabricating fallback summaries; assertions only require non-empty summaries bounded by candidate count.
 
 Runtime knobs:
 - strict discovery: `maxAttempts=1` (legacy alias `maxRetries=1`), `perTopicResults=4`, `requireUrlExcerpt=true`, `targetCount=10`

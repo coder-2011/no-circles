@@ -1,6 +1,7 @@
 import { buildSummaryPrompt, SUMMARY_SYSTEM_PROMPT } from "@/lib/ai/summary-prompts";
 import {
   callAnthropicCompatibleTextModel,
+  readFirstEnv,
   requireFirstEnv
 } from "@/lib/ai/text-model-client";
 import { parseSections } from "@/lib/memory/contract";
@@ -111,9 +112,11 @@ async function callSummaryModel(args: CallSummaryModelArgs): Promise<string> {
     ["OPENROUTER_SUMMARY_MODEL", "OPENROUTER_MEMORY_MODEL", "ANTHROPIC_SUMMARY_MODEL", "ANTHROPIC_MEMORY_MODEL"],
     "MISSING_ANTHROPIC_SUMMARY_OR_MEMORY_MODEL"
   );
+  const fallbackModel = readFirstEnv(["ANTHROPIC_SUMMARY_MODEL", "ANTHROPIC_MEMORY_MODEL"]);
 
   return callAnthropicCompatibleTextModel({
     model: modelName,
+    fallbackModel,
     systemPrompt: args.systemPrompt,
     userPrompt: args.prompt,
     maxTokens: 350,

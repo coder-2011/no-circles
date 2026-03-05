@@ -1,6 +1,7 @@
 import type { ExaSearchResult } from "@/lib/discovery/types";
 import {
   callAnthropicCompatibleTextModel,
+  readFirstEnv,
   requireFirstEnv
 } from "@/lib/ai/text-model-client";
 
@@ -155,6 +156,11 @@ export async function selectBestTopicLink(args: {
     ],
     "MISSING_ANTHROPIC_SELECTOR_MODEL"
   );
+  const fallbackModel = readFirstEnv([
+    "ANTHROPIC_LINK_SELECTOR_MODEL",
+    "ANTHROPIC_SUMMARY_MODEL",
+    "ANTHROPIC_MEMORY_MODEL"
+  ]);
 
   if (args.candidates.length === 0) {
     return null;
@@ -162,6 +168,7 @@ export async function selectBestTopicLink(args: {
 
   const text = await callAnthropicCompatibleTextModel({
     model: modelName,
+    fallbackModel,
     systemPrompt: buildSelectorSystemPrompt(),
     userPrompt: buildSelectorPrompt({
       ...args,

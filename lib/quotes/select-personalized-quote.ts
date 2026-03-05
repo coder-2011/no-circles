@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   callAnthropicCompatibleTextModel,
+  readFirstEnv,
   requireFirstEnv
 } from "@/lib/ai/text-model-client";
 import { buildQuoteSelectionUserPrompt, QUOTE_SELECTION_SYSTEM_PROMPT } from "@/lib/ai/quote-prompts";
@@ -303,9 +304,15 @@ async function selectQuoteIndexWithModel(args: {
     ],
     "MISSING_ANTHROPIC_QUOTE_OR_FALLBACK_MODEL"
   );
+  const fallbackModel = readFirstEnv([
+    "ANTHROPIC_QUOTE_MODEL",
+    "ANTHROPIC_SUMMARY_MODEL",
+    "ANTHROPIC_MEMORY_MODEL"
+  ]);
 
   const text = await callAnthropicCompatibleTextModel({
     model: modelName,
+    fallbackModel,
     systemPrompt: QUOTE_SELECTION_SYSTEM_PROMPT,
     userPrompt: buildQuoteSelectionUserPrompt({
       personalitySection: args.personalitySection,

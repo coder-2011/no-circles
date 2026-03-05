@@ -1,5 +1,6 @@
 import {
   callAnthropicCompatibleTextModel,
+  readFirstEnv,
   requireFirstEnv
 } from "@/lib/ai/text-model-client";
 
@@ -15,9 +16,11 @@ export async function callMemoryModel(args: GenerateMemoryArgs): Promise<string>
     ["OPENROUTER_MEMORY_MODEL", "ANTHROPIC_MEMORY_MODEL"],
     "MISSING_ANTHROPIC_MEMORY_MODEL"
   );
+  const fallbackModel = readFirstEnv(["ANTHROPIC_MEMORY_MODEL"]);
 
   return callAnthropicCompatibleTextModel({
     model: modelName,
+    fallbackModel,
     systemPrompt: args.systemPrompt,
     userPrompt: args.userPrompt,
     maxTokens: 1200,

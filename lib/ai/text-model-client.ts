@@ -7,6 +7,7 @@ type CallTextModelArgs = {
   systemPrompt: string;
   userPrompt: string;
   model: string;
+  fallbackModel?: string;
   maxTokens: number;
   temperature: number;
   missingApiKeyError: string;
@@ -28,12 +29,34 @@ type ProviderConfig =
       headers: Record<string, string>;
     };
 
+type ProviderSet = {
+  primary: ProviderConfig;
+  fallback: ProviderConfig | null;
+};
+
 function trimEnv(name: string): string | undefined {
   const value = process.env[name]?.trim();
   return value ? value : undefined;
 }
 
-function buildProviderConfig(missingApiKeyError: string): ProviderConfig {
+function buildAnthropicProvider(): ProviderConfig | null {
+  const anthropicApiKey = trimEnv("ANTHROPIC_API_KEY");
+  if (!anthropicApiKey) {
+    return null;
+  }
+
+  return {
+    kind: "anthropic",
+    url: ANTHROPIC_MESSAGES_API_URL,
+    headers: {
+      "content-type": "application/json",
+      "x-api-key": anthropicApiKey,
+      "anthropic-version": ANTHROPIC_VERSION
+    }
+  };
+}
+
+function buildProviderSet(missingApiKeyError: string): ProviderSet {
   const openRouterApiKey = trimEnv("OPENROUTER_API_KEY");
   if (openRouterApiKey) {
     const headers: Record<string, string> = {
@@ -50,26 +73,38 @@ function buildProviderConfig(missingApiKeyError: string): ProviderConfig {
     headers["X-Title"] = APP_TITLE;
 
     return {
-      kind: "openrouter",
-      url: OPENROUTER_MESSAGES_API_URL,
-      headers
+      primary: {
+        kind: "openrouter",
+        url: OPENROUTER_MESSAGES_API_URL,
+        headers
+      },
+      fallback: buildAnthropicProvider()
     };
   }
 
-  const anthropicApiKey = trimEnv("ANTHROPIC_API_KEY");
-  if (anthropicApiKey) {
+  const anthropic = buildAnthropicProvider();
+  if (anthropic) {
     return {
-      kind: "anthropic",
-      url: ANTHROPIC_MESSAGES_API_URL,
-      headers: {
-        "content-type": "application/json",
-        "x-api-key": anthropicApiKey,
-        "anthropic-version": ANTHROPIC_VERSION
-      }
+      primary: anthropic,
+      fallback: null
     };
   }
 
   throw new Error(missingApiKeyError);
+}
+
+async function postToProvider(provider: ProviderConfig, args: CallTextModelArgs, modelOverride?: string): Promise<Response> {
+  return fetch(provider.url, {
+    method: "POST",
+    headers: provider.headers,
+    body: JSON.stringify({
+      model: modelOverride ?? args.model,
+      max_tokens: args.maxTokens,
+      temperature: args.temperature,
+      system: args.systemPrompt,
+      messages: [{ role: "user", content: args.userPrompt }]
+    })
+  });
 }
 
 export function readFirstEnv(names: string[]): string | undefined {
@@ -124,18 +159,17 @@ export function extractTextContent(value: unknown, invalidResponseError: string,
 }
 
 export async function callAnthropicCompatibleTextModel(args: CallTextModelArgs): Promise<string> {
-  const provider = buildProviderConfig(args.missingApiKeyError);
-  const response = await fetch(provider.url, {
-    method: "POST",
-    headers: provider.headers,
-    body: JSON.stringify({
-      model: args.model,
-      max_tokens: args.maxTokens,
-      temperature: args.temperature,
-      system: args.systemPrompt,
-      messages: [{ role: "user", content: args.userPrompt }]
-    })
-  });
+  const providers = buildProviderSet(args.missingApiKeyError);
+  let response = await postToProvider(providers.primary, args);
+
+  if (
+    !response.ok &&
+    (response.status === 401 || response.status === 403) &&
+    providers.primary.kind === "openrouter" &&
+    providers.fallback
+  ) {
+    response = await postToProvider(providers.fallback, args, args.fallbackModel);
+  }
 
   if (!response.ok) {
     if ((response.status === 401 || response.status === 403) && args.authErrorCode) {

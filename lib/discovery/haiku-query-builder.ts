@@ -1,5 +1,6 @@
 import {
   callAnthropicCompatibleTextModel,
+  readFirstEnv,
   requireFirstEnv
 } from "@/lib/ai/text-model-client";
 
@@ -95,10 +96,17 @@ export async function buildHaikuQuery(args: {
     ],
     "MISSING_ANTHROPIC_QUERY_BUILDER_MODEL"
   );
+  const fallbackModel = readFirstEnv([
+    "ANTHROPIC_QUERY_BUILDER_MODEL",
+    "ANTHROPIC_LINK_SELECTOR_MODEL",
+    "ANTHROPIC_SUMMARY_MODEL",
+    "ANTHROPIC_MEMORY_MODEL"
+  ]);
 
   const referenceDateUtc = (args.referenceDateUtc ?? new Date()).toISOString();
   const modelText = await callAnthropicCompatibleTextModel({
     model: modelName,
+    fallbackModel,
     systemPrompt: buildSystemPrompt(),
     userPrompt: buildUserPrompt({
       topic: args.topic,

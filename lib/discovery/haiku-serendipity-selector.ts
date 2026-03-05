@@ -1,5 +1,6 @@
 import {
   callAnthropicCompatibleTextModel,
+  readFirstEnv,
   requireFirstEnv
 } from "@/lib/ai/text-model-client";
 
@@ -142,11 +143,18 @@ export async function selectSerendipityTopics(args: {
     ],
     "MISSING_ANTHROPIC_SERENDIPITY_MODEL"
   );
+  const fallbackModel = readFirstEnv([
+    "ANTHROPIC_SERENDIPITY_MODEL",
+    "ANTHROPIC_LINK_SELECTOR_MODEL",
+    "ANTHROPIC_SUMMARY_MODEL",
+    "ANTHROPIC_MEMORY_MODEL"
+  ]);
 
   // No deterministic topic synthesis fallback: caller can continue without serendipity lane.
   try {
     const text = await callAnthropicCompatibleTextModel({
       model: modelName,
+      fallbackModel,
       systemPrompt: buildSystemPrompt(),
       userPrompt: buildPrompt({
         activeTopics: args.activeTopics,
