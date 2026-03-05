@@ -384,16 +384,14 @@ async function callSonnetForPersonalization(lead, research) {
         "No hype, no fake familiarity, no invented facts.",
         "Avoid AI-sounding patterns: no generic startup cliches, no robotic transitions, no obvious template rhythm.",
         "Write like a thoughtful human teen builder: specific, slightly informal, clear, direct, and non-corporate.",
-        "Keep it concise and human: 110-180 words, plain text, no bullets, no emojis.",
+        "Keep it concise and human: 80-130 words, plain text, no bullets, no emojis.",
         "Use available evidence to add a few authentic connection details.",
         "Subject line should be creative, specific, and curiosity-inducing without clickbait.",
         "Prefer unusual but natural phrasing over generic subjects like 'Quick note' or 'Reaching out'.",
         "Body must still communicate all of these points clearly:",
-        "- Naman is a 14-year-old builder in San Ramon.",
-        "- No-Circles helps people break algorithmic bubbles.",
-        "- It sends tangent, intentionally non-news, un-Googlable information.",
-        "- As interests evolve, the daily issue evolves.",
-        "- A sense of purpose on the web has been lost and Naman wants to fix that.",
+        "- Naman is a 14-year-old builder.",
+        "- No-Circles helps people break algorithmic bubbles with niche, tangent information.",
+        "- The message should include a clear, simple reason this is relevant to the recipient.",
         "- Closing is respectful and signed Naman.",
         "Output strict JSON only:",
         "{",
@@ -412,12 +410,10 @@ async function callSonnetForPersonalization(lead, research) {
             "Research evidence:",
             JSON.stringify(research, null, 2),
             "",
-            "Base message (you can adapt wording moderately, but keep intent and key points):",
-            "I’m Naman, a 14-year-old builder in San Ramon. I’ve been [Personalized Connection to their work].",
-            "I’ve been building a project called No-Circles. The goal is to help people break out of their usual algorithmic bubbles to find purposefully niche information.",
-            "Every day, it sends you information tangent to your interests (purposefully, not news), to find you un-Googlable information.",
-            "It is hard enough to find information about things you love, and even harder about things you know little about. As your interests evolve, your daily issue evolves.",
-            "Somewhere along the way, we lost a portion of purpose for the web, and I want to fix that.",
+            "Lean base message (adapt wording, keep intent):",
+            "I’m Naman, a 14-year-old builder. I’ve been [Personalized Connection to their work].",
+            "I’m building No-Circles to help people break out of algorithmic bubbles and find niche, tangent information they wouldn’t usually see.",
+            "If it’s useful, I’d love to send you a short preview and hear what you think.",
             "With deep respect for the clarity you bring to the web,",
             "Naman"
           ].join("\n")
@@ -445,24 +441,20 @@ function enforceCoreMessaging(body) {
   let normalized = String(body ?? "").replace(/\r\n/g, "\n").trim();
   const signature = readEnv("OUTREACH_SIGNATURE_NAME") ?? "Naman";
 
-  if (!/14-year-old builder in San Ramon/i.test(normalized)) {
-    normalized = `I’m Naman, a 14-year-old builder in San Ramon.\n\n${normalized}`.trim();
+  if (!/14-year-old builder/i.test(normalized)) {
+    normalized = `I’m Naman, a 14-year-old builder.\n\n${normalized}`.trim();
   }
 
   if (!/No-Circles/i.test(normalized)) {
-    normalized += "\n\nI’ve been building a project called No-Circles to help people break out of their usual algorithmic bubbles.";
+    normalized += "\n\nI’m building No-Circles to help people break out of algorithmic bubbles.";
   }
 
-  if (!/un-Googlable/i.test(normalized) || !/tangent/i.test(normalized)) {
-    normalized += "\n\nEvery day, it sends tangent, intentionally non-news, un-Googlable information.";
+  if (!/niche/i.test(normalized) && !/tangent/i.test(normalized)) {
+    normalized += "\n\nIt focuses on niche, tangent information you likely would not discover through usual feeds.";
   }
 
-  if (!/interests evolve/i.test(normalized) || !/issue evolves/i.test(normalized)) {
-    normalized += "\n\nAs your interests evolve, your daily issue evolves.";
-  }
-
-  if (!/purpose.*web/i.test(normalized) || !/fix that/i.test(normalized)) {
-    normalized += "\n\nSomewhere along the way, we lost a portion of purpose for the web, and I want to fix that.";
+  if (!/\bpreview\b/i.test(normalized) && !/\bwhat you think\b/i.test(normalized) && !/\bworth sharing\b/i.test(normalized)) {
+    normalized += "\n\nIf helpful, I can send a short preview and get your take.";
   }
 
   if (!new RegExp(`\\b${signature}\\s*$`, "i").test(normalized)) {
@@ -481,23 +473,53 @@ function slugifyFileName(value) {
     .slice(0, 64);
 }
 
-function formatLeadEmailText({ lead, subject, body }) {
+function safeLine(value, fallback = "Unknown") {
+  const text = String(value ?? "").replace(/\s+/g, " ").trim();
+  return text || fallback;
+}
+
+function compactClaims(facts) {
+  if (!Array.isArray(facts)) return "No structured claims captured.";
+  const claims = facts
+    .map((item) => {
+      if (!item || typeof item !== "object") return "";
+      const claim = safeLine(item.claim ?? "", "");
+      return claim;
+    })
+    .filter(Boolean)
+    .slice(0, 3);
+  return claims.length > 0 ? claims.join(" | ") : "No structured claims captured.";
+}
+
+function formatLeadEmailText({ lead, subject, body, identity, research }) {
   const toEmail = lead.email?.trim() ? lead.email.trim() : "[MISSING_EMAIL]";
+  const role = safeLine(research?.role_summary || lead.role, "Unknown role");
+  const creativeFocus = safeLine(research?.creative_focus || lead.creative_domain, "Unknown creative focus");
+  const values = safeLine(research?.fit_reason || research?.connection_tidbit, "No explicit value signal extracted.");
+  const evidence = compactClaims(research?.facts);
+  const profileUrl = safeLine(lead.profile_url || identity?.best_profile_url, "N/A");
+
   return [
     `To: ${toEmail}`,
     `Name: ${lead.full_name || lead.first_name || "Unknown"}`,
+    `Person Snapshot:`,
+    `- What they do: ${role}`,
+    `- Creative focus: ${creativeFocus}`,
+    `- Values signal: ${values}`,
+    `- Evidence: ${evidence}`,
+    `- Profile: ${profileUrl}`,
     `Subject: ${subject}`,
     "",
     body
   ].join("\n");
 }
 
-function writeLeadDraftFile({ draftsDir, index, lead, subject, body }) {
+function writeLeadDraftFile({ draftsDir, index, lead, subject, body, identity, research }) {
   const number = String(index + 1).padStart(3, "0");
   const nameSlug = slugifyFileName(lead.full_name || lead.first_name || "unknown");
   const fileName = `${number}-${nameSlug || "unknown"}.txt`;
   const outputPath = path.join(draftsDir, fileName);
-  fs.writeFileSync(outputPath, formatLeadEmailText({ lead, subject, body }) + "\n");
+  fs.writeFileSync(outputPath, formatLeadEmailText({ lead, subject, body, identity, research }) + "\n");
   return outputPath;
 }
 
@@ -648,7 +670,15 @@ async function main() {
       const personalization = await callSonnetForPersonalization(resolvedLead, research.parsed);
       const subject = String(personalization.subject ?? "").trim() || `Quick note for ${resolvedLead.first_name}`;
       const body = enforceCoreMessaging(personalization.body);
-      const draftFilePath = writeLeadDraftFile({ draftsDir, index: i, lead: resolvedLead, subject, body });
+      const draftFilePath = writeLeadDraftFile({
+        draftsDir,
+        index: i,
+        lead: resolvedLead,
+        subject,
+        body,
+        identity,
+        research: research.parsed
+      });
 
       let smtp = null;
       let status = "ok";

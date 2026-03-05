@@ -18,6 +18,7 @@ Rules:
 - [x] Make outreach agent directly CLI-interactable with one-off `--name` mode and bulk `.txt` names mode.
 - [x] Add numbered per-person `.txt` email outputs under a reports run subfolder for outbound review.
 - [x] Tune outreach drafting prompt to reduce AI-sounding prose and increase subject-line creativity.
+- [x] Remove San Ramon mention from outreach template and include person context/value snapshot in each per-lead txt output.
 
 ## Product
 - [x] Widen the newsletter email layout on phones without changing the desktop presentation or touching the cron pipeline.
@@ -61,3 +62,5 @@ Rules:
 - [x] Ignore obvious automated `noreply` inbound mail before content fetch so operational inbox notices do not trigger webhook noise.
 - [ ] Review the active backlog periodically and prune duplicated or obsolete tasks from `TODO.md`.
 - [ ] Investigate database records for newsletter emails showing an unexpected March 3 issue date and identify whether the source is scheduling, rendering, or timezone interpretation.
+
+- [x] Trim outreach template verbosity and enforce concise core-message guardrails for less bloated draft copy.

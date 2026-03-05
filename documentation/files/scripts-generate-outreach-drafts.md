@@ -48,9 +48,9 @@ Runs a one-shot outreach drafting pipeline:
 ## Personalization Guardrails
 - Allows semi-freeform body generation per lead (moderate rewrite latitude).
 - Instructs Sonnet to avoid AI-sounding prose patterns and prefer natural, specific human phrasing.
-- Requires Sonnet to keep core positioning intact (No-Circles, algorithmic-bubble break, un-Googlable tangent info, evolving interests, web-purpose intent, respectful close).
+- Uses a leaner message contract (No-Circles purpose + niche/tangent value + clear recipient relevance + respectful close).
 - Pushes more creative, specific subject lines (up to 12 words) while avoiding clickbait.
-- Enforces post-generation guardrails in code to append missing core points and normalize signature.
+- Enforces post-generation guardrails in code to avoid missing core points while keeping fallback additions concise.
 - Uses Perplexity-derived evidence first, with citations captured in run report.
 - When lead email/profile URL is missing, script performs an identity-resolution Perplexity pass before research/drafting.
 - If email still cannot be resolved, script still generates output and reports `needs_email` instead of failing the whole run.
@@ -70,7 +70,12 @@ Runs a one-shot outreach drafting pipeline:
 - Always writes per-person numbered `.txt` email drafts to:
   - `reports/outreach-email-files-<timestamp>/`
   - file format: `001-name.txt`, `002-name.txt`, ...
-  - each file includes `To`, `Name`, `Subject`, and full body.
+  - each file includes:
+    - `To`
+    - `Name`
+    - `Person Snapshot` (what they do, creative focus, values signal, evidence claims, profile URL)
+    - `Subject`
+    - full body
 
 ## Failure Modes
 - Missing env -> `MISSING_ENV:*`
