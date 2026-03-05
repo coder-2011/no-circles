@@ -44,6 +44,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `subsystems/personalized-quote-selection.md`
 - `subsystems/ops-hardening-v1.md`
 - `subsystems/caring-reflection-memory.md`
+- `subsystems/outreach-draft-hitl.md`
 
 ## Current File Docs
 
@@ -188,6 +189,7 @@ This folder is the organized, source-of-truth documentation for the personalized
 - `files/tests-feedback-click-token.md`
 - `files/tests-feedback-click-route.md`
 - `files/tests-hyper-quote-selection-live-integration.md`
+- `files/scripts-generate-outreach-drafts.md`
 
 ## Conventions
 

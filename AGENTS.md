@@ -162,6 +162,8 @@ Build a website-first, personalized daily newsletter system that curates 10 high
   - `just reflection-simulation`
   - `just main-loc`
   - `just loc`
+  - `just outreach-name "<name>"`
+  - `just outreach-txt "<path-to-txt>"`
 
 ## tmux
 Use only when persistence/interaction is required (debugger/server).

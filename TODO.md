@@ -12,6 +12,12 @@ Rules:
 - [ ] Define the immediate GTM plan for no-circles, including channel priorities, messaging, and launch sequencing.
 - [ ] Set up and execute the Twitter/X GTM workstream for no-circles.
 - [ ] Design, produce, and distribute physical bookmarks as a GTM experiment.
+- [x] One-shot a human-in-the-loop outreach drafting system that researches creative leads, personalizes a constrained template, and creates Gmail drafts.
+- [x] Relax outreach draft generation from rigid slot-filling to safer semi-freeform personalization while preserving core No-Circles message points.
+- [x] Switch outreach generation transport from Gmail draft API to SMTP with app-password auth and update docs/contracts.
+- [x] Make outreach agent directly CLI-interactable with one-off `--name` mode and bulk `.txt` names mode.
+- [x] Add numbered per-person `.txt` email outputs under a reports run subfolder for outbound review.
+- [x] Tune outreach drafting prompt to reduce AI-sounding prose and increase subject-line creativity.
 
 ## Product
 - [x] Widen the newsletter email layout on phones without changing the desktop presentation or touching the cron pipeline.
@@ -40,6 +46,7 @@ Rules:
 - [ ] Update the user-facing onboarding pricing copy to match the canonical pricing spec once the desired search/reflection configuration is chosen.
 
 ## Ops
+- [x] Fix live model routing so OpenRouter auth failure can fall back cleanly to Anthropic for shared text-model calls.
 - [x] Research reliable paywalled-site detection signals and design a script to filter them from discovery results.
 - [x] Implement layered paywall filtering in discovery using a vendored BPC domain corpus plus page-level heuristics.
 - [x] Set RLS policies for the new table.

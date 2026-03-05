@@ -83,3 +83,13 @@ loc:
 	| rg '\.(ts|tsx|js|jsx|mjs|cjs|css|sql)$' \
 	| while read -r file; do git show "$ref:$file"; done \
 	| wc -l
+
+# Run outreach generator for one person (dry-run by default)
+outreach-name name:
+	set -a; [ -f ./.env.local ] && . ./.env.local; set +a; \
+	node scripts/generate-outreach-drafts.mjs --name "{{name}}" --dry-run
+
+# Run outreach generator from txt list (dry-run by default)
+outreach-txt txt_path:
+	set -a; [ -f ./.env.local ] && . ./.env.local; set +a; \
+	node scripts/generate-outreach-drafts.mjs --txt "{{txt_path}}" --dry-run
